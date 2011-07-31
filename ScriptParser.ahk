@@ -97,9 +97,10 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		Util_Status("Auto-including any functions called from a library...")
 		ilibfile = %A_Temp%\_ilib.ahk
 		FileDelete, "%ilibfile%"
-		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%
+		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%, UseErrorLevel
 		IfExist, %ilibfile%
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir)
+		FileDelete, "%ilibfile%"
 	}
 	
 	if OldWorkingDir
