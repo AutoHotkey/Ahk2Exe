@@ -3,6 +3,7 @@
 
 ReplaceAhkIcon(re, IcoFile, ExeFile)
 {
+	global _EI_HighestIconID
 	static iconID := 159
 	ids := EnumIcons(ExeFile, iconID)
 	if !IsObject(ids)
@@ -18,21 +19,20 @@ ReplaceAhkIcon(re, IcoFile, ExeFile)
 	
 	wCount := NumGet(igh, 4, "UShort")
 	
-	if (wCount > 16 || wCount = 0)
-		return false
-	
 	VarSetCapacity(rsrcIconGroup, rsrcIconGroupSize := 6 + wCount*14)
 	NumPut(NumGet(igh, "Int64"), rsrcIconGroup, "Int64") ; fast copy
 	
 	ige := &rsrcIconGroup + 6
 	
 	; Delete all the images
-	Loop, % ids.wCount
+	Loop, % ids._MaxIndex()
 		DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", ids[A_Index], "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
 	
 	Loop, %wCount%
 	{
 		thisID := ids[A_Index]
+		if !thisID
+			thisID := ++ _EI_HighestIconID
 		
 		f.RawRead(ige+0, 12) ; read all but the offset
 		NumPut(thisID, ige+12, "UShort")
@@ -77,18 +77,13 @@ EnumIcons(ExeFile, iconID)
 	pResDir := pDirHeader + 6
 	
 	wCount := NumGet(pDirHeader+4, "UShort")
-	iconIDs := { wCount: wCount }
+	iconIDs := []
 	
 	Loop, %wCount%
 	{
 		pResDirEntry := pResDir + (A_Index-1)*14
 		iconIDs[A_Index] := NumGet(pResDirEntry+12, "UShort")
 	}
-	
-	; Create extra icon IDs
-	j := _EI_HighestIconID + 1
-	Loop, % 16 - wCount
-		iconIDs[wCount + A_Index] := j ++
 	
 	DllCall("FreeLibrary", "ptr", hModule)
 	return iconIDs
