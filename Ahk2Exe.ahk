@@ -61,7 +61,7 @@ Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Button, x258 y280 w75 h28 +Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
-Gui, Show, w594 h334, Ahk2Exe for AHK_L %A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w594 h334, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
