@@ -247,7 +247,7 @@ helpfile = %A_ScriptDir%\..\AutoHotkey.chm
 IfNotExist, %helpfile%
 	Util_Error("Error: cannot find AutoHotkey help file!")
 
-VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; XHH_AKLINK struct
+VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
 NumPut(ak_size, ak, 0, "UInt")
 name = Ahk2Exe
 NumPut(&name, ak, 8)
