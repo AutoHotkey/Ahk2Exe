@@ -37,10 +37,10 @@ if DEBUG
 	BinFileId := FindBinFile(LastBinFile)
 }
 
-Menu, FileMenu, Add, &Convert`tCtrl+C, Convert
+Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
-Menu, HelpMenu, Add, &Help`tF1, Help
+Menu, HelpMenu, Add, &Help, Help
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
 Menu, MenuBar, Add, &File, :FileMenu
@@ -77,9 +77,6 @@ Gui, Add, Statusbar,, Ready
 Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
-#If GuiHwnd && WinActive("ahk_id " GuiHwnd)
-
-!F4::
 GuiClose:
 ExitApp
 
@@ -107,6 +104,8 @@ FindBinFile(name)
 }
 
 CLIMain:
+Error_ForceExit := true
+
 p := []
 Loop, %0%
 {
@@ -198,7 +197,6 @@ DefaultIco:
 GuiControl,, IcoFile
 return
 
-^c::
 Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
@@ -241,7 +239,6 @@ if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return
 
-F1::
 Help:
 helpfile = %A_ScriptDir%\..\AutoHotkey.chm
 IfNotExist, %helpfile%
@@ -276,7 +273,7 @@ Util_Status(s)
 
 Util_Error(txt, doexit=1)
 {
-	global CLIMode, ExeFile
+	global CLIMode, Error_ForceExit, ExeFile
 	Util_HideHourglass()
 	MsgBox, 16, Ahk2Exe Error, % txt
 	
@@ -286,7 +283,7 @@ Util_Error(txt, doexit=1)
 	Util_Status("Ready")
 	
 	if doexit
-		if !CLIMode
+		if !Error_ForceExit
 			Exit
 		else
 			ExitApp
