@@ -8,6 +8,7 @@
 ;
 
 #NoEnv
+#NoTrayIcon
 #SingleInstance Off
 #Include Compiler.ahk
 SendMode Input
@@ -17,6 +18,7 @@ SendMode Input
 if A_IsUnicode
 	FileEncoding, UTF-8
 
+gosub BuildBinFileList
 gosub LoadSettings
 
 if 0 != 0
@@ -27,8 +29,12 @@ if DEBUG
 	AhkFile = %A_ScriptDir%\hello.ahk
 	ExeFile = %A_ScriptDir%\hello2.exe
 	IcoFile = %A_ScriptDir%\ahkswitch.ico
+	BinFileId = 1
 }else
+{
 	IcoFile = %LastIcon%
+	BinFileId := FindBinFile(LastBinFile)
+}
 
 Menu, FileMenu, Add, &Convert`tCtrl+C, Convert
 Menu, FileMenu, Add
@@ -54,18 +60,43 @@ Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
 Gui, Add, Text, x17 y180, &Destination (.exe file)
 Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h57, Optional Parameters
+Gui, Add, GroupBox, x11 y219 w570 h86, Optional Parameters
 Gui, Add, Text, x18 y245, Custom Icon (.ico file)
 Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
-Gui, Add, Button, x258 y280 w75 h28 +Default gConvert, > &Convert <
+Gui, Add, Text, x18 y274, Base File (.bin)
+Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, Button, x258 y309 w75 h28 +Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
-Gui, Show, w594 h334, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
 ExitApp
+
+BuildBinFileList:
+BinFiles := ["AutoHotkeySC.bin"]
+BinNames = (Default)
+Loop, %A_ScriptDir%\*.bin
+{
+	SplitPath, A_LoopFileFullPath,,,, n
+	if n = AutoHotkeySC
+		continue
+	FileGetVersion, v, %A_LoopFileFullPath%
+	BinFiles._Insert(n ".bin")
+	BinNames .= "|v" v " " n
+}
+return
+
+FindBinFile(name)
+{
+	global BinFiles
+	for k,v in BinFiles
+		if (v = name)
+			return k
+	return 1
+}
 
 CLIMain:
 p := []
@@ -103,6 +134,9 @@ if !AhkFile
 if !IcoFile
 	IcoFile := LastIcon
 
+if !BinFile
+	BinFile := A_ScriptDir "\" LastBinFile
+
 CLIMode := true
 gosub ConvertCLI
 ExitApp
@@ -124,6 +158,7 @@ IcoFile := p2
 return
 
 _ProcessBin:
+CustomBinFile := true
 BinFile := p2
 return
 
@@ -158,6 +193,7 @@ return
 Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
+BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
 AhkCompile(AhkFile, ExeFile, IcoFile, BinFile)
 if !CLIMode
@@ -173,6 +209,7 @@ RegRead, LastScriptDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir
 RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
 RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
 RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
+RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 return
 
 SaveSettings:
@@ -189,6 +226,8 @@ RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
+if !CustomBinFile
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return
 
 About:
@@ -223,7 +262,10 @@ Util_Error(txt, doexit=1)
 	Util_Status("Ready")
 	
 	if doexit
-		Exit
+		if !CLIMode
+			Exit
+		else
+			ExitApp
 }
 
 Util_Info(txt)
