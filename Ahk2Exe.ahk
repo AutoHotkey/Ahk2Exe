@@ -1,10 +1,9 @@
 ;
 ; File encoding:  UTF-8
-; Platform:  Windows XP/Vista/7
-; Author:    A.N.Other <myemail@nowhere.com>
 ;
 ; Script description:
-;	Template script
+;	Ahk2Exe script reimplementation
+;   Version: r2
 ;
 
 #NoEnv
@@ -14,6 +13,8 @@
 SendMode Input
 
 ;DEBUG := true
+
+version = r2
 
 if A_IsUnicode
 	FileEncoding, UTF-8
@@ -44,6 +45,8 @@ Menu, MenuBar, Add, &File, :FileMenu
 Menu, MenuBar, Add, &Help, :HelpMenu
 Gui, Menu, MenuBar
 
+Gui, +LastFound
+GuiHwnd := WinExist("")
 Gui, Add, Pic, x40 y5 +0x801000 vlogo, AutoHotkey_logo.png
 Gui, Add, Text, x287 y34,
 (
@@ -72,6 +75,9 @@ Gui, Add, Statusbar,, Ready
 Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
+#If GuiHwnd && WinActive("ahk_id " GuiHwnd)
+
+!F4::
 GuiClose:
 ExitApp
 
@@ -190,6 +196,7 @@ DefaultIco:
 GuiControl,, IcoFile
 return
 
+^c::
 Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
@@ -230,10 +237,11 @@ if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return
 
+F1::
 About:
 MsgBox, 64, About Ahk2Exe,
 (
-Ahk2Exe - Script to EXE Converter
+Ahk2Exe (%version%) - Script to EXE Converter
 
 Original version:
   Copyright ©1999-2003 Jonathan Bennett & AutoIt Team
