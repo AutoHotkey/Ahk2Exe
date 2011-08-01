@@ -5,7 +5,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	if !IsObject(FileList)
 	{
 		FileList := [AhkScript]
-		ScriptText := "; <COMPILER: " A_AhkVersion ">`n"
+		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
 		
