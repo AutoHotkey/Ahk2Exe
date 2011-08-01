@@ -217,6 +217,8 @@ RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
 RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
 RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
+if LastBinFile =
+	LastBinFile = AutoHotkeySC.bin
 return
 
 SaveSettings:
