@@ -40,7 +40,9 @@ if DEBUG
 Menu, FileMenu, Add, &Convert`tCtrl+C, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
-Menu, HelpMenu, Add, &About`tF1, About
+Menu, HelpMenu, Add, &Help`tF1, Help
+Menu, HelpMenu, Add
+Menu, HelpMenu, Add, &About, About
 Menu, MenuBar, Add, &File, :FileMenu
 Menu, MenuBar, Add, &Help, :HelpMenu
 Gui, Menu, MenuBar
@@ -240,6 +242,18 @@ if !CustomBinFile
 return
 
 F1::
+Help:
+helpfile = %A_ScriptDir%\..\AutoHotkey.chm
+IfNotExist, %helpfile%
+	Util_Error("Error: cannot find AutoHotkey help file!")
+
+VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; XHH_AKLINK struct
+NumPut(ak_size, ak, 0, "UInt")
+name = Ahk2Exe
+NumPut(&name, ak, 8)
+DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", helpfile, "uint", 0x000D, "ptr", &ak) ; 0x000D: HH_KEYWORD_LOOKUP
+return
+
 About:
 MsgBox, 64, About Ahk2Exe,
 (
