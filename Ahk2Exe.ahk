@@ -1,9 +1,9 @@
-;
+﻿;
 ; File encoding:  UTF-8
 ;
 ; Script description:
 ;	Ahk2Exe script reimplementation
-;   Version: r2
+;   Version: r3
 ;
 
 #NoEnv
@@ -14,7 +14,7 @@ SendMode Input
 
 ;DEBUG := true
 
-version = r2
+version = r3
 
 if A_IsUnicode
 	FileEncoding, UTF-8
