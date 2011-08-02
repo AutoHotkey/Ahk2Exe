@@ -49,7 +49,6 @@ Gui, Menu, MenuBar
 
 Gui, +LastFound
 GuiHwnd := WinExist("")
-Gui, Add, Pic, x40 y5 +0x801000 vlogo, AutoHotkey_logo.png
 Gui, Add, Text, x287 y34,
 (
 ©2004-2009 Chris Mallet
@@ -74,11 +73,46 @@ Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Button, x258 y309 w75 h28 +Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
+if !A_IsCompiled
+	Gui, Add, Pic, x40 y5 +0x801000, %A_ScriptDir%\logo.gif
+else
+	gosub AddPicture
 Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
 ExitApp
+
+AddPicture:
+; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
+Gui, Add, Text, x40 y5 +0x80100E hwndhPicCtrl
+
+hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.GIF", "ptr", 10, "ptr")
+sData := DllCall("SizeofResource", "ptr", 0, "ptr", hRSrc, "uint")
+hRes  := DllCall("LoadResource", "ptr", 0, "ptr", hRSrc, "ptr")
+pData := DllCall("LockResource", "ptr", hRes, "ptr")
+hGlob := DllCall("GlobalAlloc", "uint", 2, "uint", sData, "ptr") ; 2=GMEM_MOVEABLE
+pGlob := DllCall("GlobalLock", "ptr", hGlob, "ptr")
+DllCall("msvcrt\memcpy", "ptr", pGlob, "ptr", pData, "uint", sData, "CDecl")
+DllCall("GlobalUnlock", "ptr", hGlob)
+DllCall("ole32\CreateStreamOnHGlobal", "ptr", hGlob, "int", 1, "ptr*", pStream)
+
+hGdip := DllCall("LoadLibrary", "str", "gdiplus")
+VarSetCapacity(si, 16, 0), NumPut(1, si, "UChar")
+DllCall("gdiplus\GdiplusStartup", "ptr*", gdipToken, "ptr", &si, "ptr", 0)
+DllCall("gdiplus\GdipCreateBitmapFromStream", "ptr", pStream, "ptr*", pBitmap)
+DllCall("gdiplus\GdipCreateHBITMAPFromBitmap", "ptr", pBitmap, "ptr*", hBitmap, "uint", 0)
+SendMessage, 0x172, 0, hBitmap,, ahk_id %hPicCtrl% ; 0x172=STM_SETIMAGE, 0=IMAGE_BITMAP
+
+DllCall("gdiplus\GdipDisposeImage", "ptr", pBitmap)
+DllCall("gdiplus\GdiplusShutdown", "ptr", gdipToken)
+DllCall("FreeLibrary", "ptr", hGdip)
+ObjRelease(pStream)
+return
+
+Never:
+FileInstall, logo.gif, NEVER
+return
 
 BuildBinFileList:
 BinFiles := ["AutoHotkeySC.bin"]
