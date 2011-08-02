@@ -1,11 +1,11 @@
-Scripted drop-in replacement for Ahk2Exe
-========================================
+Scripted replacement for Ahk2Exe
+================================
 
 Installation
 ------------
 
 Just copy everything to your AutoHotkey\Compiler folder (make sure to backup the existing Ahk2Exe.exe!)
-The provided Ahk2Exe.exe is a compiled version of Ahk2Exe.ahk.
+The source code to the compiler can be found at https://github.com/fincs/Ahk2Exe.
 
 TODO
 ----
