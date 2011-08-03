@@ -81,6 +81,8 @@ Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Convert
 return
 
 GuiClose:
+Gui, Submit
+gosub SaveSettings
 ExitApp
 
 AddPicture:
@@ -238,10 +240,8 @@ BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
 AhkCompile(AhkFile, ExeFile, IcoFile, BinFile)
 if !CLIMode
-{
 	Util_Info("Conversion complete.")
-	gosub SaveSettings
-}else
+else
 	FileAppend, Successfully compiled: %ExeFile%`n, *
 return
 
