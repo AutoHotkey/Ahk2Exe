@@ -71,7 +71,13 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				
 				IncludeFile := Util_GetFullPath(IncludeFile)
 				
-				AlreadyIncluded := FileList._HasKey(IncludeFile)
+				AlreadyIncluded := false
+				for k,v in FileList
+				if (v = IncludeFile)
+				{
+					AlreadyIncluded := true
+					break
+				}
 				if(IsIncludeAgain || !AlreadyIncluded)
 				{
 					if !AlreadyIncluded
