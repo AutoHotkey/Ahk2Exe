@@ -27,9 +27,9 @@ if 0 != 0
 
 if DEBUG
 {
-	AhkFile = %A_ScriptDir%\hello.ahk
-	ExeFile = %A_ScriptDir%\hello2.exe
-	IcoFile = %A_ScriptDir%\ahkswitch.ico
+	AhkFile = %A_MyDocuments%\Ahk2ExeTest\Main.ahk
+	;ExeFile = %A_ScriptDir%\hello2.exe
+	;IcoFile = %A_ScriptDir%\ahkswitch.ico
 	BinFileId = 1
 }else
 {
