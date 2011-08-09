@@ -27,7 +27,7 @@ if 0 != 0
 
 if DEBUG
 {
-	AhkFile = %A_MyDocuments%\Ahk2ExeTest\Main.ahk
+	AhkFile = %A_MyDocuments%\Ahk2ExeTest\CompileFail.ahk
 	;ExeFile = %A_ScriptDir%\hello2.exe
 	;IcoFile = %A_ScriptDir%\ahkswitch.ico
 	BinFileId = 1
@@ -307,7 +307,14 @@ Util_Status(s)
 
 Util_Error(txt, doexit=1)
 {
-	global CLIMode, Error_ForceExit, ExeFile
+	global CLIMode, Error_ForceExit, ExeFileTmp
+	
+	if ExeFileTmp && FileExist(ExeFileTmp)
+	{
+		FileDelete, %ExeFileTmp%
+		ExeFileTmp =
+	}
+	
 	Util_HideHourglass()
 	MsgBox, 16, Ahk2Exe Error, % txt
 	

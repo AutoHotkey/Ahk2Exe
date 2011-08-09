@@ -3,6 +3,7 @@
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="")
 {
+	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
 		Util_Error("Error: Source file not specified.")
@@ -12,6 +13,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="")
 		ExeFile = %AhkFile_Dir%\%AhkFile_NameNoExt%.exe
 	else
 		ExeFile := Util_GetFullPath(ExeFile)
+	
+	ExeFileTmp := ExeFile
 	
 	if BinFile =
 		BinFile = %A_ScriptDir%\AutoHotkeySC.bin
