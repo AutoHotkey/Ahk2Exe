@@ -14,7 +14,7 @@ SendMode Input
 
 DEBUG := !A_IsCompiled
 
-version = r3
+version = r4
 
 if A_IsUnicode
 	FileEncoding, UTF-8
