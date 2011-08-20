@@ -1,5 +1,5 @@
 
-PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="")
+PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="", Options="")
 {
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
@@ -8,6 +8,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
+		Options := { comm: ";", esc: "``" }
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
@@ -24,22 +25,22 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		{
 			if !contSection
 			{
-				if SubStr(tline, 1, 1) = ";"
+				if StrStartsWith(tline, Options.comm)
 					continue
 				else if tline =
 					continue
-				else if SubStr(tline, 1, 2) = "/*"
+				else if StrStartsWith(tline, "/*")
 				{
 					cmtBlock := true
 					continue
 				}
 			}
-			if SubStr(tline, 1, 1) = "("
+			if StrStartsWith(tline, "(")
 				contSection := true
-			else if SubStr(tline, 1, 1) = ")"
+			else if StrStartsWith(tline, ")")
 				contSection := false
 			
-			tline := RegExReplace(tline, "\s+;.*$", "")
+			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection && RegExMatch(tline, "i)#Include(Again)?\s+(.*)$", o)
 			{
 				IsIncludeAgain := (o1 = "Again")
@@ -82,19 +83,28 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				{
 					if !AlreadyIncluded
 						FileList._Insert(IncludeFile)
-					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir)
+					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options)
 				}
 			}else if !contSection && RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*,", o) ; TODO: implement `, detection
 			{
 				if o1 ~= "[^``]%"
 					Util_Error("Error: Invalid ""FileInstall"" syntax found. ")
-				StringReplace, o1, o1, ```%, `%, All
-				StringReplace, o1, o1, ```,, `,, All
+				_ := Options.esc
+				StringReplace, o1, o1, %_%`%, `%, All
+				StringReplace, o1, o1, %_%`,, `,, All
 				ExtraFiles._Insert(o1)
 				ScriptText .= tline "`n"
-			}else
+			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
+				Options.comm := o1, ScriptText .= tline "`n"
+			else if !contSection && RegExMatch(tline, "i)^#EscapeChar\s+(.+)$", o)
+				Options.esc := o1, ScriptText .= tline "`n"
+			else if !contSection && RegExMatch(tline, "i)^#DerefChar\s+(.+)$", o)
+				Util_Error("Error: #DerefChar is not supported.")
+			else if !contSection && RegExMatch(tline, "i)^#Delimiter\s+(.+)$", o)
+				Util_Error("Error: #Delimiter is not supported.")
+			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
-		}else if SubStr(tline, 1, 2) = "*/"
+		}else if StrStartsWith(tline, "*/")
 			cmtBlock := false
 	}
 	
@@ -105,7 +115,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		FileDelete, %ilibfile%
 		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%, UseErrorLevel
 		IfExist, %ilibfile%
-			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir)
+			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
 		FileDelete, %ilibfile%
 	}
 	
@@ -133,4 +143,17 @@ FindLibraryFile(name, ScriptDir)
 		IfExist, %file%
 			return file
 	}
+}
+
+StrStartsWith(ByRef v, ByRef w)
+{
+	return SubStr(v, 1, StrLen(w)) = w
+}
+
+RegExEscape(t)
+{
+	static _ := "\.*?+[{|()^$"
+	Loop, Parse, _
+		StringReplace, t, t, %A_LoopField%, \%A_LoopField%, All
+	return t
 }
