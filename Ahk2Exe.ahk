@@ -12,7 +12,7 @@
 #Include Compiler.ahk
 SendMode Input
 
-;DEBUG := true
+DEBUG := !A_IsCompiled
 
 version = r3
 
@@ -27,10 +27,10 @@ if 0 != 0
 
 if DEBUG
 {
-	AhkFile = %A_MyDocuments%\Ahk2ExeTest\CompileFail.ahk
+	AhkFile = %A_MyDocuments%\Ahk2ExeTest\SyntaxDirectives.ahk
 	;ExeFile = %A_ScriptDir%\hello2.exe
 	;IcoFile = %A_ScriptDir%\ahkswitch.ico
-	BinFileId = 1
+	;BinFileId = 1
 }else
 {
 	IcoFile = %LastIcon%
