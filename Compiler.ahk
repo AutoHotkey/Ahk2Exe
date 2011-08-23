@@ -73,8 +73,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="")
 	for each,file in ExtraFiles
 	{
 		Util_Status("Compressing and adding: " file)
-		SplitPath, file, resname
-		StringUpper, resname, resname
+		StringUpper, resname, file
 		
 		IfNotExist, %file%
 			goto _FailEnd2
