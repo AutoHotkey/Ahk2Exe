@@ -68,11 +68,13 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="")
 	          , "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
 		goto _FailEnd
 	
+	oldWD := A_WorkingDir
+	SetWorkingDir, %ScriptDir%
 	for each,file in ExtraFiles
 	{
 		Util_Status("Compressing and adding: " file)
-		StringUpper, resname, file
-		file := ScriptDir "\" file
+		SplitPath, file, resname
+		StringUpper, resname, resname
 		
 		IfNotExist, %file%
 			goto _FailEnd2
@@ -86,6 +88,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="")
 			goto _FailEnd2
 		VarSetCapacity(filedata, 0)
 	}
+	SetWorkingDir, %oldWD%
 	
 	gosub _EndUpdateResource
 	return
