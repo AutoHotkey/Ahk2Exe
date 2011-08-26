@@ -57,6 +57,7 @@ ReplaceAhkIcon(re, IcoFile, ExeFile)
 EnumIcons(ExeFile, iconID)
 {
 	; RT_GROUP_ICON = 14
+	; RT_ICON = 3
 	global _EI_HighestIconID
 	static pEnumFunc := RegisterCallback("EnumIcons_Enum")
 	
@@ -65,7 +66,7 @@ EnumIcons(ExeFile, iconID)
 		return
 	
 	_EI_HighestIconID := 0
-	if DllCall("EnumResourceNames", "ptr", hModule, "ptr", 14, "ptr", pEnumFunc, "uint", 0) = 0
+	if DllCall("EnumResourceNames", "ptr", hModule, "ptr", 3, "ptr", pEnumFunc, "uint", 0) = 0
 	{
 		DllCall("FreeLibrary", "ptr", hModule)
 		return
@@ -91,23 +92,8 @@ EnumIcons(ExeFile, iconID)
 
 EnumIcons_Enum(hModule, type, name, lParam)
 {
-	; RT_ICON = 3
 	global _EI_HighestIconID
-	
-	hRsrc := DllCall("FindResource", "ptr", hModule, "ptr", name, "ptr", 14, "ptr")
-	hMem := DllCall("LoadResource", "ptr", hModule, "ptr", hRsrc, "ptr")
-	pDirHeader := DllCall("LockResource", "ptr", hMem, "ptr")
-	pResDir := pDirHeader + 6
-	
-	Loop, % NumGet(pDirHeader+4, "UShort")
-	{
-		pResDirEntry := pResDir + (A_Index-1)*14
-		
-		wRsrcID := NumGet(pResDirEntry+12, "UShort")
-		
-		if (wRsrcID > _EI_HighestIconID)
-			_EI_HighestIconID := wRsrcID
-	}
-	
+	if (name < 0x10000) && name > _EI_HighestIconID
+		_EI_HighestIconID := name
 	return 1
 }
