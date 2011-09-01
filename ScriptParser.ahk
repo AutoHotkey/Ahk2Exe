@@ -1,5 +1,5 @@
 
-PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="", Options="")
+PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="", Options="", iOption=0)
 {
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
@@ -15,7 +15,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	}
 	
 	IfNotExist, %AhkScript%
-		Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
+		if !iOption
+			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
+		else return
 	
 	cmtBlock := false, contSection := false
 	Loop, Read, %AhkScript%
@@ -83,7 +85,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				{
 					if !AlreadyIncluded
 						FileList._Insert(IncludeFile)
-					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options)
+					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
 			}else if !contSection && RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*,", o) ; TODO: implement `, detection
 			{
