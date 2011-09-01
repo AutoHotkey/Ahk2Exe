@@ -27,7 +27,7 @@ if 0 != 0
 
 if DEBUG
 {
-	AhkFile = %A_MyDocuments%\Ahk2ExeTest\SyntaxDirectives.ahk
+	AhkFile = %A_MyDocuments%\Ahk2ExeTest\Main.ahk
 	;ExeFile = %A_ScriptDir%\hello2.exe
 	;IcoFile = %A_ScriptDir%\ahkswitch.ico
 	;BinFileId = 1
@@ -84,6 +84,12 @@ GuiClose:
 Gui, Submit
 gosub SaveSettings
 ExitApp
+
+GuiDropFiles:
+if A_EventInfo > 2
+	Util_Error("You cannot drop more than one file into this window!")
+GuiControl,, AhkFile, %A_GuiEvent%
+return
 
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
