@@ -64,20 +64,21 @@ Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
 Gui, Add, Text, x17 y180, &Destination (.exe file)
 Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h86, Optional Parameters
+Gui, Add, GroupBox, x11 y219 w570 h106, Optional Parameters
 Gui, Add, Text, x18 y245, Custom Icon (.ico file)
 Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
-Gui, Add, Button, x258 y309 w75 h28 +Default gConvert, > &Convert <
+Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
+Gui, Add, Button, x258 y329 w75 h28 +Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
 if !A_IsCompiled
 	Gui, Add, Pic, x40 y5 +0x801000, %A_ScriptDir%\logo.gif
 else
 	gosub AddPicture
-Gui, Show, w594 h363, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w594 h383, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
@@ -164,7 +165,7 @@ Loop, % p._MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress
 		goto BadParams
 	
 	if p1 = /pass
@@ -211,6 +212,10 @@ CustomBinFile := true
 BinFile := p2
 return
 
+_ProcessMPRESS:
+UseMPRESS := p2
+return
+
 BrowseAhk:
 Gui, +OwnDialogs
 FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
@@ -244,7 +249,7 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -257,8 +262,11 @@ RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
 RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
 RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
+RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
 if LastBinFile =
 	LastBinFile = AutoHotkeySC.bin
+if LastUseMPRESS
+	LastUseMPRESS := true
 return
 
 SaveSettings:
@@ -275,6 +283,7 @@ RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
 if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return

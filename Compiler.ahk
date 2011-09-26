@@ -1,7 +1,7 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="")
+AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="")
 {
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
@@ -27,7 +27,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="")
 	
 	BundleAhkScript(ExeFile, AhkFile, CustomIcon)
 	
-	IfExist, %A_ScriptDir%\mpress.exe
+	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
 	{
 		Util_Status("Compressing final executable...")
 		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
