@@ -27,7 +27,7 @@ if DEBUG
 	AhkFile = %A_MyDocuments%\Ahk2ExeTest\Main.ahk
 	;ExeFile = %A_ScriptDir%\hello2.exe
 	;IcoFile = %A_ScriptDir%\ahkswitch.ico
-	;BinFileId = 1
+	BinFileId := FindBinFile(LastBinFile)
 }else
 {
 	IcoFile = %LastIcon%
