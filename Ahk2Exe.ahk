@@ -3,7 +3,6 @@
 ;
 ; Script description:
 ;	Ahk2Exe script reimplementation
-;   Version: r3
 ;
 
 #NoEnv
@@ -13,8 +12,6 @@
 SendMode Input
 
 DEBUG := !A_IsCompiled
-
-version = r4
 
 if A_IsUnicode
 	FileEncoding, UTF-8
@@ -303,7 +300,7 @@ return
 About:
 MsgBox, 64, About Ahk2Exe,
 (
-Ahk2Exe (%version%) - Script to EXE Converter
+Ahk2Exe - Script to EXE Converter
 
 Original version:
   Copyright ©1999-2003 Jonathan Bennett & AutoIt Team
