@@ -184,6 +184,9 @@ if !IcoFile
 if !BinFile
 	BinFile := A_ScriptDir "\" LastBinFile
 
+if !UseMPRESS
+	UseMPRESS := LastUseMPRESS
+
 CLIMode := true
 gosub ConvertCLI
 ExitApp
