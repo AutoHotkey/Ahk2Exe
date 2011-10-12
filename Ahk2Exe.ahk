@@ -184,7 +184,7 @@ if !IcoFile
 if !BinFile
 	BinFile := A_ScriptDir "\" LastBinFile
 
-if !UseMPRESS
+if UseMPRESS =
 	UseMPRESS := LastUseMPRESS
 
 CLIMode := true
