@@ -1,13 +1,15 @@
-﻿;
+;
 ; File encoding:  UTF-8
 ;
 ; Script description:
-;	Ahk2Exe script reimplementation
+;	Ahk2Exe - AutoHotkey Script Compiler
+;	Written by fincs - Interface based on the original Ahk2Exe
 ;
 
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
+#Include %A_ScriptDir%
 #Include Compiler.ahk
 SendMode Input
 
@@ -22,17 +24,10 @@ gosub LoadSettings
 if 0 != 0
 	goto CLIMain
 
-if DEBUG
-{
-	AhkFile = %A_MyDocuments%\Ahk2ExeTest\Main.ahk
-	;ExeFile = %A_ScriptDir%\hello2.exe
-	;IcoFile = %A_ScriptDir%\ahkswitch.ico
-	BinFileId := FindBinFile(LastBinFile)
-}else
-{
-	IcoFile = %LastIcon%
-	BinFileId := FindBinFile(LastBinFile)
-}
+IcoFile = %LastIcon%
+BinFileId := FindBinFile(LastBinFile)
+
+#include *i __debug.ahk
 
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
@@ -50,8 +45,9 @@ Gui, Add, Text, x287 y34,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
-©2011 fincs
+©2011-2012 fincs
 http://www.autohotkey.com
+Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
 Gui, Add, GroupBox, x11 y124 w570 h86, Required Parameters
@@ -75,7 +71,7 @@ if !A_IsCompiled
 	Gui, Add, Pic, x40 y5 +0x801000, %A_ScriptDir%\logo.gif
 else
 	gosub AddPicture
-Gui, Show, w594 h383, Ahk2Exe for AHK_L v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
@@ -311,7 +307,7 @@ Original version:
   Copyright ©2008-2011 Steve Gray (Lexikos)
 
 Script rewrite:
-  Copyright ©2011 fincs
+  Copyright ©2011-2012 fincs
 )
 return
 
