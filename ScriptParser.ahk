@@ -115,12 +115,14 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	{
 		Util_Status("Auto-including any functions called from a library...")
 		ilibfile = %A_Temp%\_ilib.ahk
-		FileDelete, %ilibfile%
+		IfExist, %ilibfile%, FileDelete, %ilibfile%
 		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		RunWait, "%AhkPath%" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%, UseErrorLevel
 		IfExist, %ilibfile%
+		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
-		FileDelete, %ilibfile%
+			FileDelete, %ilibfile%
+		}
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
 	
