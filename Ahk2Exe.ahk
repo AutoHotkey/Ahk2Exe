@@ -45,7 +45,7 @@ Gui, Add, Text, x287 y34,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
-©2011-2012 fincs
+©2011-%A_Year% fincs
 http://www.autohotkey.com
 Note: Compiling does not guarantee source code protection.
 )
@@ -307,7 +307,7 @@ Original version:
   Copyright ©2008-2011 Steve Gray (Lexikos)
 
 Script rewrite:
-  Copyright ©2011-2012 fincs
+  Copyright ©2011-%A_Year% fincs
 )
 return
 
