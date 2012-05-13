@@ -1,4 +1,4 @@
-;
+﻿;
 ; File encoding:  UTF-8
 ;
 ; Script description:
@@ -14,9 +14,6 @@
 SendMode Input
 
 DEBUG := !A_IsCompiled
-
-if A_IsUnicode
-	FileEncoding, UTF-8
 
 gosub BuildBinFileList
 gosub LoadSettings
