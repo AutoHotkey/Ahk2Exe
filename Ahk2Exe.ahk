@@ -313,7 +313,7 @@ Util_Status(s)
 	SB_SetText(s)
 }
 
-Util_Error(txt, doexit=1)
+Util_Error(txt, doexit=1, extra="")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
@@ -322,6 +322,9 @@ Util_Error(txt, doexit=1)
 		FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
+	
+	if extra
+		txt .= "`n`nSpecifically: " extra
 	
 	Util_HideHourglass()
 	MsgBox, 16, Ahk2Exe Error, % txt

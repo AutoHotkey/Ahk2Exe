@@ -117,6 +117,11 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		ilibfile = %A_Temp%\_ilib.ahk
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
 		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		AhkType := AHKType(AhkPath)
+		if AhkType = FAIL
+			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
+		if AhkType = Basic
+			Util_Error("Error: AutoHotkey Basic is not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
 		RunWait, "%AhkPath%" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%, UseErrorLevel
 		IfExist, %ilibfile%
 		{
