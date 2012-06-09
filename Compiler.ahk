@@ -22,7 +22,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_DisplayHourglass()
 	
 	IfNotExist, %BinFile%
-		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
+		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 1, BinFile)
 	
 	try FileCopy, %BinFile%, %ExeFile%, 1
 	catch
