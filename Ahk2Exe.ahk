@@ -17,6 +17,7 @@ DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
 gosub LoadSettings
+gosub CheckAutoHotkeySC
 
 if 0 != 0
 	goto CLIMain
@@ -124,6 +125,61 @@ Loop, %A_ScriptDir%\*.bin
 	FileGetVersion, v, %A_LoopFileFullPath%
 	BinFiles._Insert(n ".bin")
 	BinNames .= "|v" v " " n
+}
+return
+
+CheckAutoHotkeySC:
+IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
+{
+	; Check if we can actually write to the compiler dir
+	try FileAppend, test, %A_ScriptDir%\___.tmp
+	catch
+	{
+		MsgBox, 52, Ahk2Exe Error,
+		(LTrim
+		Unable to copy the appropiate binary file as AutoHotkeySC.bin because the current user does not have write/create privileges in the %A_ScriptDir% folder (perhaps you should run this program as administrator?)
+		
+		Do you still want to continue?
+		)
+		IfMsgBox, Yes
+			return
+		ExitApp
+	}
+	FileDelete, %A_ScriptDir%\___.tmp
+	
+	IfNotExist, %A_ScriptDir%\..\AutoHotkey.exe
+		binFile = %A_ScriptDir%\Unicode 32-bit.bin
+	else
+	{
+		try FileDelete, %A_Temp%\___temp.ahk
+		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, FileDelete, %A_Temp%\___temp.ahk
+		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%A_Temp%\___temp.ahk"
+		rc := ErrorLevel
+		FileDelete,  %A_Temp%\___temp.ahk
+		if rc = 0
+			binFile = %A_ScriptDir%\ANSI 32-bit.bin
+		else if rc = 0x100
+			binFile = %A_ScriptDir%\Unicode 32-bit.bin
+		else if rc = 0x300
+			binFile = %A_ScriptDir%\Unicode 64-bit.bin
+		; else: shouldn't happen
+	}
+	
+	IfNotExist, %binFile%
+	{
+		MsgBox, 52, Ahk2Exe Error,
+		(LTrim
+		Unable to copy the appropiate binary file as AutoHotkeySC.bin because said file does not exist:
+		%binFile%
+		
+		Do you still want to continue?
+		)
+		IfMsgBox, Yes
+			return
+		ExitApp
+	}
+	
+	FileCopy, %binFile%, %A_ScriptDir%\AutoHotkeySC.bin
 }
 return
 
