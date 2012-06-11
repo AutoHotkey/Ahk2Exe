@@ -137,7 +137,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	{
 		MsgBox, 52, Ahk2Exe Error,
 		(LTrim
-		Unable to copy the appropiate binary file as AutoHotkeySC.bin because the current user does not have write/create privileges in the %A_ScriptDir% folder (perhaps you should run this program as administrator?)
+		Unable to copy the appropriate binary file as AutoHotkeySC.bin because the current user does not have write/create privileges in the %A_ScriptDir% folder (perhaps you should run this program as administrator?)
 		
 		Do you still want to continue?
 		)
@@ -152,7 +152,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	else
 	{
 		try FileDelete, %A_Temp%\___temp.ahk
-		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, FileDelete, %A_Temp%\___temp.ahk
+		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9
 		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%A_Temp%\___temp.ahk"
 		rc := ErrorLevel
 		FileDelete,  %A_Temp%\___temp.ahk
@@ -169,7 +169,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	{
 		MsgBox, 52, Ahk2Exe Error,
 		(LTrim
-		Unable to copy the appropiate binary file as AutoHotkeySC.bin because said file does not exist:
+		Unable to copy the appropriate binary file as AutoHotkeySC.bin because said file does not exist:
 		%binFile%
 		
 		Do you still want to continue?
