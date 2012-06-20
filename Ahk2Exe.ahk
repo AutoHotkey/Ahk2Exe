@@ -157,7 +157,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	else
 	{
 		try FileDelete, %A_Temp%\___temp.ahk
-		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9
+		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, %A_Temp%\___temp.ahk
 		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%A_Temp%\___temp.ahk"
 		rc := ErrorLevel
 		FileDelete,  %A_Temp%\___temp.ahk
