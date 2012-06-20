@@ -111,12 +111,15 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 			cmtBlock := false
 	}
 	
-	if IsFirstScript
+	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
 	{
+		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		IfNotExist, %AhkPath%
+			break ; Don't bother with auto-includes because the file does not exist
+		
 		Util_Status("Auto-including any functions called from a library...")
 		ilibfile = %A_Temp%\_ilib.ahk
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
-		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		AhkType := AHKType(AhkPath)
 		if AhkType = FAIL
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
