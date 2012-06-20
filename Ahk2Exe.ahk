@@ -17,10 +17,15 @@ DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
 gosub LoadSettings
-gosub CheckAutoHotkeySC
+gosub ParseCmdLine
+if !UsesCustomBin
+	gosub CheckAutoHotkeySC
 
-if 0 != 0
-	goto CLIMain
+if CLIMode
+{
+	gosub ConvertCLI
+	ExitApp
+}
 
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
@@ -192,7 +197,10 @@ FindBinFile(name)
 	return 1
 }
 
-CLIMain:
+ParseCmdLine:
+if 0 = 0
+	return
+
 Error_ForceExit := true
 
 p := []
@@ -213,6 +221,9 @@ Loop, % p._MaxIndex() // 2
 	
 	if p1 not in /in,/out,/icon,/pass,/bin,/mpress
 		goto BadParams
+	
+	if p1 = /bin
+		UsesCustomBin := true
 	
 	if p1 = /pass
 		Util_Error("Error: Password protection is not supported.")
@@ -237,8 +248,7 @@ if UseMPRESS =
 	UseMPRESS := LastUseMPRESS
 
 CLIMode := true
-gosub ConvertCLI
-ExitApp
+return
 
 BadParams:
 Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin]")
