@@ -48,7 +48,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="")
 	PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
 	;FileDelete, %ExeFile%.ahk
 	;FileAppend, % ScriptBody, %ExeFile%.ahk
-	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8"))
+	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
 	StrPut(ScriptBody, &BinScriptBody, "UTF-8")
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
