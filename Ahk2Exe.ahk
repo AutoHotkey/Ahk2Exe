@@ -44,7 +44,7 @@ Gui, Menu, MenuBar
 
 Gui, +LastFound
 GuiHwnd := WinExist("")
-Gui, Add, Text, x287 y34,
+Gui, Add, Text, x287 y25,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
@@ -68,10 +68,10 @@ Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
-Gui, Add, Button, x258 y329 w75 h28 +Default gConvert, > &Convert <
+Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
 if !A_IsCompiled
-	Gui, Add, Pic, x40 y5 +0x801000, %A_ScriptDir%\logo.gif
+	Gui, Add, Pic, x29 y16, %A_ScriptDir%\logo.png
 else
 	gosub AddPicture
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
@@ -90,9 +90,9 @@ return
 
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
-Gui, Add, Text, x40 y5 +0x80100E hwndhPicCtrl
+Gui, Add, Text, x29 y16 +0xE hwndhPicCtrl
 
-hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.GIF", "ptr", 10, "ptr")
+hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.PNG", "ptr", 10, "ptr")
 sData := DllCall("SizeofResource", "ptr", 0, "ptr", hRSrc, "uint")
 hRes  := DllCall("LoadResource", "ptr", 0, "ptr", hRSrc, "ptr")
 pData := DllCall("LockResource", "ptr", hRes, "ptr")
@@ -116,7 +116,7 @@ ObjRelease(pStream)
 return
 
 Never:
-FileInstall, logo.gif, NEVER
+FileInstall, logo.png, NEVER
 return
 
 BuildBinFileList:

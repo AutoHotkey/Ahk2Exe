@@ -39,10 +39,10 @@ AHKType(exeName)
 	if !DllCall("version\VerQueryValue", "ptr", &VersionInfo, "str", "\StringFileInfo\" id "\ProductName", "ptr*", pField, "uint*", cbField)
 		return "FAIL"
 	
-	; if product name = AutoHotkey_L then allow
-	; else if version <= v1.0.48.05  then block
-	if StrGet(pField, cbField) != "AutoHotkey_L" && vert <= 0x01003005
-		return "Basic"
+	; Check it is actually an AutoHotkey executable
+	if !InStr(StrGet(pField, cbField), "AutoHotkey")
+		return "FAIL"
 	
-	return "AHK_L"
+	; We're dealing with a legacy version if it's prior to v1.1
+	return vert >= 0x01010000 ? "Modern" : "Legacy"
 }
