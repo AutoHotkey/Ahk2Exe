@@ -84,7 +84,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				if(IsIncludeAgain || !AlreadyIncluded)
 				{
 					if !AlreadyIncluded
-						FileList._Insert(IncludeFile)
+						FileList.Insert(IncludeFile)
 					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
 			}else if !contSection && RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*,", o) ; TODO: implement `, detection
@@ -95,7 +95,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				StringReplace, o1, o1, %_%`%, `%, All
 				StringReplace, o1, o1, %_%`,, `,, All
 				StringReplace, o1, o1, %_%%_%,, %_%,, All
-				ExtraFiles._Insert(o1)
+				ExtraFiles.Insert(o1)
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
 				Options.comm := o1, ScriptText .= tline "`n"

@@ -25,7 +25,7 @@ ReplaceAhkIcon(re, IcoFile, ExeFile)
 	ige := &rsrcIconGroup + 6
 	
 	; Delete all the images
-	Loop, % ids._MaxIndex()
+	Loop, % ids.MaxIndex()
 		DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", ids[A_Index], "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
 	
 	Loop, %wCount%

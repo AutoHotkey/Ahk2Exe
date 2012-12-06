@@ -128,7 +128,7 @@ Loop, %A_ScriptDir%\*.bin
 	if n = AutoHotkeySC
 		continue
 	FileGetVersion, v, %A_LoopFileFullPath%
-	BinFiles._Insert(n ".bin")
+	BinFiles.Insert(n ".bin")
 	BinNames .= "|v" v " " n
 }
 return
@@ -208,13 +208,13 @@ Loop, %0%
 {
 	if %A_Index% = /NoDecompile
 		Util_Error("Error: /NoDecompile is not supported.")
-	else p._Insert(%A_Index%)
+	else p.Insert(%A_Index%)
 }
 
-if Mod(p._MaxIndex(), 2)
+if Mod(p.MaxIndex(), 2)
 	goto BadParams
 
-Loop, % p._MaxIndex() // 2
+Loop, % p.MaxIndex() // 2
 {
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
