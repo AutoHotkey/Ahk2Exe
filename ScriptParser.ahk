@@ -37,7 +37,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 					continue
 				}
 			}
-			if StrStartsWith(tline, "(")
+			if StrStartsWith(tline, "(") && !InStr(tline, ")")
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
