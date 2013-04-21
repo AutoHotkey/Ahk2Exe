@@ -85,10 +85,10 @@ ExitApp
 GuiDropFiles:
 if A_EventInfo > 2
 	Util_Error("You cannot drop more than one file into this window!")
-SplitPath,A_GuiEvent,,,extension
-IfEqual,extension,ahk
+SplitPath, A_GuiEvent,,, dropExt
+if dropExt = ahk
 	GuiControl,, AhkFile, %A_GuiEvent%
-ifequal,extension,ico
+else if dropExt = ico
 	GuiControl,, IcoFile, %A_GuiEvent%
 return
 
