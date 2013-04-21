@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8
 ;
 ; Script description:
@@ -85,7 +85,11 @@ ExitApp
 GuiDropFiles:
 if A_EventInfo > 2
 	Util_Error("You cannot drop more than one file into this window!")
-GuiControl,, AhkFile, %A_GuiEvent%
+SplitPath,A_GuiEvent,,,extension
+IfEqual,extension,ahk
+	GuiControl,, AhkFile, %A_GuiEvent%
+ifequal,extension,ico
+	GuiControl,, IcoFile, %A_GuiEvent%
 return
 
 AddPicture:
