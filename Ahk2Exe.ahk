@@ -1,4 +1,4 @@
-?;
+;
 ; File encoding:  UTF-8
 ;
 ; Script description:
