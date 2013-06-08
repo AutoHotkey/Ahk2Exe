@@ -13,7 +13,7 @@
 #Include Compiler.ahk
 SendMode Input
 
-DEBUG := !A_IsCompiled
+global DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
 gosub LoadSettings
@@ -69,7 +69,7 @@ Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
-Gui, Add, Statusbar,, Ready
+Gui, Add, StatusBar,, Ready
 if !A_IsCompiled
 	Gui, Add, Pic, x29 y16, %A_ScriptDir%\logo.png
 else
@@ -364,6 +364,7 @@ DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", helpfile, "uint", 0x000D, 
 return
 
 About:
+Gui, +OwnDialogs
 MsgBox, 64, About Ahk2Exe,
 (
 Ahk2Exe - Script to EXE Converter
@@ -383,7 +384,7 @@ Util_Status(s)
 	SB_SetText(s)
 }
 
-Util_Error(txt, doexit=1, extra="")
+Util_Error(txt, doexit := 1, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	

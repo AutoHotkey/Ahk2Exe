@@ -1,7 +1,7 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="")
+AhkCompile(ByRef AhkFile, ExeFile := "", ByRef CustomIcon := "", BinFile := "", UseMPRESS := "")
 {
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
@@ -40,7 +40,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_Status("")
 }
 
-BundleAhkScript(ExeFile, AhkFile, IcoFile="")
+BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 {
 	SplitPath, AhkFile,, ScriptDir
 	
@@ -112,8 +112,5 @@ _EndUpdateResource:
 Util_GetFullPath(path)
 {
 	VarSetCapacity(fullpath, 260 * (!!A_IsUnicode + 1))
-	if DllCall("GetFullPathName", "str", path, "uint", 260, "str", fullpath, "ptr", 0, "uint")
-		return fullpath
-	else
-		return ""
+	return DllCall("GetFullPathName", "str", path, "uint", 260, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
 }

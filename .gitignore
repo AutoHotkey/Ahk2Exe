@@ -1,4 +1,5 @@
 *.exe
 *.bin
 *.bak
+*.db
 /__debug.ahk

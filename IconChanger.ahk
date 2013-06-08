@@ -1,10 +1,9 @@
 
 ; This code is based on Ahk2Exe's changeicon.cpp
 
-ReplaceAhkIcon(re, IcoFile, ExeFile)
+ReplaceAhkIcon(re, IcoFile, ExeFile, iconID := 159)
 {
 	global _EI_HighestIconID
-	static iconID := 159
 	ids := EnumIcons(ExeFile, iconID)
 	if !IsObject(ids)
 		return false
