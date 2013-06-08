@@ -44,13 +44,13 @@ ReplaceAhkIcon(re, IcoFile, ExeFile, iconID := 159)
 		f.RawRead(iconData, iconDataSize)
 		f.Pos := oldPos
 		
-		DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", thisID, "ushort", 0x409, "ptr", &iconData, "uint", iconDataSize, "uint")
+		if !DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", thisID, "ushort", 0x409, "ptr", &iconData, "uint", iconDataSize, "uint")
+			return false
 		
 		ige += 14
 	}
 	
-	DllCall("UpdateResource", "ptr", re, "ptr", 14, "ptr", iconID, "ushort", 0x409, "ptr", &rsrcIconGroup, "uint", rsrcIconGroupSize, "uint")
-	return true
+	return !!DllCall("UpdateResource", "ptr", re, "ptr", 14, "ptr", iconID, "ushort", 0x409, "ptr", &rsrcIconGroup, "uint", rsrcIconGroupSize, "uint")
 }
 
 EnumIcons(ExeFile, iconID)

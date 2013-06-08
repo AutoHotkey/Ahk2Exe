@@ -1,5 +1,6 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
+#Include Directives.ahk
 
 AhkCompile(ByRef AhkFile, ExeFile := "", ByRef CustomIcon := "", BinFile := "", UseMPRESS := "")
 {
@@ -45,7 +46,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 	SplitPath, AhkFile,, ScriptDir
 	
 	ExtraFiles := []
-	PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
+	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
 	;FileDelete, %ExeFile%.ahk
 	;FileAppend, % ScriptBody, %ExeFile%.ahk
 	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
@@ -90,6 +91,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 			goto _FailEnd2
 		VarSetCapacity(filedata, 0)
 	}
+	ProcessDirectives(ExeFile, module, Directives)
 	SetWorkingDir, %oldWD%
 	
 	gosub _EndUpdateResource
