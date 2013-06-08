@@ -12,7 +12,7 @@ AddOrReplaceIcon(re, IcoFile, ExeFile, iconID := 0)
 		CountIconGroups(ExeFile)
 		iconID := ++ _CIG_HighestIconGroupID
 	}
-	
+
 	ids := EnumIcons(ExeFile, iconID)
 	if !IsObject(ids)
 		return false
