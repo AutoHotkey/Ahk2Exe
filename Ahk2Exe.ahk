@@ -6,6 +6,11 @@
 ;	Written by fincs - Interface based on the original Ahk2Exe
 ;
 
+;@Ahk2Exe-SetName         Ahk2Exe
+;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
+;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
+;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
+
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
@@ -13,7 +18,7 @@
 #Include Compiler.ahk
 SendMode Input
 
-DEBUG := !A_IsCompiled
+global DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
 gosub LoadSettings
@@ -70,12 +75,14 @@ Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
-Gui, Add, Statusbar,, Ready
-if !A_IsCompiled
-	Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
-else
-	gosub AddPicture
-GuiControl, Focus, Button1
+
+Gui, Add, StatusBar,, Ready
+;@Ahk2Exe-IgnoreBegin
+Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
+;@Ahk2Exe-IgnoreEnd
+/*@Ahk2Exe-Keep
+gosub AddPicture
+*/
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
@@ -94,10 +101,13 @@ else if dropExt = ico
 	GuiControl,, IcoFile, %A_GuiEvent%
 return
 
+/*@Ahk2Exe-Keep
+
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
 Gui, Add, Text, x29 y16 w240 h78 +0xE hwndhPicCtrl
 
+;@Ahk2Exe-AddResource logo.png
 hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.PNG", "ptr", 10, "ptr")
 sData := DllCall("SizeofResource", "ptr", 0, "ptr", hRSrc, "uint")
 hRes  := DllCall("LoadResource", "ptr", 0, "ptr", hRSrc, "ptr")
@@ -122,9 +132,7 @@ DllCall("FreeLibrary", "ptr", hGdip)
 ObjRelease(pStream)
 return
 
-Never:
-FileInstall, logo.png, NEVER
-return
+*/
 
 BuildBinFileList:
 BinFiles := ["AutoHotkeySC.bin"]
@@ -377,6 +385,7 @@ DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", helpfile, "uint", 0x000D, 
 return
 
 About:
+Gui, +OwnDialogs
 MsgBox, 64, About Ahk2Exe,
 (
 Ahk2Exe - Script to EXE Converter
@@ -396,7 +405,7 @@ Util_Status(s)
 	SB_SetText(s)
 }
 
-Util_Error(txt, doexit=1, extra="")
+Util_Error(txt, doexit := 1, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	

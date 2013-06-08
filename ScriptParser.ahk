@@ -1,5 +1,5 @@
 
-PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="", Options="", iOption=0)
+PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
 {
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
@@ -8,7 +8,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
-		Options := { comm: ";", esc: "``" }
+		Options := { comm: ";", esc: "``", directives: [] }
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
@@ -19,23 +19,43 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
 		else return
 	
-	cmtBlock := false, contSection := false
+	cmtBlock := false, contSection := false, ignoreSection := false
 	Loop, Read, %AhkScript%
 	{
 		tline := Trim(A_LoopReadLine)
 		if !cmtBlock
 		{
+			if ignoreSection
+			{
+				if (tline == Options.comm "@Ahk2Exe-IgnoreEnd")
+					ignoreSection := false
+				continue
+			}
 			if !contSection
 			{
 				if StrStartsWith(tline, Options.comm)
+				{
+					StringTrimLeft, tline, tline, % StrLen(Options.comm)
+					if !StrStartsWith(tline, "@Ahk2Exe-")
+						continue
+					StringTrimLeft, tline, tline, 9
+					if tline = IgnoreBegin
+						ignoreSection := true
+					else if tline !=
+						Options.directives.Insert(tline)
 					continue
+				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
+					if (tline == "/*@Ahk2Exe-Keep")
+						continue
 					cmtBlock := true
 					continue
 				}
+				else if StrStartsWith(tline, "*/")
+					continue ; Will only happen in a 'Keep' section
 			}
 			if StrStartsWith(tline, "(") && !IsFakeCSOpening(tline)
 				contSection := true
@@ -161,6 +181,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
+	
+	if IsFirstScript
+		return Options.directives
 }
 
 IsFakeCSOpening(tline)

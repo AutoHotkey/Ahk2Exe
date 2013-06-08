@@ -1,5 +1,6 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
+#Include Directives.ahk
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
@@ -59,7 +60,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	SplitPath, AhkFile,, ScriptDir
 	
 	ExtraFiles := []
-	PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
+	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
 	;FileDelete, %ExeFile%.ahk
 	;FileAppend, % ScriptBody, %ExeFile%.ahk
 	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
@@ -104,6 +105,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 			goto _FailEnd2
 		VarSetCapacity(filedata, 0)
 	}
+	ProcessDirectives(ExeFile, module, Directives)
 	SetWorkingDir, %oldWD%
 	
 	gosub _EndUpdateResource
@@ -126,8 +128,5 @@ _EndUpdateResource:
 Util_GetFullPath(path)
 {
 	VarSetCapacity(fullpath, 260 * (!!A_IsUnicode + 1))
-	if DllCall("GetFullPathName", "str", path, "uint", 260, "str", fullpath, "ptr", 0, "uint")
-		return fullpath
-	else
-		return ""
+	return DllCall("GetFullPathName", "str", path, "uint", 260, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
 }

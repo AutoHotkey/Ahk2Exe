@@ -1,10 +1,9 @@
 
 ; This code is based on Ahk2Exe's changeicon.cpp
 
-ReplaceAhkIcon(re, IcoFile, ExeFile)
+ReplaceAhkIcon(re, IcoFile, ExeFile, iconID := 159)
 {
 	global _EI_HighestIconID
-	static iconID := 159
 	ids := EnumIcons(ExeFile, iconID)
 	if !IsObject(ids)
 		return false
@@ -45,13 +44,13 @@ ReplaceAhkIcon(re, IcoFile, ExeFile)
 		f.RawRead(iconData, iconDataSize)
 		f.Pos := oldPos
 		
-		DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", thisID, "ushort", 0x409, "ptr", &iconData, "uint", iconDataSize, "uint")
+		if !DllCall("UpdateResource", "ptr", re, "ptr", 3, "ptr", thisID, "ushort", 0x409, "ptr", &iconData, "uint", iconDataSize, "uint")
+			return false
 		
 		ige += 14
 	}
 	
-	DllCall("UpdateResource", "ptr", re, "ptr", 14, "ptr", iconID, "ushort", 0x409, "ptr", &rsrcIconGroup, "uint", rsrcIconGroupSize, "uint")
-	return true
+	return !!DllCall("UpdateResource", "ptr", re, "ptr", 14, "ptr", iconID, "ushort", 0x409, "ptr", &rsrcIconGroup, "uint", rsrcIconGroupSize, "uint")
 }
 
 EnumIcons(ExeFile, iconID)
