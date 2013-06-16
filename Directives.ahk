@@ -88,7 +88,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		else if resExt = ico
 			Util_Error("Error: Icon resource adding is not supported yet!")
 		else if resExt = cur
-			resType := 1 ; RT_CURSOR
+			Util_Error("Error: Cursor resource adding is not supported yet!")
 		else if resExt in htm,html,mht
 			resType := 23 ; RT_HTML
 		else
