@@ -122,6 +122,7 @@ DllCall("gdiplus\GdiplusStartup", "ptr*", gdipToken, "ptr", &si, "ptr", 0)
 DllCall("gdiplus\GdipCreateBitmapFromStream", "ptr", pStream, "ptr*", pBitmap)
 DllCall("gdiplus\GdipCreateHBITMAPFromBitmap", "ptr", pBitmap, "ptr*", hBitmap, "uint", 0)
 SendMessage, 0x172, 0, hBitmap,, ahk_id %hPicCtrl% ; 0x172=STM_SETIMAGE, 0=IMAGE_BITMAP
+GuiControl, Move, %hPicCtrl%, w240 h78
 
 DllCall("gdiplus\GdipDisposeImage", "ptr", pBitmap)
 DllCall("gdiplus\GdiplusShutdown", "ptr", gdipToken)
