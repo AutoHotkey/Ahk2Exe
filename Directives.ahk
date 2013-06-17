@@ -71,7 +71,7 @@ Directive_UseResourceLang(state, resLang)
 Directive_AddResource(state, rsrc, resName := "")
 {
 	resType := "" ; auto-detect
-	if RegExMatch(resFile, "^\*(\w+)\s+(.+)$", o)
+	if RegExMatch(rsrc, "^\*(\w+)\s+(.+)$", o)
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
 	if !resFile
@@ -106,8 +106,16 @@ Directive_AddResource(state, rsrc, resName := "")
 	FileGetSize, fSize, %resFile%
 	VarSetCapacity(fData, fSize)
 	FileRead, fData, *c %resFile%
+	pData := &fData
+	if resType = 2
+	{
+		; Remove BM header in order to make it a valid bitmap resource
+		if fSize < 14
+			Util_Error("Error: Impossible BMP file!")
+		pData += 14, fSize -= 14
+	}
 	if !DllCall("UpdateResource", "ptr", state.module, typeType, resType, nameType, resName
-              , "ushort", state.resLang, "ptr", &fData, "uint", fSize, "uint")
+              , "ushort", state.resLang, "ptr", pData, "uint", fSize, "uint")
 		Util_Error("Error adding resource:`n`n" rsrc)
 	VarSetCapacity(fData, 0)
 }
@@ -183,11 +191,7 @@ SafeGetViChild(vi, name)
 
 Util_ObjIsEmpty(obj)
 {
-	v := true
 	for _,__ in obj
-	{
-		v := false
-		break
-	}
-	return v
+		return false
+	return true
 }
