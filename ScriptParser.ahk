@@ -43,7 +43,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				contSection := false
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
-			if !contSection && RegExMatch(tline, "i)#Include(Again)?[ \t]*[, \t]?\s+(.*)$", o)
+			if !contSection && RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]?\s+(.*)$", o)
 			{
 				IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
