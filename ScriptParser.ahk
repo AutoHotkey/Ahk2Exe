@@ -83,6 +83,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				StringReplace, IncludeFile, IncludeFile, `%A_ScriptDir`%, %FirstScriptDir%, All
 				StringReplace, IncludeFile, IncludeFile, `%A_AppData`%, %A_AppData%, All
 				StringReplace, IncludeFile, IncludeFile, `%A_AppDataCommon`%, %A_AppDataCommon%, All
+				StringReplace, IncludeFile, IncludeFile, `%A_LineFile`%, % FileList[1], All
 				
 				if FileExist(IncludeFile) = "D"
 				{
