@@ -71,7 +71,7 @@ Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MP
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
 if !A_IsCompiled
-	Gui, Add, Pic, x29 y16, %A_ScriptDir%\logo.png
+	Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 else
 	gosub AddPicture
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
@@ -94,7 +94,7 @@ return
 
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
-Gui, Add, Text, x29 y16 +0xE hwndhPicCtrl
+Gui, Add, Text, x29 y16 w240 h78 +0xE hwndhPicCtrl
 
 hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.PNG", "ptr", 10, "ptr")
 sData := DllCall("SizeofResource", "ptr", 0, "ptr", hRSrc, "uint")
