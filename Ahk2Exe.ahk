@@ -99,6 +99,8 @@ if dropExt = ahk
 	GuiControl,, AhkFile, %A_GuiEvent%
 else if dropExt = ico
 	GuiControl,, IcoFile, %A_GuiEvent%
+else if dropExt = exe
+	GuiControl,, ExeFile, %A_GuiEvent%
 return
 
 /*@Ahk2Exe-Keep
@@ -310,8 +312,7 @@ Gui, +OwnDialogs
 FileSelectFile, ov, S16, %LastExeDir%, Save As, Executable files (*.exe)
 if ErrorLevel
 	return
-SplitPath, ov,,, ovExt
-if !StrLen(ovExt) ;~ append a default file extension is none specified
+if !RegExMatch(ov, "\.[^\\/]+$")
 	ov .= ".exe"
 GuiControl,, ExeFile, %ov%
 return
