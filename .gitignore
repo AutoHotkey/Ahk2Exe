@@ -2,4 +2,5 @@
 *.bin
 *.bak
 *.db
+*.zip
 /__debug.ahk
