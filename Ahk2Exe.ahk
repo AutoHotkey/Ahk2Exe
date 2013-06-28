@@ -97,6 +97,8 @@ if dropExt = ahk
 	GuiControl,, AhkFile, %A_GuiEvent%
 else if dropExt = ico
 	GuiControl,, IcoFile, %A_GuiEvent%
+else if dropExt = exe
+	GuiControl,, ExeFile, %A_GuiEvent%
 return
 
 /*@Ahk2Exe-Keep
@@ -301,6 +303,8 @@ Gui, +OwnDialogs
 FileSelectFile, ov, S16, %LastExeDir%, Save As, Executable files (*.exe)
 if ErrorLevel
 	return
+if !RegExMatch(ov, "\.[^\\/]+$")
+	ov .= ".exe"
 GuiControl,, ExeFile, %ov%
 return
 
