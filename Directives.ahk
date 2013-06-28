@@ -71,7 +71,7 @@ Directive_UseResourceLang(state, resLang)
 Directive_AddResource(state, rsrc, resName := "")
 {
 	resType := "" ; auto-detect
-	if RegExMatch(resFile, "^\*(\w+)\s+(.+)$", o)
+	if RegExMatch(rsrc, "^\*(\w+)\s+(.+)$", o)
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
 	if !resFile
