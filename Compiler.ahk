@@ -47,8 +47,6 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 	
 	ExtraFiles := []
 	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
-	;FileDelete, %ExeFile%.ahk
-	;FileAppend, % ScriptBody, %ExeFile%.ahk
 	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
 	StrPut(ScriptBody, &BinScriptBody, "UTF-8")
 	
@@ -56,27 +54,20 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 	if !module
 		Util_Error("Error: Error opening the destination file.")
 	
-	if IcoFile
-	{
-		Util_Status("Changing the main icon...")
-		if !ReplaceAhkIcon(module, IcoFile, ExeFile)
-		{
-			; Error was already displayed
-			gosub _EndUpdateResource
-			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.")
-		}
-	}
+	tempWD := new CTempWD(ScriptDir)
+	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
+	IcoFile := dirState.IcoFile
 	
-	Util_Status("Compressing and adding: Master Script")
-	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", IcoFile ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
+	scriptResName := (!dirState.NoAhkWithIcon && IconFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
+	
+	Util_Status("Adding: Master Script")
+	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", scriptResName
 	          , "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
 		goto _FailEnd
-	
-	oldWD := A_WorkingDir
-	SetWorkingDir, %ScriptDir%
+		
 	for each,file in ExtraFiles
 	{
-		Util_Status("Compressing and adding: " file)
+		Util_Status("Adding: " file)
 		StringUpper, resname, file
 		
 		IfNotExist, %file%
@@ -91,10 +82,25 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 			goto _FailEnd2
 		VarSetCapacity(filedata, 0)
 	}
-	ProcessDirectives(ExeFile, module, Directives)
-	SetWorkingDir, %oldWD%
 	
 	gosub _EndUpdateResource
+	
+	if dirState.ConsoleSubsys
+	{
+		Util_Status("Marking executable as a console application...")
+		if !SetExeSubsystem(ExeFile, 3)
+			Util_Error("Could not change executable subsystem!")
+	}
+	
+	for each,cmd in dirState.PostExec
+	{
+		Util_Status("PostExec: " cmd)
+		RunWait, % cmd,, UseErrorLevel
+		if (ErrorLevel != 0)
+			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd)
+	}
+	
+	
 	return
 	
 _FailEnd:
@@ -109,6 +115,19 @@ _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
 		Util_Error("Error: Error opening the destination file.")
 	return
+}
+
+class CTempWD
+{
+	__New(newWD)
+	{
+		this.oldWD := A_WorkingDir
+		SetWorkingDir % newWD
+	}
+	__Delete()
+	{
+		SetWorkingDir % this.oldWD
+	}
 }
 
 Util_GetFullPath(path)

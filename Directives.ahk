@@ -1,8 +1,8 @@
 #Include <VersionRes>
 
-ProcessDirectives(ExeFile, module, cmds)
+ProcessDirectives(ExeFile, module, cmds, IcoFile)
 {
-	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {} }
+	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
 	for _,cmdline in cmds
 	{
 		Util_Status("Processing directive: " cmdline)
@@ -32,6 +32,17 @@ ProcessDirectives(ExeFile, module, cmds)
 		Util_Status("Changing version information...")
 		ChangeVersionInfo(ExeFile, module, state.verInfo)
 	}
+	
+	if IcoFile := state.IcoFile
+	{
+		if !FileExist(IcoFile)
+			Util_Error("Error changing icon: File does not exist.")
+		
+		Util_Status("Changing the main icon...")
+		if !ReplaceAhkIcon(module, IcoFile, ExeFile)
+			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.")
+	}
+	return state
 }
 
 Directive_SetName(state, txt)
@@ -57,6 +68,31 @@ Directive_SetCopyright(state, txt)
 Directive_SetOrigFilename(state, txt)
 {
 	state.verInfo.OrigFilename := txt
+}
+
+Directive_SetCompanyName(state, txt)
+{
+	state.verInfo.CompanyName := txt
+}
+
+Directive_SetMainIcon(state, txt := "")
+{
+	state.IcoFile := txt
+}
+
+Directive_PostExec(state, txt)
+{
+	state.PostExec.Insert(txt)
+}
+
+Directive_UseSeparateTrayIcon(state)
+{
+	state.NoAhkWithIcon := true
+}
+
+Directive_SetConsoleSubsys(state)
+{
+	state.ConsoleSubsys := true
 }
 
 Directive_UseResourceLang(state, resLang)
@@ -159,6 +195,9 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 		_VerInfo_OrigFilename:
 		SafeGetViChild(props, "OriginalFilename").SetText(v)
 		return
+		_VerInfo_CompanyName:
+		SafeGetViChild(props, "CompanyName").SetText(v)
+		return
 	}
 	
 	VarSetCapacity(newVI, 16384) ; Should be enough
@@ -185,7 +224,11 @@ SafeGetViChild(vi, name)
 {
 	c := vi.GetChild(name)
 	if !c
-		Util_Error("Error: Malformed version information data. Block missing:`n`n" vi.Name "\" name)
+	{
+		c := new VersionRes()
+		c.Name := name
+		vi.AddChild(c)
+	}
 	return c
 }
 
