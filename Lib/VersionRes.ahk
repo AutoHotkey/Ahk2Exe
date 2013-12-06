@@ -36,6 +36,11 @@ class VersionRes
 		return this.Children._NewEnum()
 	}
 	
+	AddChild(node)
+	{
+		this.Children.Insert(node)
+	}
+	
 	GetChild(name)
 	{
 		for k,v in this
