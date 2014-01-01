@@ -72,6 +72,13 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
 	IcoFile := dirState.IcoFile
 
+	if outPreproc := dirState.OutPreproc
+	{
+		f := FileOpen(outPreproc, "w", "UTF-8-RAW")
+		f.RawWrite(BinScriptBody, BinScriptBody_Len)
+		f := ""
+	}
+
 	scriptResName := (!dirState.NoAhkWithIcon && IcoFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
 
 	Util_Status("Adding: Master Script")

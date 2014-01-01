@@ -95,6 +95,11 @@ Directive_SetConsoleSubsys(state)
 	state.ConsoleSubsys := true
 }
 
+Directive_OutputPreproc(state, fileName)
+{
+	state.OutPreproc := fileName
+}
+
 Directive_UseResourceLang(state, resLang)
 {
 	if resLang is not integer
