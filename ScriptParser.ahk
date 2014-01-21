@@ -37,7 +37,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 					continue
 				}
 			}
-			if StrStartsWith(tline, "(") && !InStr(tline, ")")
+			if StrStartsWith(tline, "(") && !IsFakeCSOpening(tline)
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
@@ -137,6 +137,14 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
+}
+
+IsFakeCSOpening(tline)
+{
+	Loop, Parse, tline, %A_Space%%A_Tab%
+		if !StrStartsWith(A_LoopField, "Join") && InStr(A_LoopField, ")")
+			return true
+	return false
 }
 
 FindLibraryFile(name, ScriptDir)
