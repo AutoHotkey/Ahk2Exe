@@ -78,7 +78,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		f.RawWrite(BinScriptBody, BinScriptBody_Len)
 		f := ""
 	}
-
+	
 	scriptResName := (!dirState.NoAhkWithIcon && IcoFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
 
 	Util_Status("Adding: Master Script")
