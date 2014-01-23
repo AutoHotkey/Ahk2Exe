@@ -65,7 +65,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 		f := ""
 	}
 	
-	scriptResName := (!dirState.NoAhkWithIcon && IconFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
+	scriptResName := (!dirState.NoAhkWithIcon && IcoFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
 	
 	Util_Status("Adding: Master Script")
 	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", scriptResName
