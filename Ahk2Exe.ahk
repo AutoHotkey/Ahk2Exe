@@ -51,12 +51,12 @@ Gui, Menu, MenuBar
 
 Gui, +LastFound
 GuiHwnd := WinExist("")
-Gui, Add, Text, x287 y25,
+Gui, Add, Link, x287 y25,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-%A_Year% fincs
-http://www.autohotkey.com
+<a href="http://ahkscript.org">http://ahkscript.org</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
@@ -83,6 +83,7 @@ Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
+GuiControl, Focus, Button1
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
