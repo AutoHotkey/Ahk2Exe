@@ -2,7 +2,7 @@
 
 Ahk2Exe is the official AutoHotkey script to EXE converter, which is written itself in AutoHotkey.
 
-http://www.autohotkey.com/
+http://www.ahkscript.org/
 
 
 ## How to Compile ##
