@@ -65,7 +65,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				StringReplace, IncludeFile, IncludeFile, `%A_AppDataCommon`%, %A_AppDataCommon%, All
 				StringReplace, IncludeFile, IncludeFile, `%A_LineFile`%, %AhkScript%, All
 				
-				if FileExist(IncludeFile) = "D"
+				if InStr(FileExist(IncludeFile), "D")
 				{
 					SetWorkingDir, %IncludeFile%
 					continue
