@@ -108,7 +108,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						FileList.Insert(IncludeFile)
 					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
-			}else if !contSection && tline ~= "i)FileInstall[, \t]"
+			}else if !contSection && tline ~= "i)^FileInstall[, \t]"
 			{
 				if tline ~= "^\w+\s+(:=|+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
 					continue ; This is an assignment!
