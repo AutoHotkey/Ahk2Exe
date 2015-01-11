@@ -90,9 +90,9 @@ Directive_UseSeparateTrayIcon(state)
 	state.NoAhkWithIcon := true
 }
 
-Directive_SetConsoleSubsys(state)
+Directive_ConsoleApp(state)
 {
-	state.ConsoleSubsys := true
+	state.ConsoleApp := true
 }
 
 Directive_OutputPreproc(state, fileName)
