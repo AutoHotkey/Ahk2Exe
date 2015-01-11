@@ -92,7 +92,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
 	
 	gosub _EndUpdateResource
 	
-	if dirState.ConsoleSubsys
+	if dirState.ConsoleApp
 	{
 		Util_Status("Marking executable as a console application...")
 		if !SetExeSubsystem(ExeFile, 3)
