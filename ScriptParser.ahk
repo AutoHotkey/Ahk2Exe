@@ -141,14 +141,17 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			break ; Don't bother with auto-includes because the file does not exist
 		
 		Util_Status("Auto-including any functions called from a library...")
-		ilibfile = %A_Temp%\_ilib.ahk
+		ilibfile := A_Temp "\_ilib.ahk", preprocfile := ScriptDir "\_ahk2exe.tmp~"
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
+		IfExist, %preprocfile%, FileDelete, %preprocfile%
 		AhkType := AHKType(AhkPath)
 		if AhkType = FAIL
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
 		if AhkType = Legacy
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%", %FirstScriptDir%, UseErrorLevel
+		FileAppend, % ScriptText, % preprocfile, UTF-8
+		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%preprocfile%", %FirstScriptDir%, UseErrorLevel
+		FileDelete, %preprocfile%
 		if (ErrorLevel = 2)
 			Util_Error("Error: The script contains syntax errors.")
 		IfExist, %ilibfile%
