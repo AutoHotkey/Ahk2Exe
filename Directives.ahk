@@ -85,11 +85,6 @@ Directive_PostExec(state, txt)
 	state.PostExec.Insert(txt)
 }
 
-Directive_UseSeparateTrayIcon(state)
-{
-	state.NoAhkWithIcon := true
-}
-
 Directive_ConsoleApp(state)
 {
 	state.ConsoleApp := true

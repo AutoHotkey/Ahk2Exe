@@ -78,11 +78,9 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		f.RawWrite(BinScriptBody, BinScriptBody_Len)
 		f := ""
 	}
-	
-	scriptResName := (!dirState.NoAhkWithIcon && IcoFile) ? ">AHK WITH ICON<" : ">AUTOHOTKEY SCRIPT<"
 
 	Util_Status("Adding: Master Script")
-	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", scriptResName
+	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", ">AUTOHOTKEY SCRIPT<"
 	          , "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
 		goto _FailEnd
 		
