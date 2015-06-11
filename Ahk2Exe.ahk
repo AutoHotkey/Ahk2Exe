@@ -408,9 +408,69 @@ Util_Error(txt, doexit=1, extra="")
 	
 	if doexit
 		if !Error_ForceExit
-			Exit
+			Exit, % Util_ErrorCode(txt)
 		else
-			ExitApp
+			ExitApp, % Util_ErrorCode(txt)
+}
+
+Util_ErrorCode(x)
+{
+	if InStr(x,"Syntax")
+		if InStr(x,"FileInstall")
+			return 0x12
+		else
+			return 0x11
+
+		
+	if InStr(x,"file")	
+		if InStr(x,"adding")
+			if InStr(x,"FileInstall")
+				return 0x44
+			else
+				return 0x43
+		else if InStr(x,"cannot")
+			if InStr(x,"drop")
+				return 0x51
+			else
+				return 0x52
+		else
+			return 0x33
+
+
+	if InStr(x,"Supported")
+		if InStr(x,"De")
+			if InStr(x,"#")
+				if InStr(x,"ref")
+					return 0x21
+				else
+					return 0x22
+			else
+				return 0x23
+		else
+			return 0x24
+
+	if InStr(x,"open")
+		if InStr(x,"cannot")
+			return 0x32
+		else
+			return 0x31
+
+	if InStr(x,"AutoHotkeySC")
+		if InStr(x,"copy")
+			return 0x41
+		else
+			return 0x34
+
+	if InStr(x,"build used")
+		if InStr(x,"Legacy")
+			return 0x26
+		else
+			return 0x25
+
+	if InStr(x,"icon")
+		return 0x42
+	
+	return -1 ;unknown error
 }
 
 Util_Info(txt)
