@@ -90,7 +90,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 				}
 			}else if !contSection && tline ~= "i)^FileInstall[, \t]"
 			{
-				if tline ~= "^\w+\s+(:=|+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
+				if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
 					continue ; This is an assignment!
 				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%" ; TODO: implement `, detection
 					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.")
