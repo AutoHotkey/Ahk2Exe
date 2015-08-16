@@ -421,9 +421,19 @@ Util_ErrorCode(x)
 		else
 			return 0x11
 
-		
+	if InStr(x,"AutoHotkeySC")
+		if InStr(x,"copy")
+			return 0x41
+		else
+			return 0x34
+
 	if InStr(x,"file")	
-		if InStr(x,"adding")
+		if InStr(x,"open")
+			if InStr(x,"cannot")
+				return 0x32
+			else
+				return 0x31
+		else if InStr(x,"adding")
 			if InStr(x,"FileInstall")
 				return 0x44
 			else
@@ -448,18 +458,6 @@ Util_ErrorCode(x)
 				return 0x23
 		else
 			return 0x24
-
-	if InStr(x,"open")
-		if InStr(x,"cannot")
-			return 0x32
-		else
-			return 0x31
-
-	if InStr(x,"AutoHotkeySC")
-		if InStr(x,"copy")
-			return 0x41
-		else
-			return 0x34
 
 	if InStr(x,"build used")
 		if InStr(x,"Legacy")
