@@ -24,7 +24,7 @@ if !UsesCustomBin
 if CLIMode
 {
 	gosub ConvertCLI
-	ExitApp
+	ExitApp, 0 ; Success
 }
 
 IcoFile = %LastIcon%
