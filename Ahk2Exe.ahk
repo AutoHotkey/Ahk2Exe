@@ -24,7 +24,7 @@ if !UsesCustomBin
 if CLIMode
 {
 	gosub ConvertCLI
-	ExitApp
+	ExitApp, 0 ; Success
 }
 
 IcoFile = %LastIcon%
@@ -154,7 +154,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		)
 		IfMsgBox, Yes
 			return
-		ExitApp
+		ExitApp, 0x2 ; Compilation cancelled
 	}
 	FileDelete, %A_ScriptDir%\___.tmp
 	
@@ -187,7 +187,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		)
 		IfMsgBox, Yes
 			return
-		ExitApp
+		ExitApp, 0x2 ; Compilation cancelled
 	}
 	
 	FileCopy, %binFile%, %A_ScriptDir%\AutoHotkeySC.bin
@@ -258,7 +258,7 @@ return
 
 BadParams:
 Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin] [/mpress 1 (true) or 0 (false)]")
-ExitApp
+ExitApp, 0x3
 
 _ProcessIn:
 AhkFile := p2
@@ -468,7 +468,7 @@ Util_ErrorCode(x)
 	if InStr(x,"icon")
 		return 0x42
 	
-	return -1 ;unknown error
+	return 0x1 ;unknown error
 }
 
 Util_Info(txt)
