@@ -1,6 +1,14 @@
 Possible Errors
 =========================================
 
+### `(0x00+)` General
+
+- `(0x0)` Compilation was successful.
+- `(0x1)` Error: Unknown error.
+- `(0x2)` Compilation was cancelled.
+- `(0x3)` Error: Bad parameters
+	
+    
 ### `(0x10+)` Syntax
 
 - `(0x1)` Error: The script contains syntax errors.
