@@ -294,6 +294,9 @@ Gui, +OwnDialogs
 FileSelectFile, ov, S16, %LastExeDir%, Save As, Executable files (*.exe)
 if ErrorLevel
 	return
+SplitPath, ov,,, ovExt
+if !StrLen(ovExt) ;~ append a default file extension is none specified
+	ov .= ".exe"
 GuiControl,, ExeFile, %ov%
 return
 

@@ -128,9 +128,12 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
 		if AhkType = Legacy
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%", %FirstScriptDir%, UseErrorLevel
+		tmpErrorLog := Util_TempFile()
+		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel
+		FileRead,tmpErrorData,%tmpErrorLog%
+		FileDelete,%tmpErrorLog%
 		if (ErrorLevel = 2)
-			Util_Error("Error: The script contains syntax errors.")
+			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
@@ -184,4 +187,14 @@ RegExEscape(t)
 	Loop, Parse, _
 		StringReplace, t, t, %A_LoopField%, \%A_LoopField%, All
 	return t
+}
+
+Util_TempFile(d:="")
+{
+	if ( !StrLen(d) || !FileExist(d) )
+		d:=A_Temp
+	Loop
+		tempName := d "\~temp" A_TickCount ".tmp"
+	until !FileExist(tempName)
+	return tempName
 }
