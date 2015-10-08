@@ -188,3 +188,13 @@ RegExEscape(t)
 		StringReplace, t, t, %A_LoopField%, \%A_LoopField%, All
 	return t
 }
+
+Util_TempFile(d:="")
+{
+	if ( !StrLen(d) || !FileExist(d) )
+		d:=A_Temp
+	Loop
+		tempName := d "\~temp" A_TickCount ".tmp"
+	until !FileExist(tempName)
+	return tempName
+}
