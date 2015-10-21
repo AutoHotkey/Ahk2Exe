@@ -92,12 +92,29 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 			{
 				if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
 					continue ; This is an assignment!
-				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%" ; TODO: implement `, detection
+				
+				; workaround for `, detection
+					EscapeChar := Options.esc
+					EscapeCharChar := EscapeChar EscapeChar
+					EscapeComma := EscapeChar ","
+					EscapeTmp := chr(2)
+					EscapeTmpD := chr(3)
+					StringReplace, tline, tline, %EscapeCharChar%, %EscapeTmpD%, All
+					StringReplace, tline, tline, %EscapeComma%, %EscapeTmp%, All
+				
+				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
 					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.")
 				_ := Options.esc
 				StringReplace, o1, o1, %_%`%, `%, All
 				StringReplace, o1, o1, %_%`,, `,, All
 				StringReplace, o1, o1, %_%%_%,, %_%,, All
+				
+				; workaround for `, detection [END]
+					StringReplace, o1, o1, %EscapeTmp%, `,, All
+					StringReplace, o1, o1, %EscapeTmpD%, %EscapeChar%, All
+					StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
+					StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
+				
 				ExtraFiles.Insert(o1)
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
