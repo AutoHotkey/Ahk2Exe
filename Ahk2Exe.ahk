@@ -446,6 +446,8 @@ Util_ErrorCode(x)
 				return 0x51
 			else
 				return 0x52
+		else if InStr(x,"final")
+			return 0x45
 		else
 			return 0x33
 
