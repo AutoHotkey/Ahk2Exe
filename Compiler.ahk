@@ -14,7 +14,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	else
 		ExeFile := Util_GetFullPath(ExeFile)
 	
-	ExeFileTmp := ExeFile
+	;ExeFileTmp := ExeFile
+	ExeFileTmp := Util_TempFile()
 	
 	if BinFile =
 		BinFile = %A_ScriptDir%\AutoHotkeySC.bin
@@ -24,17 +25,22 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	IfNotExist, %BinFile%
 		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 1, BinFile)
 	
-	try FileCopy, %BinFile%, %ExeFile%, 1
+	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
 	
-	BundleAhkScript(ExeFile, AhkFile, CustomIcon)
+	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
 	{
 		Util_Status("Compressing final executable...")
-		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
+		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFileTmp%",, Hide
 	}
+	
+	; the final step...
+	try FileCopy, %ExeFileTmp%, %ExeFile%, 1
+	catch
+		Util_Error("Error: Could not copy final compiled binary file to destination.")
 	
 	Util_HideHourglass()
 	Util_Status("")
