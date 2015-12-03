@@ -281,6 +281,13 @@ _ProcessMPRESS:
 UseMPRESS := p2
 return
 
+_ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
+if p2 is number
+	ScriptFileCP := "CP" p2
+else
+	ScriptFileCP := p2
+return
+
 BrowseAhk:
 Gui, +OwnDialogs
 FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
@@ -317,7 +324,7 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
