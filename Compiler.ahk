@@ -48,7 +48,14 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 
 BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP := "UTF-8")
 {
-	FileEncoding, %fileCP%
+	; weird bug prevention, for non working default param 'fileCP'
+	if fileCP is space
+		fileCP := "UTF-8"
+	
+	try FileEncoding, %fileCP%
+	catch e
+		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.")
+	
 	SplitPath, AhkFile,, ScriptDir
 	
 	ExtraFiles := []

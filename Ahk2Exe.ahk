@@ -29,6 +29,7 @@ if CLIMode
 
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
+ScriptFileCP := "UTF-8"
 
 #include *i __debug.ahk
 
@@ -479,6 +480,9 @@ Util_ErrorCode(x)
 
 	if InStr(x,"icon")
 		return 0x42
+	
+	if InStr(x,"codepage")
+		return 0x53
 	
 	return 0x1 ;unknown error
 }
