@@ -29,7 +29,7 @@ if CLIMode
 
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
-ScriptFileCP := "UTF-8"
+ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 

@@ -1,7 +1,7 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP := "UTF-8")
+AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
@@ -46,11 +46,11 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_Status("")
 }
 
-BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP := "UTF-8")
+BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 {
 	; weird bug prevention, for non working default param 'fileCP'
 	if fileCP is space
-		fileCP := "UTF-8"
+		fileCP := A_FileEncoding
 	
 	try FileEncoding, %fileCP%
 	catch e
