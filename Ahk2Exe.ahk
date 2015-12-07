@@ -29,6 +29,7 @@ if CLIMode
 
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
+ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
@@ -225,7 +226,7 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/cp
 		goto BadParams
 	
 	if p1 = /bin
@@ -257,7 +258,7 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin] [/mpress 1 (true) or 0 (false)]")
+Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin] [/mpress 1 (true) or 0 (false)] [/cp codepage]")
 ExitApp, 0x3
 
 _ProcessIn:
@@ -279,6 +280,13 @@ return
 
 _ProcessMPRESS:
 UseMPRESS := p2
+return
+
+_ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
+if p2 is number
+	ScriptFileCP := "CP" p2
+else
+	ScriptFileCP := p2
 return
 
 BrowseAhk:
@@ -317,7 +325,7 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -472,6 +480,9 @@ Util_ErrorCode(x)
 
 	if InStr(x,"icon")
 		return 0x42
+	
+	if InStr(x,"codepage")
+		return 0x53
 	
 	return 0x1 ;unknown error
 }

@@ -41,7 +41,8 @@ Possible Errors
 - `(0x5)` Error: Could not copy final compiled binary file to destination.
 	
     
-### `(0x50+)` Miscellaneous & GUI only
+### `(0x50+)` Miscellaneous
 
 - `(0x1)` You cannot drop more than one file into this window!
 - `(0x2)` Error: cannot find AutoHotkey help file!
+- `(0x3)` Error: Invalid codepage parameter was given.

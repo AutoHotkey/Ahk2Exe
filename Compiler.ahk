@@ -1,7 +1,7 @@
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="")
+AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
@@ -29,7 +29,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
 	
-	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon)
+	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
 	{
@@ -46,16 +46,24 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_Status("")
 }
 
-BundleAhkScript(ExeFile, AhkFile, IcoFile="")
+BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 {
+	; weird bug prevention, for non working default param 'fileCP'
+	if fileCP is space
+		fileCP := A_FileEncoding
+	
+	try FileEncoding, %fileCP%
+	catch e
+		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.")
+	
 	SplitPath, AhkFile,, ScriptDir
 	
 	ExtraFiles := []
 	PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
 	;FileDelete, %ExeFile%.ahk
 	;FileAppend, % ScriptBody, %ExeFile%.ahk
-	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
-	StrPut(ScriptBody, &BinScriptBody, "UTF-8")
+	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, fileCP) - 1)
+	StrPut(ScriptBody, &BinScriptBody, fileCP)
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
