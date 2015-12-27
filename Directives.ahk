@@ -39,7 +39,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 			Util_Error("Error changing icon: File does not exist.")
 		
 		Util_Status("Changing the main icon...")
-		if !ReplaceAhkIcon(module, IcoFile, ExeFile)
+		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
 			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.")
 	}
 	return state
@@ -122,7 +122,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		if resExt in bmp,dib
 			resType := 2 ; RT_BITMAP
 		else if resExt = ico
-			Util_Error("Error: Icon resource adding is not supported yet!")
+			resType := 14 ; RT_GROUP_ICON
 		else if resExt = cur
 			Util_Error("Error: Cursor resource adding is not supported yet!")
 		else if resExt in htm,html,mht
@@ -134,6 +134,13 @@ Directive_AddResource(state, rsrc, resName := "")
 				resName := 1
 		} else
 			resType := 10 ; RT_RCDATA
+	}
+	if resType = 14
+	{
+		if resName is not integer
+			resName := 0
+		AddOrReplaceIcon(state.module, resFile, state.ExeFile, resName)
+		return
 	}
 	typeType := "str"
 	nameType := "str"
