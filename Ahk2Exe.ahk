@@ -333,12 +333,27 @@ else
 return
 
 LoadSettings:
-RegRead, LastScriptDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir
-RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
-RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
-RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
-RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
-RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
+SettingSource := 0
+IfExist, %A_ScriptDir%\AHK2Exe.ini
+	IniRead, SettingSource, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, useIni, 0
+if (SettingSource == 1)
+{
+	IniRead, LastScriptDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastScriptDir, %A_Space%
+	IniRead, LastExeDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastExeDir, %A_Space%
+	IniRead, LastIconDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIconDir, %A_Space%
+	IniRead, LastIcon, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIcon, %A_Space%
+	IniRead, LastBinFile, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastBinFile, %A_Space%
+	IniRead, LastUseMPRESS, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastUseMPRESS, %A_Space%
+}
+else
+{
+	RegRead, LastScriptDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir
+	RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
+	RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
+	RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
+	RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
+	RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
+}
 if LastBinFile =
 	LastBinFile = AutoHotkeySC.bin
 if LastUseMPRESS
@@ -355,13 +370,27 @@ if IcoFile
 	SplitPath, IcoFile,, IcoFileDir
 else
 	IcoFileDir := ""
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
-if !CustomBinFile
-	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
+if (SettingSource == 1)
+
+{
+	IniWrite, %AhkFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastScriptDir
+	IniWrite, %ExeFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastExeDir
+	IniWrite, %IcoFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIconDir
+	IniWrite, %IcoFile%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIcon
+	IniWrite, %UseMPRESS%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastUseMPRESS
+	if !CustomBinFile
+		IniWrite, % BinFiles[BinFileId], %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastBinFile
+}
+else
+{
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
+	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
+	if !CustomBinFile
+		RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
+}
 return
 
 Help:
