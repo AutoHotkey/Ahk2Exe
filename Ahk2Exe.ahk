@@ -334,16 +334,16 @@ return
 
 LoadSettings:
 SettingSource := 0
-IfExist, %A_ScriptDir%\AHK2Exe.ini
-	IniRead, SettingSource, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, useIni, 0
+IfExist, %A_ScriptDir%\Ahk2Exe.ini
+	IniRead, SettingSource, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, useIni, 0
 if (SettingSource == 1)
 {
-	IniRead, LastScriptDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastScriptDir, %A_Space%
-	IniRead, LastExeDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastExeDir, %A_Space%
-	IniRead, LastIconDir, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIconDir, %A_Space%
-	IniRead, LastIcon, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIcon, %A_Space%
-	IniRead, LastBinFile, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastBinFile, %A_Space%
-	IniRead, LastUseMPRESS, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastUseMPRESS, %A_Space%
+	IniRead, LastScriptDir, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastScriptDir, %A_Space%
+	IniRead, LastExeDir, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastExeDir, %A_Space%
+	IniRead, LastIconDir, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastIconDir, %A_Space%
+	IniRead, LastIcon, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastIcon, %A_Space%
+	IniRead, LastBinFile, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastBinFile, %A_Space%
+	IniRead, LastUseMPRESS, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastUseMPRESS, %A_Space%
 }
 else
 {
@@ -373,13 +373,13 @@ else
 if (SettingSource == 1)
 
 {
-	IniWrite, %AhkFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastScriptDir
-	IniWrite, %ExeFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastExeDir
-	IniWrite, %IcoFileDir%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIconDir
-	IniWrite, %IcoFile%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastIcon
-	IniWrite, %UseMPRESS%, %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastUseMPRESS
+	IniWrite, %AhkFileDir%, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastScriptDir
+	IniWrite, %ExeFileDir%, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastExeDir
+	IniWrite, %IcoFileDir%, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastIconDir
+	IniWrite, %IcoFile%, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastIcon
+	IniWrite, %UseMPRESS%, %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastUseMPRESS
 	if !CustomBinFile
-		IniWrite, % BinFiles[BinFileId], %A_ScriptDir%\AHK2Exe.ini, AHK2Exe, LastBinFile
+		IniWrite, % BinFiles[BinFileId], %A_ScriptDir%\Ahk2Exe.ini, Ahk2Exe, LastBinFile
 }
 else
 {
