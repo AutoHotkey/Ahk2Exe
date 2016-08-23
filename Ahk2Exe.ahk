@@ -85,13 +85,21 @@ gosub SaveSettings
 ExitApp
 
 GuiDropFiles:
-if A_EventInfo > 2
-	Util_Error("You cannot drop more than one file into this window!")
-SplitPath, A_GuiEvent,,, dropExt
-if dropExt = ahk
-	GuiControl,, AhkFile, %A_GuiEvent%
-else if dropExt = ico
-	GuiControl,, IcoFile, %A_GuiEvent%
+if A_EventInfo > 3
+	Util_Error("You cannot drop more than one ahk, ico and exe file into this window!")
+else
+{
+	loop, parse, A_GuiEvent, `n
+	{
+		SplitPath, A_LoopField,,, dropExt
+		if dropExt = ahk
+			GuiControl,, AhkFile, %A_LoopField%
+		else if dropExt = exe
+			GuiControl,, ExeFile, %A_LoopField%
+		else if dropExt = ico
+			GuiControl,, IcoFile, %A_LoopField%
+	}
+}
 return
 
 AddPicture:
