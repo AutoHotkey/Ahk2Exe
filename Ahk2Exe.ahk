@@ -92,12 +92,7 @@ else
 	loop, parse, A_GuiEvent, `n
 	{
 		SplitPath, A_LoopField,,, dropExt
-		if dropExt = ahk
-			GuiControl,, AhkFile, %A_LoopField%
-		else if dropExt = exe
-			GuiControl,, ExeFile, %A_LoopField%
-		else if dropExt = ico
-			GuiControl,, IcoFile, %A_LoopField%
+		GuiControl,, %dropExt%File, %A_LoopField%
 	}
 }
 return
