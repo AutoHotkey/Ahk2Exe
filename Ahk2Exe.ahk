@@ -282,7 +282,7 @@ return
 
 _ProcessMPRESS:
 UseMPRESS := p2
-if p2 && p2 <> 1
+if p2 && p2 != 1
 	MPRESSparams := p2
 return
 
