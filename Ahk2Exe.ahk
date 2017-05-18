@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8
 ;
 ; Script description:
@@ -68,8 +68,8 @@ Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
-Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
-Gui, Add, Text, x461 y302, Parameters:
+Gui, Add, CheckBox, x138 y298 w270 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
+Gui, Add, Text, x412 y302, MPRESS Parameters
 Gui, Add, Edit, x521 y296 w53 h23 vMpressParams
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
