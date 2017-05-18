@@ -282,6 +282,8 @@ return
 
 _ProcessMPRESS:
 UseMPRESS := p2
+if p2 && p2 <> 1
+	MPRESSparams := p2
 return
 
 _ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
