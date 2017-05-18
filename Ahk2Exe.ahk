@@ -68,9 +68,9 @@ Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
-Gui, Add, CheckBox, x138 y298 w270 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
+Gui, Add, CheckBox, x138 y298 w270 h20 vUseMPRESS Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
 Gui, Add, Text, x412 y302, MPRESS Parameters
-Gui, Add, Edit, x521 y296 w53 h23 vMpressParams
+Gui, Add, Edit, x521 y296 w53 h23 vMPRESSparams, %LastMPRESSparams%
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
 if !A_IsCompiled
@@ -327,7 +327,7 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, MpressParams, ScriptFileCP)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMPRESS, MPRESSparams, ScriptFileCP)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -341,6 +341,7 @@ RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
 RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
+RegRead, LastMPRESSparams, HKCU, Software\AutoHotkey\Ahk2Exe, LastMPRESSparams
 if LastBinFile =
 	LastBinFile = AutoHotkeySC.bin
 if LastUseMPRESS
@@ -362,7 +363,7 @@ RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
-
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastMPRESSparams, %MPRESSparams%
 if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return
