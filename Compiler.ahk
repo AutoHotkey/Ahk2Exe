@@ -33,7 +33,6 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
 	{
-		Util_Status("Compressing final executable...")
 		if UseMPRESS <> 1 
 			MPRESSparams := UseMPRESS
 		RunWait, "%A_ScriptDir%\mpress.exe" %MPRESSparams% -q -x "%ExeFileTmp%",, Hide
