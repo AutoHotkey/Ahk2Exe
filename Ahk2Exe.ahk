@@ -1,4 +1,4 @@
-;
+﻿;
 ; File encoding:  UTF-8
 ;
 ; Script description:
@@ -326,10 +326,8 @@ Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
-if UseMpress && MpressParams
-	UseMpress := MpressParams
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, MpressParams, ScriptFileCP)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -364,6 +362,7 @@ RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
+
 if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 return
