@@ -57,7 +57,7 @@ Gui, Add, Link, x287 y25,
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-%A_Year% fincs
-<a href="http://ahkscript.org">http://ahkscript.org</a>
+<a href="https://autohotkey.com">https://autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
