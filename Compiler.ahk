@@ -30,6 +30,11 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
 	
+	BinType := AHKType(ExeFileTmp)
+	DerefIncludeVars.A_AhkVersion := BinType.Version
+	DerefIncludeVars.A_PtrSize := BinType.PtrSize
+	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
+	
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS

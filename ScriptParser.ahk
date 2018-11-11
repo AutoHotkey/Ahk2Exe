@@ -12,7 +12,12 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
+		
+		DerefIncludeVars.A_ScriptFullPath := AhkScript
+		DerefIncludeVars.A_ScriptName := ScriptName
+		DerefIncludeVars.A_ScriptDir := ScriptDir
 	}
+	DerefIncludeVars.A_LineFile := AhkScript
 	
 	IfNotExist, %AhkScript%
 		if !iOption
@@ -80,10 +85,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					}
 				}
 				
-				StringReplace, IncludeFile, IncludeFile, `%A_ScriptDir`%, %FirstScriptDir%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_AppData`%, %A_AppData%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_AppDataCommon`%, %A_AppDataCommon%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_LineFile`%, %AhkScript%, All
+				IncludeFile := DerefIncludePath(IncludeFile, DerefIncludeVars)
 				
 				if InStr(FileExist(IncludeFile), "D")
 				{
@@ -162,9 +164,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
 		IfExist, %preprocfile%, FileDelete, %preprocfile%
 		AhkType := AHKType(AhkPath)
-		if AhkType = FAIL
+		if !AhkType
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
-		if AhkType = Legacy
+		if (AhkType.Era = "Legacy")
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
 
 		tmpErrorLog := Util_TempFile()
@@ -241,4 +243,31 @@ Util_TempFile(d:="")
 		tempName := d "\~temp" A_TickCount ".tmp"
 	until !FileExist(tempName)
 	return tempName
+}
+
+class DerefIncludeVars
+{
+    static A_IsCompiled := true
+}
+
+DerefIncludePath(path, vars)
+{
+    static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
+	p := StrSplit(path, "%")
+    path := p[1]
+    n := 2
+	while n < p.Length()
+	{
+        vn := p[n]
+		if ObjHasKey(vars, vn)
+			path .= vars[vn] . p[++n]
+		else if SharedVars[vn]
+            path .= %vn% . p[++n]
+        else
+            path .= "%" vn
+        ++n
+	}
+    if (n = p.Length())
+        path .= "%" p[n]
+    return path
 }
