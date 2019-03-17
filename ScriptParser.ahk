@@ -17,6 +17,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		DerefIncludeVars.A_ScriptName := ScriptName
 		DerefIncludeVars.A_ScriptDir := ScriptDir
 	}
+	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
 	
 	IfNotExist, %AhkScript%
@@ -161,6 +162,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
 	
+	DerefIncludeVars.A_LineFile := oldLineFile
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
 }
