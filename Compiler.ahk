@@ -2,7 +2,7 @@
 #Include IconChanger.ahk
 #Include Directives.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile := "", ByRef CustomIcon := "", BinFile := "", UseMPRESS := "")
+AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
@@ -15,7 +15,8 @@ AhkCompile(ByRef AhkFile, ExeFile := "", ByRef CustomIcon := "", BinFile := "", 
 	else
 		ExeFile := Util_GetFullPath(ExeFile)
 	
-	ExeFileTmp := ExeFile
+	;ExeFileTmp := ExeFile
+	ExeFileTmp := Util_TempFile()
 	
 	if BinFile =
 		BinFile = %A_ScriptDir%\AutoHotkeySC.bin
@@ -25,24 +26,42 @@ AhkCompile(ByRef AhkFile, ExeFile := "", ByRef CustomIcon := "", BinFile := "", 
 	IfNotExist, %BinFile%
 		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 1, BinFile)
 	
-	try FileCopy, %BinFile%, %ExeFile%, 1
+	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
 	
-	BundleAhkScript(ExeFile, AhkFile, CustomIcon)
+	BinType := AHKType(ExeFileTmp)
+	DerefIncludeVars.A_AhkVersion := BinType.Version
+	DerefIncludeVars.A_PtrSize := BinType.PtrSize
+	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
+	
+	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
 	{
 		Util_Status("Compressing final executable...")
-		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
+		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFileTmp%",, Hide
 	}
+	
+	; the final step...
+	try FileCopy, %ExeFileTmp%, %ExeFile%, 1
+	catch
+		Util_Error("Error: Could not copy final compiled binary file to destination.")
 	
 	Util_HideHourglass()
 	Util_Status("")
 }
 
-BundleAhkScript(ExeFile, AhkFile, IcoFile := "")
+BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 {
+	; weird bug prevention, for non working default param 'fileCP'
+	if fileCP is space
+		fileCP := A_FileEncoding
+	
+	try FileEncoding, %fileCP%
+	catch e
+		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.")
+	
 	SplitPath, AhkFile,, ScriptDir
 	
 	ExtraFiles := []
