@@ -172,12 +172,14 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 
 		tmpErrorLog := Util_TempFile()
 		FileAppend, % ScriptText, % preprocfile, UTF-8
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%preprocfile%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel
-		FileRead,tmpErrorData,%tmpErrorLog%
+		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%preprocfile%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel Hide
+		if (ErrorLevel = 2)
+		{
+			FileRead,tmpErrorData,%tmpErrorLog%
+			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
+		}
 		FileDelete,%tmpErrorLog%
 		FileDelete,%preprocfile%
-		if (ErrorLevel = 2)
-			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)

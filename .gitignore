@@ -3,4 +3,5 @@
 *.bak
 *.db
 *.zip
+*.session
 /__debug.ahk
