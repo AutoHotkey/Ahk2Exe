@@ -70,7 +70,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 
-			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]?\s*(.*)$", o)
+			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
 			{
 				IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
