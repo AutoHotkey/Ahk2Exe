@@ -170,11 +170,13 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		if (AhkType.Era = "Legacy")
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
 		tmpErrorLog := Util_TempFile()
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel
-		FileRead,tmpErrorData,%tmpErrorLog%
-		FileDelete,%tmpErrorLog%
+		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
 		if (ErrorLevel = 2)
+		{
+			FileRead,tmpErrorData,%tmpErrorLog%
 			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
+		}
+		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
