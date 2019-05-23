@@ -33,7 +33,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		{
 			if ignoreSection
 			{
-				if (tline == Options.comm "@Ahk2Exe-IgnoreEnd")
+				if StrStartsWith(tline, Options.comm "@Ahk2Exe-IgnoreEnd")
 					ignoreSection := false
 				continue
 			}
@@ -45,17 +45,18 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					if !StrStartsWith(tline, "@Ahk2Exe-")
 						continue
 					StringTrimLeft, tline, tline, 9
-					if tline = IgnoreBegin
+					if StrStartsWith(tline, "IgnoreBegin")
 						ignoreSection := true
 					else if tline !=
-						Options.directives.Insert(tline)
+						Options.directives.Insert(RegExReplace(tline
+						, "\s+" RegExEscape(Options.comm) ".*$"))
 					continue
 				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
-					if (tline == "/*@Ahk2Exe-Keep")
+					if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
 						continue
 					cmtBlock := true
 					continue
