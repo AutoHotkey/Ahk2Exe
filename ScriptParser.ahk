@@ -22,7 +22,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
+			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.", 0x32)
 		else return
 	
 	cmtBlock := false, contSection := false, ignoreSection := false
@@ -49,7 +49,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						ignoreSection := true
 					else if tline !=
 						Options.directives.Insert(RegExReplace(tline
-						, "\s+" RegExEscape(Options.comm) ".*$"))
+						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
 					continue
 				}
 				else if tline =
@@ -128,7 +128,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					StringReplace, tline, tline, %EscapeComma%, %EscapeTmp%, All
 				
 				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
-					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.")
+					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.", 0x12)
 				_ := Options.esc
 				StringReplace, o1, o1, %_%`%, `%, All
 				StringReplace, o1, o1, %_%`,, `,, All
@@ -147,9 +147,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			else if !contSection && RegExMatch(tline, "i)^#EscapeChar\s+(.+)$", o)
 				Options.esc := o1, ScriptText .= tline "`n"
 			else if !contSection && RegExMatch(tline, "i)^#DerefChar\s+(.+)$", o)
-				Util_Error("Error: #DerefChar is not supported.")
+				Util_Error("Error: #DerefChar is not supported.", 0x21)
 			else if !contSection && RegExMatch(tline, "i)^#Delimiter\s+(.+)$", o)
-				Util_Error("Error: #Delimiter is not supported.")
+				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
 		}else if StrStartsWith(tline, "*/")
@@ -168,15 +168,15 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		IfExist, %preprocfile%, FileDelete, %preprocfile%
 		AhkType := AHKType(AhkPath)
 		if !AhkType
-			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
+			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
 		if (AhkType.Era = "Legacy")
-			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
+			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 0x26, AhkPath)
 		tmpErrorLog := Util_TempFile()
 		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
 		if (ErrorLevel = 2)
 		{
 			FileRead,tmpErrorData,%tmpErrorLog%
-			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
+			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
