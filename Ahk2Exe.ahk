@@ -95,7 +95,7 @@ ExitApp
 
 GuiDropFiles:
 if A_EventInfo > 2
-	Util_Error("You cannot drop more than one file into this window!")
+	Util_Error("You cannot drop more than one file into this window!", 0x51)
 SplitPath, A_GuiEvent,,, dropExt
 if dropExt = ahk
 	GuiControl,, AhkFile, %A_GuiEvent%
@@ -226,7 +226,7 @@ p := []
 Loop, %0%
 {
 	if %A_Index% = /NoDecompile
-		Util_Error("Error: /NoDecompile is not supported.")
+		Util_Error("Error: /NoDecompile is not supported.", 0x23)
 	else p.Insert(%A_Index%)
 }
 
@@ -245,7 +245,7 @@ Loop, % p.MaxIndex() // 2
 		UsesCustomBin := true
 	
 	if p1 = /pass
-		Util_Error("Error: Password protection is not supported.")
+		Util_Error("Error: Password protection is not supported.", 0x24)
 	
 	if p2 =
 		goto BadParams
@@ -380,7 +380,7 @@ return
 Help:
 helpfile = %A_ScriptDir%\..\AutoHotkey.chm
 IfNotExist, %helpfile%
-	Util_Error("Error: cannot find AutoHotkey help file!")
+	Util_Error("Error: cannot find AutoHotkey help file!", 0x52)
 
 VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
 NumPut(ak_size, ak, 0, "UInt")
@@ -410,7 +410,7 @@ Util_Status(s)
 	SB_SetText(s)
 }
 
-Util_Error(txt, doexit := 1, extra := "")
+Util_Error(txt, exitcode, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
@@ -431,74 +431,11 @@ Util_Error(txt, doexit := 1, extra := "")
 	
 	Util_Status("Ready")
 	
-	if doexit
+	if exitcode
 		if !Error_ForceExit
-			Exit, % Util_ErrorCode(txt)
+			Exit, exitcode
 		else
-			ExitApp, % Util_ErrorCode(txt)
-}
-
-Util_ErrorCode(x)
-{
-	if InStr(x,"Syntax")
-		if InStr(x,"FileInstall")
-			return 0x12
-		else
-			return 0x11
-
-	if InStr(x,"AutoHotkeySC")
-		if InStr(x,"copy")
-			return 0x41
-		else
-			return 0x34
-
-	if InStr(x,"file")	
-		if InStr(x,"open")
-			if InStr(x,"cannot")
-				return 0x32
-			else
-				return 0x31
-		else if InStr(x,"adding")
-			if InStr(x,"FileInstall")
-				return 0x44
-			else
-				return 0x43
-		else if InStr(x,"cannot")
-			if InStr(x,"drop")
-				return 0x51
-			else
-				return 0x52
-		else if InStr(x,"final")
-			return 0x45
-		else
-			return 0x33
-
-
-	if InStr(x,"Supported")
-		if InStr(x,"De")
-			if InStr(x,"#")
-				if InStr(x,"ref")
-					return 0x21
-				else
-					return 0x22
-			else
-				return 0x23
-		else
-			return 0x24
-
-	if InStr(x,"build used")
-		if InStr(x,"Legacy")
-			return 0x26
-		else
-			return 0x25
-
-	if InStr(x,"icon")
-		return 0x42
-	
-	if InStr(x,"codepage")
-		return 0x53
-	
-	return 0x1 ;unknown error
+			ExitApp, exitcode
 }
 
 Util_Info(txt)

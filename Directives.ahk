@@ -7,7 +7,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	{
 		Util_Status("Processing directive: " cmdline)
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
-			Util_Error("Error: Invalid directive:`n`n" cmdline)
+			Util_Error("Error: Invalid directive:`n`n" cmdline, 0x63)
 		args := [], nargs := 0
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
@@ -21,9 +21,9 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		}
 		fn := Func("Directive_" o1)
 		if !fn
-			Util_Error("Error: Invalid directive: " o1)
+			Util_Error("Error: Invalid directive: " o1, 0x63)
 		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1)
-			Util_Error("Error: Wrongly formatted directive:`n`n" cmdline)
+			Util_Error("Error: Wrongly formatted directive:`n`n" cmdline, 0x64)
 		fn.(state, args*)
 	}
 	
@@ -36,11 +36,11 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	if IcoFile := state.IcoFile
 	{
 		if !FileExist(IcoFile)
-			Util_Error("Error changing icon: File does not exist.")
+			Util_Error("Error changing icon: File does not exist.", 0x35)
 		
 		Util_Status("Changing the main icon...")
 		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
-			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.")
+			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42)
 	}
 	return state
 }
@@ -98,9 +98,9 @@ Directive_OutputPreproc(state, fileName)
 Directive_UseResourceLang(state, resLang)
 {
 	if resLang is not integer
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.")
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65)
 	if resLang not between 0 and 0xFFFF
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.")
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65)
 	state.resLang := resLang+0
 }
 
@@ -111,7 +111,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
 	if !resFile
-		Util_Error("Error: specified resource does not exist: " rsrc)
+		Util_Error("Error: specified resource does not exist: " rsrc, 0x36)
 	SplitPath, resFile, resFileName,, resExt
 	if !resName
 		resName := resFileName, defResName := true
@@ -124,7 +124,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		else if resExt = ico
 			resType := 14 ; RT_GROUP_ICON
 		else if resExt = cur
-			Util_Error("Error: Cursor resource adding is not supported yet!")
+			Util_Error("Error: Cursor resource adding is not supported yet!", 0x27)
 		else if resExt in htm,html,mht
 			resType := 23 ; RT_HTML
 		else if resExt = manifest
@@ -159,12 +159,12 @@ Directive_AddResource(state, rsrc, resName := "")
 	{
 		; Remove BM header in order to make it a valid bitmap resource
 		if fSize < 14
-			Util_Error("Error: Impossible BMP file!")
+			Util_Error("Error: Impossible BMP file!", 0x66)
 		pData += 14, fSize -= 14
 	}
 	if !DllCall("UpdateResource", "ptr", state.module, typeType, resType, nameType, resName
               , "ushort", state.resLang, "ptr", pData, "uint", fSize, "uint")
-		Util_Error("Error adding resource:`n`n" rsrc)
+		Util_Error("Error adding resource:`n`n" rsrc, 0x46)
 	VarSetCapacity(fData, 0)
 }
 
@@ -172,7 +172,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 {
 	hModule := DllCall("LoadLibraryEx", "str", ExeFile, "ptr", 0, "ptr", 2, "ptr")
 	if !hModule
-		Util_Error("Error: Error opening destination file.")
+		Util_Error("Error: Error opening destination file.", 0x31)
 	
 	hRsrc := DllCall("FindResource", "ptr", hModule, "ptr", 1, "ptr", 16, "ptr") ; Version Info\1
 	hMem := DllCall("LoadResource", "ptr", hModule, "ptr", hRsrc, "ptr")
@@ -216,7 +216,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	viSize := vi.Save(&newVI)
 	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
 	          , "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
-		Util_Error("Error changing the version information.")
+		Util_Error("Error changing the version information.", 0x67)
 }
 
 VersionTextToNumber(v)

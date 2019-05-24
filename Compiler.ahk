@@ -7,7 +7,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	global ExeFileTmp
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
-		Util_Error("Error: Source file not specified.")
+		Util_Error("Error: Source file not specified.", 0x33)
 	SplitPath, AhkFile,, AhkFile_Dir,, AhkFile_NameNoExt
 	
 	if ExeFile =
@@ -24,11 +24,11 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_DisplayHourglass()
 	
 	IfNotExist, %BinFile%
-		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 1, BinFile)
+		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 0x34, BinFile)
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
-		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.")
+		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.", 0x41)
 	
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
@@ -46,7 +46,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	; the final step...
 	try FileCopy, %ExeFileTmp%, %ExeFile%, 1
 	catch
-		Util_Error("Error: Could not copy final compiled binary file to destination.")
+		Util_Error("Error: Could not copy final compiled binary file to destination.", 0x45)
 	
 	Util_HideHourglass()
 	Util_Status("")
@@ -60,7 +60,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	
 	try FileEncoding, %fileCP%
 	catch e
-		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.")
+		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
 	SplitPath, AhkFile,, ScriptDir
 	
@@ -71,7 +71,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
-		Util_Error("Error: Error opening the destination file.")
+		Util_Error("Error: Error opening the destination file.", 0x31)
 	
 	tempWD := new CTempWD(ScriptDir)
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
@@ -113,7 +113,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	{
 		Util_Status("Marking executable as a console application...")
 		if !SetExeSubsystem(ExeFile, 3)
-			Util_Error("Could not change executable subsystem!")
+			Util_Error("Could not change executable subsystem!", 0x61)
 	}
 	
 	for each,cmd in dirState.PostExec
@@ -121,7 +121,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		Util_Status("PostExec: " cmd)
 		RunWait, % cmd,, UseErrorLevel
 		if (ErrorLevel != 0)
-			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd)
+			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
 	}
 	
 	
@@ -129,15 +129,15 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	
 _FailEnd:
 	gosub _EndUpdateResource
-	Util_Error("Error adding script file:`n`n" AhkFile)
+	Util_Error("Error adding script file:`n`n" AhkFile, 0x43)
 	
 _FailEnd2:
 	gosub _EndUpdateResource
-	Util_Error("Error adding FileInstall file:`n`n" file)
+	Util_Error("Error adding FileInstall file:`n`n" file, 0x44)
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-		Util_Error("Error: Error opening the destination file.")
+		Util_Error("Error: Error opening the destination file.", 0x31)
 	return
 }
 
