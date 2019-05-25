@@ -97,7 +97,7 @@ GuiDropFiles:
 if A_EventInfo > 2
 	Util_Error("You cannot drop more than one file into this window!", 0x51)
 SplitPath, A_GuiEvent,,, dropExt
-if dropExt = ahk
+if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
 	GuiControl,, AhkFile, %A_GuiEvent%
 else if dropExt = ico
 	GuiControl,, IcoFile, %A_GuiEvent%
