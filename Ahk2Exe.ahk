@@ -172,8 +172,15 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	FileDelete, %A_ScriptDir%\___.tmp
 	
 	IfNotExist, %A_ScriptDir%\..\AutoHotkey.exe
+	{
 		binFile = %A_ScriptDir%\Unicode 32-bit.bin
-	else
+
+		if !FileExist(BinFile)                  ; Ahk2Exe in non-standard folder?
+		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
+			       ,  %A_ScriptDir%\AutoHotkeySC.bin
+			BinFile = %A_ScriptDir%\AutoHotkeySC.bin
+
+	}	} else
 	{
 		try FileDelete, %A_Temp%\___temp.ahk
 		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, %A_Temp%\___temp.ahk
