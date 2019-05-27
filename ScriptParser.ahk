@@ -160,8 +160,11 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	{
 		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		IfNotExist, %AhkPath%
+		{	
+			Util_Error("Warning: AutoHotkey.exe could not be located!`n`n"
+			. "Auto-includes from Function Libraries will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
-		
+		}
 		Util_Status("Auto-including any functions called from a library...")
 		ilibfile := A_Temp "\_ilib.ahk", preprocfile := ScriptDir "\_ahk2exe.tmp~"
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
