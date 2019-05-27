@@ -160,8 +160,11 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	{
 		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		IfNotExist, %AhkPath%
+		{	
+			Util_Error("Warning: AutoHotkey.exe could not be located!`n`n"
+			. "Auto-includes from Function Libraries will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
-		
+		}
 		Util_Status("Auto-including any functions called from a library...")
 		ilibfile := A_Temp "\_ilib.ahk", preprocfile := ScriptDir "\_ahk2exe.tmp~"
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
@@ -173,7 +176,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 0x26, AhkPath)
 		tmpErrorLog := Util_TempFile()
 		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
-		if (ErrorLevel = 2)
+		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
 		{
 			FileRead,tmpErrorData,%tmpErrorLog%
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)

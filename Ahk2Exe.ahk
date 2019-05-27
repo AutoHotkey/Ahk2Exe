@@ -46,8 +46,8 @@ Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
 Menu, HelpMenu, Add, &Help, Help
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
-Menu, MenuBar, Add, &File, :FileMenu
-Menu, MenuBar, Add, &Help, :HelpMenu
+Menu, MenuBar,  Add, &File, :FileMenu
+Menu, MenuBar,  Add, &Help, :HelpMenu
 Gui, Menu, MenuBar
 
 Gui, +LastFound
@@ -57,18 +57,18 @@ Gui, Add, Link, x287 y25,
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-%A_Year% fincs
-<a href="https://autohotkey.com">https://autohotkey.com</a>
+<a href="https://www.autohotkey.com">https://autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
-Gui, Add, GroupBox, x11 y124 w570 h86, Required Parameters
+Gui, Add, GroupBox, x11 y124 w570 h86 cBlue, Required Parameters
 Gui, Add, Text, x17 y151, &Source (script file)
 Gui, Add, Edit, x137 y146 w315 h23 +Disabled vAhkFile, %AhkFile%
 Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
 Gui, Add, Text, x17 y180, &Destination (.exe file)
 Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h106, Optional Parameters
+Gui, Add, GroupBox, x11 y219 w570 h106 cBlue, Optional Parameters
 Gui, Add, Text, x18 y245, Custom Icon (.ico file)
 Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
@@ -421,7 +421,7 @@ Util_Error(txt, exitcode, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
-	if ExeFileTmp && FileExist(ExeFileTmp)
+	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{
 		FileDelete, %ExeFileTmp%
 		ExeFileTmp =
@@ -431,12 +431,17 @@ Util_Error(txt, exitcode, extra := "")
 		txt .= "`n`nSpecifically: " extra
 	
 	Util_HideHourglass()
-	MsgBox, 16, Ahk2Exe Error, % txt
+	if exitcode
+		MsgBox, 16, Ahk2Exe Error, % txt
+	else
+		MsgBox, 48, Ahk2Exe Warning, % txt
+
 	
-	if CLIMode
+	if CLIMode && exitcode
+	{
 		FileAppend, Failed to compile: %ExeFile%`n, *
-	
-	Util_Status("Ready")
+		Util_Status("Ready")
+	}
 	
 	if exitcode
 		if !Error_ForceExit
