@@ -20,6 +20,8 @@
 #Include Compiler.ahk
 SendMode Input
 
+OnExit("Util_HideHourglass")            ; Reset cursor on exit
+
 global DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
@@ -456,11 +458,11 @@ Util_Info(txt)
 }
 
 Util_DisplayHourglass()
-{
-	DllCall("SetCursor", "ptr", DllCall("LoadCursor", "ptr", 0, "ptr", 32514, "ptr"))
+{                          ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
+  DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
 }
 
 Util_HideHourglass()
-{
-	DllCall("SetCursor", "ptr", DllCall("LoadCursor", "ptr", 0, "ptr", 32512, "ptr"))
+{                                              ; Reset arrow cursor to standard
+  DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
 }
