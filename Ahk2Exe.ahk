@@ -181,6 +181,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
 			       ,  %A_ScriptDir%\AutoHotkeySC.bin
 			BinFile = %A_ScriptDir%\AutoHotkeySC.bin
+			FileCopy  %A_AhkPath%\..\Compiler\*bit.bin, %A_ScriptDir%\
 
 	}	} else
 	{
