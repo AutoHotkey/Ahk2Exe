@@ -35,6 +35,19 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
 	
+	if !(BinType.Version)   ; Temporary workaround for AhkType() bug
+	{
+		FileGetVersion ver, %ExeFileTmp%
+		DerefIncludeVars.A_AhkVersion := ver
+		
+		FileGetSize size, %ExeFileTmp%
+		Loop Files, %A_ScriptDir%\*bit.bin
+		{ if (A_LoopFileSize = size)
+			{
+				DerefIncludeVars.A_PtrSize   := InStr(A_LoopFileName,64) ? 8 : 4
+				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
+	}	}	}
+	
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS

@@ -181,9 +181,9 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
 			       ,  %A_ScriptDir%\AutoHotkeySC.bin
 			BinFile = %A_ScriptDir%\AutoHotkeySC.bin
-
-	}	} else
-	{
+			FileCopy  %A_AhkPath%\..\Compiler\*bit.bin, %A_ScriptDir%\, 1
+		}
+	} else {
 		try FileDelete, %A_Temp%\___temp.ahk
 		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, %A_Temp%\___temp.ahk
 		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%A_Temp%\___temp.ahk"
