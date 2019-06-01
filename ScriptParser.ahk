@@ -20,6 +20,12 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
 	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+	{
+		OldWorkingDirv2 := A_WorkingDir
+		SetWorkingDir %ScriptDir%
+	}
+	
 	IfNotExist, %AhkScript%
 		if !iOption
 			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.", 0x32)
@@ -194,6 +200,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
 	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+		SetWorkingDir %OldWorkingDirv2%
+
 	if IsFirstScript
 		return Options.directives
 }
