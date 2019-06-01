@@ -96,15 +96,15 @@ gosub SaveSettings
 ExitApp
 
 GuiDropFiles:
-if A_EventInfo > 2
-	Util_Error("You cannot drop more than one file into this window!", 0x51)
-SplitPath, A_GuiEvent,,, dropExt
-if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
-	GuiControl,, AhkFile, %A_GuiEvent%
-else if dropExt = ico
-	GuiControl,, IcoFile, %A_GuiEvent%
-else if dropExt = exe
-	GuiControl,, ExeFile, %A_GuiEvent%
+if A_EventInfo > 3
+	Util_Error("You cannot drop more than one file of each type into this window!", 0x51)
+loop, parse, A_GuiEvent, `n
+{
+	SplitPath, A_LoopField,,, dropExt
+	if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
+		GuiControl,, AhkFile, %A_LoopField%
+	else GuiControl,, %dropExt%File, %A_LoopField%
+}
 return
 
 /*@Ahk2Exe-Keep
