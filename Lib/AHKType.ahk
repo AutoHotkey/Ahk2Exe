@@ -42,13 +42,9 @@ AHKType(exeName)
 		%A_LoopField% := StrGet(pField, cbField)
 	}
 	
-	; Check it is actually an AutoHotkey executable
-	if !InStr(FileDescription, "AutoHotkey")
-		return
-	
 	Type := { Version: FileVersion
 		, IsUnicode: InStr(FileDescription, "Unicode") ? 1 : ""
-		, PtrSize: InStr(FileDescription, "64-bit") ? 8 : InStr(FileDescription, "32-bit") ? 4 : "" }
+		, PtrSize: exeMachine=0x8664 ? 8 : 4 }
 	
 	; We're dealing with a legacy version if it's prior to v1.1
 	Type.Era := vert >= 0x01010000 ? "Modern" : "Legacy"
