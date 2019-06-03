@@ -54,29 +54,29 @@ Gui, Menu, MenuBar
 
 Gui, +LastFound
 GuiHwnd := WinExist("")
-Gui, Add, Link, x287 y25,
+Gui, Add, Link, x287 y20,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
-©2011-%A_Year% fincs
+©2011-2016 fincs
 <a href="https://www.autohotkey.com">https://autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
-Gui, Add, GroupBox, x11 y124 w570 h86 cBlue, Required Parameters
+Gui, Add, GroupBox, x11 y124 w570 h55 cBlue, Required Parameter
 Gui, Add, Text, x17 y151, &Source (script file)
 Gui, Add, Edit, x137 y146 w315 h23 +Disabled vAhkFile, %AhkFile%
 Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
-Gui, Add, Text, x17 y180, &Destination (.exe file)
-Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
-Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h106 cBlue, Optional Parameters
-Gui, Add, Text, x18 y245, Custom Icon (.ico file)
-Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, GroupBox, x11 y182 w570 h140 cBlue, Optional Parameters
+Gui, Add, Text, x17 y208, &Destination (.exe file)
+Gui, Add, Edit, x137 y204 w315 h23 +Disabled vExeFile, %Exefile%
+Gui, Add, Button, x459 y204 w53 h23 gBrowseExe, B&rowse
+Gui, Add, Text, x18 y245, Custom &Icon (.ico file)
+Gui, Add, Edit, x137 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
-Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
