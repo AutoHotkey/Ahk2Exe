@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>Script Compiler (Ahk2Exe) Directives</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<link href="http://ahkscript.org/docs/css/default.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Script Compiler (Ahk2Exe) Directives <span class="ver">[v1.1.??+]</span></h1>
+<p>The script compiler accepts certain directives that allow you to further
+customize the compiled script (.exe).</p>
+<h2 id="IgnoreKeep">Directives that control the script behaviour</h2>
+<p>It is possible to remove code sections from the compiled script by wrapping
+them in directives:</p>
+<pre class="NoIndent">MsgBox This message appears in both the compiled and uncompiled script
+<em>;@Ahk2Exe-IgnoreBegin</em>
+MsgBox This message does NOT appear in the compiled script
+<em>;@Ahk2Exe-IgnoreEnd</em>
+MsgBox This message appears in both the compiled and uncompiled script
+</pre>
+<p>The reverse is also possible, i.e. marking a code section to only be executed in
+the compiled script:</p>
+<pre class="NoIndent"><em>/*@Ahk2Exe-Keep
+MsgBox This message appears only in the compiled script
+*/</em>
+MsgBox This message appears in both the compiled and uncompiled script
+</pre>
+<p>This has advantage over <a href="http://ahkscript.org/docs/Variables.htm#IsCompiled">A_IsCompiled</a> because
+the code is completely removed from the compiled script during preprocessing, thus making
+the compiled script smaller. The reverse is also true: it will not be necessary to check
+for A_IsCompiled because the code is inside a comment block in the uncompiled script.</p>
+<h2 id="Directives">Directives that control executable metadata</h2>
+<p>In the parameters of these directives, the following escape sequences are supported:
+<code>``</code>, <code>`,</code>, <code>`n</code>, <code>`r</code> and <code>`t</code>.
+Commas <em>always</em> need to be escaped, regardless of the parameter position.
+"Integer" refers to unsigned 16-bit integers (0..0xFFFF).</p>
+
+<div class="methodShort" id="SetProp"><h2>Set<em>Prop</em></h2>
+<p>Changes a property in the compiled executable's version information.</p>
+<pre class="Syntax">;@Ahk2Exe-Set<i>Prop</i> Value</pre>
+<table class="info">
+<tr><td width="15%">Prop</td><td width="85%">The name of the property to change. Must be one of below.</td></tr>
+<tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>
+</table>
+<p>The following properties are supported:</p>
+<table class="info">
+<tr><td width="15%">Name</td><td width="85%">Changes the product name and the internal name.</td></tr>
+<tr><td width="15%">Description</td><td width="85%">Changes the file description.</td></tr>
+<tr><td width="15%">Version</td><td width="85%">Changes the file version, the product version, in both text
+and raw binary format. Ahk2Exe fills the binary version fields with the period-delimited numbers (up to four)
+that may appear at the beginning of the version text. Unfilled fields are set to zero. For example,
+<code>1.3-alpha</code> would produce a binary version number of <code>1.3.0.0</code>. If this property is
+not modified, it defaults to the AutoHotkey version used to compile the script.</td></tr>
+<tr><td width="15%">Copyright</td><td width="85%">Changes the legal copyright information.</td></tr>
+<tr><td width="15%">OrigFilename</td><td width="85%">Changes the original filename information.</td></tr>
+<tr><td width="15%">CompanyName</td><td width="85%">Changes the company name.</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="SetMainIcon"><h2>SetMainIcon</h2>
+<p>Overrides the custom EXE icon used for compilation.</p>
+<pre class="Syntax">;@Ahk2Exe-SetMainIcon [IcoFile]</pre>
+<table class="info">
+<tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use.
+If omitted, the default AutoHotkey icon is used.</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="PostExec"><h2>PostExec</h2>
+<p>Specifies a command to be executed after a successful compilation.</p>
+<pre class="Syntax">;@Ahk2Exe-PostExec Command</pre>
+<table class="info">
+<tr><td width="15%">Command</td><td width="85%">The command to execute.</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="ConsoleApp"><h2>ConsoleApp</h2>
+<p>Changes the executable subsystem to Console mode.</p>
+<pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
+</div>
+
+<div class="methodShort" id="AddResource"><h2>AddResource</h2>
+<p>Adds a resource to the compiled executable.</p>
+<pre class="Syntax">;@Ahk2Exe-AddResource FileName [, ResourceName]</pre>
+<table class="info">
+<tr><td width="15%">FileName</td><td width="85%">The filename of the resource to add. The type of the resource
+(as an integer or string) can be explicitly specified prepending an asterisk to it: <code>*type Filename</code>.
+If omitted, Ahk2Exe automatically detects the type according to the file extension.</td></tr>
+<tr><td width="15%">ResourceName</td><td width="85%"><i>(Optional)</i> The name that the resource will have
+(can be a string or an integer). If omitted, it defaults to the name (with no path) of the file, in uppercase.</td></tr>
+</table>
+<p>Here is a list of common standard resource types and the extensions that trigger them by default.</p>
+<ul>
+<li>2 (RT_BITMAP): <code>.bmp</code>, <code>.dib</code></li>
+<li>4 (RT_MENU)</li>
+<li>5 (RT_DIALOG)</li>
+<li>6 (RT_STRING)</li>
+<li>9 (RT_ACCELERATORS)</li>
+<li>10 (RT_RCDATA): Every single other extension.</li>
+<li>11 (RT_MESSAGETABLE)</li>
+<li>12 (RT_GROUP_CURSOR): <code>.cur</code> (not yet supported)</li>
+<li>13 (RT_GROUP_ICON): <code>.ico</code> (not yet supported)</li>
+<li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
+<li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
+</ul>
+</div>
+
+<div class="methodShort" id="UseResourceLang"><h2>UseResourceLang</h2>
+<p>Changes the resource language used by <code>@Ahk2Exe-AddResource</code>.</p>
+<pre class="Syntax">;@Ahk2Exe-UseResourceLang LangCode</pre>
+<table class="info">
+<tr><td width="15%">LangCode</td><td width="85%">The <a href="http://ahkscript.org/docs/misc/Languages.htm">language code</a>. Please
+note that hexadecimal numbers must have an <code>0x</code> prefix.</td></tr>
+</table>
+<p>The default resource language is US English (0x0409).</p>
+</div>
+
+</body>
+</html>
