@@ -7,7 +7,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	{
 		Util_Status("Processing directive: " cmdline)
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
-			Util_Error("Error: Invalid directive:`n`n" cmdline, 0x63)
+			Util_Error("Error: Invalid directive:", 0x63, cmdline)
 		args := [], nargs := 0
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
@@ -23,7 +23,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		if !fn
 			Util_Error("Error: Invalid directive: " o1, 0x63)
 		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1)
-			Util_Error("Error: Wrongly formatted directive:`n`n" cmdline, 0x64)
+			Util_Error("Error: Wrongly formatted directive:", 0x64, cmdline)
 		fn.(state, args*)
 	}
 	
@@ -36,11 +36,11 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	if IcoFile := state.IcoFile
 	{
 		if !FileExist(IcoFile)
-			Util_Error("Error changing icon: File does not exist.", 0x35)
+			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
 		
 		Util_Status("Changing the main icon...")
 		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
-			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42)
+			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42, IcoFile)
 	}
 	return state
 }
@@ -98,9 +98,9 @@ Directive_OutputPreproc(state, fileName)
 Directive_UseResourceLang(state, resLang)
 {
 	if resLang is not integer
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65)
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, resLang)
 	if resLang not between 0 and 0xFFFF
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65)
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, resLang)
 	state.resLang := resLang+0
 }
 
@@ -111,7 +111,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
 	if !resFile
-		Util_Error("Error: specified resource does not exist: " rsrc, 0x36)
+		Util_Error("Error: specified resource does not exist:", 0x36, rsrc)
 	SplitPath, resFile, resFileName,, resExt
 	if !resName
 		resName := resFileName, defResName := true
@@ -164,7 +164,7 @@ Directive_AddResource(state, rsrc, resName := "")
 	}
 	if !DllCall("UpdateResource", "ptr", state.module, typeType, resType, nameType, resName
               , "ushort", state.resLang, "ptr", pData, "uint", fSize, "uint")
-		Util_Error("Error adding resource:`n`n" rsrc, 0x46)
+		Util_Error("Error adding resource:", 0x46, rsrc)
 	VarSetCapacity(fData, 0)
 }
 
