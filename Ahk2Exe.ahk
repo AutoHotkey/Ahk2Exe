@@ -75,8 +75,8 @@ Gui, Add, Edit, x137 y204 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y204 w53 h23 gBrowseExe, B&rowse
 Gui, Add, Text, x17 y240, Custom &Icon (.ico file)
 Gui, Add, Edit, x137 y236 w315 h23 +Disabled vIcoFile, %IcoFile%
-Gui, Add, Button, x461 y236 w53 h23 gBrowseIco, Br&owse
-Gui, Add, Button, x519 y236 w53 h23 gDefaultIco, D&efault
+Gui, Add, Button, x459 y236 w53 h23 gBrowseIco, Br&owse
+Gui, Add, Button, x517 y236 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
@@ -419,6 +419,9 @@ Original version:
 
 Script rewrite:
   Copyright ©2011-2016 fincs
+
+Special thanks:
+  TAC109, joedf, aviaryan
 )
 return
 
