@@ -370,6 +370,8 @@ if !FileExist(LastIcon)
 	LastIcon := ""
 if (LastBinFile = "") || !FileExist(LastBinFile)
 	LastBinFile = AutoHotkeySC.bin
+if !CompressDescr[LastUseMPRESS]
+	LastUseMPRESS := false
 return
 
 SaveSettings:
