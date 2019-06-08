@@ -418,6 +418,9 @@ Original version:
 
 Script rewrite:
   Copyright ©2011-2016 fincs
+
+Special thanks:
+  TAC109, joedf, aviaryan
 )
 return
 
