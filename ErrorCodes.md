@@ -42,7 +42,7 @@ Possible Errors
 - `(0x2)` Error changing icon: Unable to read icon or icon was of the wrong format.
 - `(0x3)` Error adding script file
 - `(0x4)` Error adding FileInstall file
-- `(0x5)` Error: Could not copy final compiled binary file to destination.
+- `(0x5)` Error: Could not move final compiled binary file to destination.
 - `(0x6)` Error adding resource.
 	
     
