@@ -45,14 +45,20 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
-	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS
+	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS = 1
 	{
-		Util_Status("Compressing final executable...")
+		Util_Status("Compressing final executable with MPRESS...")
 		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFileTmp%",, Hide
 	}
 	
+	if FileExist(A_ScriptDir "\upx.exe") && UseMPRESS = -1
+	{
+		Util_Status("Compressing final executable with UPX...")
+		RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods "%ExeFileTmp%",, Hide
+	}
+	
 	; the final step...
-	try FileCopy, %ExeFileTmp%, %ExeFile%, 1
+	try FileMove, %ExeFileTmp%, %ExeFile%, 1
 	catch
 		Util_Error("Error: Could not copy final compiled binary file to destination.", 0x45)
 	
