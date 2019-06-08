@@ -20,6 +20,8 @@
 #Include Compiler.ahk
 SendMode Input
 
+OnExit("Util_HideHourglass")            ; Reset cursor on exit
+
 global DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
@@ -31,11 +33,12 @@ if !UsesCustomBin
 if CLIMode
 {
 	gosub ConvertCLI
-	ExitApp
+	ExitApp, 0 ; Success
 }
 
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
+ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
@@ -45,35 +48,35 @@ Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
 Menu, HelpMenu, Add, &Help, Help
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
-Menu, MenuBar, Add, &File, :FileMenu
-Menu, MenuBar, Add, &Help, :HelpMenu
+Menu, MenuBar,  Add, &File, :FileMenu
+Menu, MenuBar,  Add, &Help, :HelpMenu
 Gui, Menu, MenuBar
 
 Gui, +LastFound
 GuiHwnd := WinExist("")
-Gui, Add, Text, x287 y25,
+Gui, Add, Link, x287 y20,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
-©2011-%A_Year% fincs
-http://www.autohotkey.com
+©2011-2016 fincs
+<a href="https://www.autohotkey.com">https://autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
-Gui, Add, GroupBox, x11 y124 w570 h86, Required Parameters
+Gui, Add, GroupBox, x11 y124 w570 h55 cBlue, Required Parameter
 Gui, Add, Text, x17 y151, &Source (script file)
 Gui, Add, Edit, x137 y146 w315 h23 +Disabled vAhkFile, %AhkFile%
 Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
-Gui, Add, Text, x17 y180, &Destination (.exe file)
-Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
-Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h106, Optional Parameters
-Gui, Add, Text, x18 y245, Custom Icon (.ico file)
-Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, GroupBox, x11 y182 w570 h140 cBlue, Optional Parameters
+Gui, Add, Text, x17 y208, &Destination (.exe file)
+Gui, Add, Edit, x137 y204 w315 h23 +Disabled vExeFile, %Exefile%
+Gui, Add, Button, x459 y204 w53 h23 gBrowseExe, B&rowse
+Gui, Add, Text, x18 y245, Custom &Icon (.ico file)
+Gui, Add, Edit, x137 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
 Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
-Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
@@ -83,6 +86,7 @@ Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
+GuiControl, Focus, Button1
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
@@ -92,15 +96,15 @@ gosub SaveSettings
 ExitApp
 
 GuiDropFiles:
-if A_EventInfo > 2
-	Util_Error("You cannot drop more than one file into this window!")
-SplitPath, A_GuiEvent,,, dropExt
-if dropExt = ahk
-	GuiControl,, AhkFile, %A_GuiEvent%
-else if dropExt = ico
-	GuiControl,, IcoFile, %A_GuiEvent%
-else if dropExt = exe
-	GuiControl,, ExeFile, %A_GuiEvent%
+if A_EventInfo > 3
+	Util_Error("You cannot drop more than one file of each type into this window!", 0x51)
+loop, parse, A_GuiEvent, `n
+{
+	SplitPath, A_LoopField,,, dropExt
+	if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
+		GuiControl,, AhkFile, %A_LoopField%
+	else GuiControl,, %dropExt%File, %A_LoopField%
+}
 return
 
 /*@Ahk2Exe-Keep
@@ -165,13 +169,21 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		)
 		IfMsgBox, Yes
 			return
-		ExitApp
+		ExitApp, 0x2 ; Compilation cancelled
 	}
 	FileDelete, %A_ScriptDir%\___.tmp
 	
 	IfNotExist, %A_ScriptDir%\..\AutoHotkey.exe
+	{
 		binFile = %A_ScriptDir%\Unicode 32-bit.bin
-	else
+
+		if !FileExist(BinFile)                  ; Ahk2Exe in non-standard folder?
+		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
+			       ,  %A_ScriptDir%\AutoHotkeySC.bin
+			BinFile = %A_ScriptDir%\AutoHotkeySC.bin
+			FileCopy  %A_AhkPath%\..\Compiler\*bit.bin, %A_ScriptDir%\, 1
+
+	}	} else
 	{
 		try FileDelete, %A_Temp%\___temp.ahk
 		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, %A_Temp%\___temp.ahk
@@ -198,7 +210,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		)
 		IfMsgBox, Yes
 			return
-		ExitApp
+		ExitApp, 0x2 ; Compilation cancelled
 	}
 	
 	FileCopy, %binFile%, %A_ScriptDir%\AutoHotkeySC.bin
@@ -224,7 +236,7 @@ p := []
 Loop, %0%
 {
 	if %A_Index% = /NoDecompile
-		Util_Error("Error: /NoDecompile is not supported.")
+		Util_Error("Error: /NoDecompile is not supported.", 0x23)
 	else p.Insert(%A_Index%)
 }
 
@@ -236,14 +248,14 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/cp
 		goto BadParams
 	
 	if p1 = /bin
 		UsesCustomBin := true
 	
 	if p1 = /pass
-		Util_Error("Error: Password protection is not supported.")
+		Util_Error("Error: Password protection is not supported.", 0x24)
 	
 	if p2 =
 		goto BadParams
@@ -268,8 +280,8 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin]")
-ExitApp
+Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin] [/mpress 1 (true) or 0 (false)] [/cp codepage]")
+ExitApp, 0x3
 
 _ProcessIn:
 AhkFile := p2
@@ -292,6 +304,13 @@ _ProcessMPRESS:
 UseMPRESS := p2
 return
 
+_ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
+if p2 is number
+	ScriptFileCP := "CP" p2
+else
+	ScriptFileCP := p2
+return
+
 BrowseAhk:
 Gui, +OwnDialogs
 FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
@@ -305,7 +324,7 @@ Gui, +OwnDialogs
 FileSelectFile, ov, S16, %LastExeDir%, Save As, Executable files (*.exe)
 if ErrorLevel
 	return
-if !RegExMatch(ov, "\.[^\\/]+$")
+if !RegExMatch(ov, "\.[^\\/]+$") ;~ append a default file extension is none specified
 	ov .= ".exe"
 GuiControl,, ExeFile, %ov%
 return
@@ -327,7 +346,7 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress)
+AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -371,7 +390,7 @@ return
 Help:
 helpfile = %A_ScriptDir%\..\AutoHotkey.chm
 IfNotExist, %helpfile%
-	Util_Error("Error: cannot find AutoHotkey help file!")
+	Util_Error("Error: cannot find AutoHotkey help file!", 0x52)
 
 VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
 NumPut(ak_size, ak, 0, "UInt")
@@ -401,11 +420,11 @@ Util_Status(s)
 	SB_SetText(s)
 }
 
-Util_Error(txt, doexit := 1, extra := "")
+Util_Error(txt, exitcode, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
-	if ExeFileTmp && FileExist(ExeFileTmp)
+	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{
 		FileDelete, %ExeFileTmp%
 		ExeFileTmp =
@@ -415,18 +434,23 @@ Util_Error(txt, doexit := 1, extra := "")
 		txt .= "`n`nSpecifically: " extra
 	
 	Util_HideHourglass()
-	MsgBox, 16, Ahk2Exe Error, % txt
+	if exitcode
+		MsgBox, 16, Ahk2Exe Error, % txt
+	else
+		MsgBox, 48, Ahk2Exe Warning, % txt
+
 	
-	if CLIMode
+	if CLIMode && exitcode
+	{
 		FileAppend, Failed to compile: %ExeFile%`n, *
+		Util_Status("Ready")
+	}
 	
-	Util_Status("Ready")
-	
-	if doexit
+	if exitcode
 		if !Error_ForceExit
-			Exit
+			Exit, exitcode
 		else
-			ExitApp
+			ExitApp, exitcode
 }
 
 Util_Info(txt)
@@ -435,11 +459,11 @@ Util_Info(txt)
 }
 
 Util_DisplayHourglass()
-{
-	DllCall("SetCursor", "ptr", DllCall("LoadCursor", "ptr", 0, "ptr", 32514, "ptr"))
+{                          ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
+  DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
 }
 
 Util_HideHourglass()
-{
-	DllCall("SetCursor", "ptr", DllCall("LoadCursor", "ptr", 0, "ptr", 32512, "ptr"))
+{                                              ; Reset arrow cursor to standard
+  DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
 }

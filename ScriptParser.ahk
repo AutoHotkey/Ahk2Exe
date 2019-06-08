@@ -12,11 +12,23 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
+		
+		DerefIncludeVars.A_ScriptFullPath := AhkScript
+		DerefIncludeVars.A_ScriptName := ScriptName
+		DerefIncludeVars.A_ScriptDir := ScriptDir
+	}
+	oldLineFile := DerefIncludeVars.A_LineFile
+	DerefIncludeVars.A_LineFile := AhkScript
+	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+	{
+		OldWorkingDirv2 := A_WorkingDir
+		SetWorkingDir %ScriptDir%
 	}
 	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
+			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.", 0x32)
 		else return
 	
 	cmtBlock := false, contSection := false, ignoreSection := false
@@ -27,7 +39,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		{
 			if ignoreSection
 			{
-				if (tline == Options.comm "@Ahk2Exe-IgnoreEnd")
+				if StrStartsWith(tline, Options.comm "@Ahk2Exe-IgnoreEnd")
 					ignoreSection := false
 				continue
 			}
@@ -39,17 +51,18 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					if !StrStartsWith(tline, "@Ahk2Exe-")
 						continue
 					StringTrimLeft, tline, tline, 9
-					if tline = IgnoreBegin
+					if StrStartsWith(tline, "IgnoreBegin")
 						ignoreSection := true
 					else if tline !=
-						Options.directives.Insert(tline)
+						Options.directives.Insert(RegExReplace(tline
+						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
 					continue
 				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
-					if (tline == "/*@Ahk2Exe-Keep")
+					if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
 						continue
 					cmtBlock := true
 					continue
@@ -63,7 +76,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				contSection := false
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
-			if !contSection && RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]?\s+(.*)$", o)
+			if !contSection 
+			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
 			{
 				IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
@@ -80,12 +94,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					}
 				}
 				
-				StringReplace, IncludeFile, IncludeFile, `%A_ScriptDir`%, %FirstScriptDir%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_AppData`%, %A_AppData%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_AppDataCommon`%, %A_AppDataCommon%, All
-				StringReplace, IncludeFile, IncludeFile, `%A_LineFile`%, %AhkScript%, All
+				IncludeFile := DerefIncludePath(IncludeFile, DerefIncludeVars)
 				
-				if FileExist(IncludeFile) = "D"
+				if InStr(FileExist(IncludeFile), "D")
 				{
 					SetWorkingDir, %IncludeFile%
 					continue
@@ -108,14 +119,33 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						FileList.Insert(IncludeFile)
 					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
-			}else if !contSection && RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*,", o) ; TODO: implement `, detection
+			}else if !contSection && tline ~= "i)^FileInstall[, \t]"
 			{
-				if o1 ~= "[^``]%"
-					Util_Error("Error: Invalid ""FileInstall"" syntax found. ")
+				if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
+					continue ; This is an assignment!
+				
+				; workaround for `, detection
+					EscapeChar := Options.esc
+					EscapeCharChar := EscapeChar EscapeChar
+					EscapeComma := EscapeChar ","
+					EscapeTmp := chr(2)
+					EscapeTmpD := chr(3)
+					StringReplace, tline, tline, %EscapeCharChar%, %EscapeTmpD%, All
+					StringReplace, tline, tline, %EscapeComma%, %EscapeTmp%, All
+				
+				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
+					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.", 0x12)
 				_ := Options.esc
 				StringReplace, o1, o1, %_%`%, `%, All
 				StringReplace, o1, o1, %_%`,, `,, All
 				StringReplace, o1, o1, %_%%_%,, %_%,, All
+				
+				; workaround for `, detection [END]
+					StringReplace, o1, o1, %EscapeTmp%, `,, All
+					StringReplace, o1, o1, %EscapeTmpD%, %EscapeChar%, All
+					StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
+					StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
+				
 				ExtraFiles.Insert(o1)
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
@@ -123,9 +153,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			else if !contSection && RegExMatch(tline, "i)^#EscapeChar\s+(.+)$", o)
 				Options.esc := o1, ScriptText .= tline "`n"
 			else if !contSection && RegExMatch(tline, "i)^#DerefChar\s+(.+)$", o)
-				Util_Error("Error: #DerefChar is not supported.")
+				Util_Error("Error: #DerefChar is not supported.", 0x21)
 			else if !contSection && RegExMatch(tline, "i)^#Delimiter\s+(.+)$", o)
-				Util_Error("Error: #Delimiter is not supported.")
+				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
 		}else if StrStartsWith(tline, "*/")
@@ -136,17 +166,28 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	{
 		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		IfNotExist, %AhkPath%
+		{	
+			Util_Error("Warning: AutoHotkey.exe could not be located!`n`n"
+			. "Auto-includes from Function Libraries will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
-		
+		}
 		Util_Status("Auto-including any functions called from a library...")
-		ilibfile = %A_Temp%\_ilib.ahk
+		ilibfile := A_Temp "\_ilib.ahk", preprocfile := ScriptDir "\_ahk2exe.tmp~"
 		IfExist, %ilibfile%, FileDelete, %ilibfile%
+		IfExist, %preprocfile%, FileDelete, %preprocfile%
 		AhkType := AHKType(AhkPath)
-		if AhkType = FAIL
-			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
-		if AhkType = Legacy
-			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" "%AhkScript%", %FirstScriptDir%, UseErrorLevel
+		if !AhkType
+			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
+		if (AhkType.Era = "Legacy")
+			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 0x26, AhkPath)
+		tmpErrorLog := Util_TempFile()
+		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
+		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
+		{
+			FileRead,tmpErrorData,%tmpErrorLog%
+			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
+		}
+		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
@@ -155,9 +196,13 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
 	
+	DerefIncludeVars.A_LineFile := oldLineFile
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
 	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+		SetWorkingDir %OldWorkingDirv2%
+
 	if IsFirstScript
 		return Options.directives
 }
@@ -203,4 +248,41 @@ RegExEscape(t)
 	Loop, Parse, _
 		StringReplace, t, t, %A_LoopField%, \%A_LoopField%, All
 	return t
+}
+
+Util_TempFile(d:="")
+{
+	if ( !StrLen(d) || !FileExist(d) )
+		d:=A_Temp
+	Loop
+		tempName := d "\~temp" A_TickCount ".tmp"
+	until !FileExist(tempName)
+	return tempName
+}
+
+class DerefIncludeVars
+{
+    static A_IsCompiled := true
+}
+
+DerefIncludePath(path, vars)
+{
+    static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
+	p := StrSplit(path, "%")
+    path := p[1]
+    n := 2
+	while n < p.Length()
+	{
+        vn := p[n]
+		if ObjHasKey(vars, vn)
+			path .= vars[vn] . p[++n]
+		else if SharedVars[vn]
+            path .= %vn% . p[++n]
+        else
+            path .= "%" vn
+        ++n
+	}
+    if (n = p.Length())
+        path .= "%" p[n]
+    return path
 }
