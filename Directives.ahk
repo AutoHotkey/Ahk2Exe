@@ -75,6 +75,11 @@ Directive_SetCompanyName(state, txt)
 	state.verInfo.CompanyName := txt
 }
 
+Directive_SetLegalTrademarks(state, txt)
+{
+	state.verInfo.LegalTrademarks := txt
+}
+
 Directive_SetMainIcon(state, txt := "")
 {
 	state.IcoFile := txt
@@ -209,6 +214,9 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 		return
 		_VerInfo_CompanyName:
 		SafeGetViChild(props, "CompanyName").SetText(v)
+		return
+		_VerInfo_LegalTrademarks:
+		SafeGetViChild(props, "LegalTrademarks").SetText(v)
 		return
 	}
 	
