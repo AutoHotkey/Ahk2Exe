@@ -60,7 +60,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	; the final step...
 	try FileMove, %ExeFileTmp%, %ExeFile%, 1
 	catch
-		Util_Error("Error: Could not copy final compiled binary file to destination.", 0x45)
+		Util_Error("Error: Could not move final compiled binary file to destination.", 0x45)
 	
 	Util_HideHourglass()
 	Util_Status("")
