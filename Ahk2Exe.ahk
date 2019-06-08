@@ -40,6 +40,8 @@ IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
 ScriptFileCP := A_FileEncoding
 
+CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)", 1:" MPRESS  (if prese&nt)"}
+
 #include *i __debug.ahk
 
 Menu, FileMenu, Add, &Convert, Convert
@@ -59,7 +61,7 @@ Gui, Add, Link, x287 y20,
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-2016 fincs
-<a href="https://www.autohotkey.com">https://autohotkey.com</a>
+<a href="https://www.autohotkey.com">https://www.autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
 Gui, Add, Text, x11 y117 w570 h2 +0x1007
@@ -71,13 +73,14 @@ Gui, Add, GroupBox, x11 y182 w570 h140 cBlue, Optional Parameters
 Gui, Add, Text, x17 y208, &Destination (.exe file)
 Gui, Add, Edit, x137 y204 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y204 w53 h23 gBrowseExe, B&rowse
-Gui, Add, Text, x18 y245, Custom &Icon (.ico file)
-Gui, Add, Edit, x137 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
-Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
-Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
-Gui, Add, Text, x18 y274, Base File (.bin)
+Gui, Add, Text, x17 y240, Custom &Icon (.ico file)
+Gui, Add, Edit, x137 y236 w315 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, Button, x461 y236 w53 h23 gBrowseIco, Br&owse
+Gui, Add, Button, x519 y236 w53 h23 gDefaultIco, D&efault
+Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
-Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
+Gui, Add, Text, x17 y296, Compress exe with
+Gui, Add, CheckBox, x138 y294 w315 h20 Check3 vUseMpress gcompress Checked%LastUseMPRESS%, % CompressDescr[LastUseMPRESS]
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
 
 Gui, Add, StatusBar,, Ready
@@ -94,6 +97,10 @@ GuiClose:
 Gui, Submit
 gosub SaveSettings
 ExitApp
+
+compress:
+gui, Submit, NoHide
+GuiControl Text, UseMpress, % CompressDescr[UseMPRESS]
 
 GuiDropFiles:
 if A_EventInfo > 3
@@ -363,8 +370,6 @@ if !FileExist(LastIcon)
 	LastIcon := ""
 if (LastBinFile = "") || !FileExist(LastBinFile)
 	LastBinFile = AutoHotkeySC.bin
-if LastUseMPRESS
-	LastUseMPRESS := true
 return
 
 SaveSettings:
@@ -410,7 +415,7 @@ Original version:
   Copyright ©2008-2011 Steve Gray (Lexikos)
 
 Script rewrite:
-  Copyright ©2011-%A_Year% fincs
+  Copyright ©2011-2016 fincs
 )
 return
 
