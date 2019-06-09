@@ -22,6 +22,8 @@ SendMode Input
 
 OnExit("Util_HideHourglass")            ; Reset cursor on exit
 
+CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)", 1:" MPRESS  (if prese&nt)"}
+
 global DEBUG := !A_IsCompiled
 
 gosub BuildBinFileList
@@ -39,8 +41,6 @@ if CLIMode
 IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
 ScriptFileCP := A_FileEncoding
-
-CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)", 1:" MPRESS  (if prese&nt)"}
 
 #include *i __debug.ahk
 
@@ -255,7 +255,7 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/cp
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp
 		goto BadParams
 	
 	if p1 = /bin
@@ -287,7 +287,7 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName " /in infile.ahk [/out outfile.exe] [/icon iconfile.ico] [/bin AutoHotkeySC.bin] [/mpress 1 (true) or 0 (false)] [/cp codepage]")
+Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]")
 ExitApp, 0x3
 
 _ProcessIn:
@@ -308,6 +308,10 @@ BinFile := p2
 return
 
 _ProcessMPRESS:
+UseMPRESS := p2
+return
+
+_ProcessCompress:
 UseMPRESS := p2
 return
 
