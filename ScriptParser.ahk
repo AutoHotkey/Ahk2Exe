@@ -263,27 +263,52 @@ Util_TempFile(d:="")
 
 class DerefIncludeVars
 {
-    static A_IsCompiled := true
+	static A_IsCompiled := true
 }
 
-DerefIncludePath(path, vars)
+DerefIncludePath(path, vars, dosubset := 0)
 {
-    static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
+	static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
 	p := StrSplit(path, "%")
-    path := p[1]
-    n := 2
+	path := p[1]
+	n := 2
 	while n < p.Length()
 	{
-        vn := p[n]
-		if ObjHasKey(vars, vn)
-			path .= vars[vn] . p[++n]
-		else if SharedVars[vn]
-            path .= %vn% . p[++n]
-        else
-            path .= "%" vn
-        ++n
+		vn := p[n]
+		subs := StrReplace(StrReplace(vn, "````", "`r"), "``~", "`n")
+		subs := dosubset ? StrSplit(subs, "~",, 3) : [vn]
+		subs.2 := StrReplace(StrReplace(subs.2, "`r", "``"), "`n", "~")
+		subs.3 := StrReplace(StrReplace(subs.3, "`r", "``"), "`n", "~")
+		if ObjHasKey(vars, subs.1)
+			path .= subset(vars[subs.1], subs) . p[++n]
+		else if SharedVars[subs.1]
+			vn := subs.1, path .= subset(%vn%, subs) . p[++n]
+		else path .= "%" vn
+		++n
 	}
-    if (n = p.Length())
-        path .= "%" p[n]
-    return path
+	if (n = p.Length())
+		path .= "%" p[n]
+	return path
+}
+; ^^ vv Can subset dereferenced value (only when used in Compiler Directives).
+;
+; Include at end of builtin variable name before end %, p2 [p3] all separated
+;   by tilde "~". if p2 is [-]integer, p2 and p3 are used as p2, p3 of 'SubStr'
+;   (v1), otherwise p2 and p3 are used as p2, p3 of 'RegExReplace'.
+;
+; E.g. %A_ScriptName~1~-4% trims 3 character extension plus full-stop.
+; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces variable sized ext'n with .exe.
+;
+; To include tilde as data in p2, p3, preceded with back-tick, i.e. `~
+; To include back-tick character as data in p2, p3, double it, i.e. ``
+
+subset(val, subs)      ; Returns subset of val using subs.2 & subs.3
+{                      ; if no subs.2 or empty, return val unchanged
+	if (subs.2 = "")     ; If subs.2 [-]integer, use SubStr, else use RegExReplace
+		return val
+	else if (subs.2~="^-?\d+$")
+		if (subs.3 = "")
+			return        SubStr(val, subs.2)
+		else return     SubStr(val, subs.2, subs.3)
+	else return RegExReplace(val, subs.2, subs.3)
 }
