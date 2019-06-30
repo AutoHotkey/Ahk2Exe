@@ -9,6 +9,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive:", 0x63, cmdline)
 		args := [], nargs := 0
+		o2 := DerefIncludePath(o2, DerefIncludeVars, 1)
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
 		{
@@ -156,9 +157,16 @@ Directive_AddResource(state, rsrc, resName := "")
 		if resName between 0 and 0xFFFF
 			nameType := "uint"
 	
-	FileGetSize, fSize, %resFile%
-	VarSetCapacity(fData, fSize)
-	FileRead, fData, *c %resFile%
+	if resType = 23
+	{ 
+		FileRead fData, %resFile%
+		fData := DerefIncludePath(fData, DerefIncludeVars, 1)
+		fSize := StrLen(fData) << !!A_IsUnicode
+	} else {
+		FileGetSize, fSize, %resFile%
+		VarSetCapacity(fData, fSize)
+		FileRead, fData, *c %resFile%
+	}
 	pData := &fData
 	if resType = 2
 	{
@@ -167,8 +175,8 @@ Directive_AddResource(state, rsrc, resName := "")
 			Util_Error("Error: Impossible BMP file!", 0x66)
 		pData += 14, fSize -= 14
 	}
-	if !DllCall("UpdateResource", "ptr", state.module, typeType, resType, nameType, resName
-              , "ushort", state.resLang, "ptr", pData, "uint", fSize, "uint")
+	if !DllCall("UpdateResource", "ptr",state.module, typeType,resType, nameType
+	, resName, "ushort",state.resLang, "ptr",pData, "uint",fSize, "uint")
 		Util_Error("Error adding resource:", 0x46, rsrc)
 	VarSetCapacity(fData, 0)
 }

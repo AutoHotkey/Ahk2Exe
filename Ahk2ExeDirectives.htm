@@ -10,6 +10,7 @@
 <h1>Script Compiler (Ahk2Exe) Directives <span class="ver">[v1.1.??+]</span></h1>
 <p>The script compiler accepts certain directives that allow you to further
 customize the compiled script (.exe).</p>
+
 <h2 id="IgnoreKeep">Directives that control the script behaviour</h2>
 <p>It is possible to remove code sections from the compiled script by wrapping
 them in directives:</p>
@@ -30,11 +31,24 @@ MsgBox This message appears in both the compiled and uncompiled script
 the code is completely removed from the compiled script during preprocessing, thus making
 the compiled script smaller. The reverse is also true: it will not be necessary to check
 for A_IsCompiled because the code is inside a comment block in the uncompiled script.</p>
+
 <h2 id="Directives">Directives that control executable metadata</h2>
 <p>In the parameters of these directives, the following escape sequences are supported:
 <code>``</code>, <code>`,</code>, <code>`n</code>, <code>`r</code> and <code>`t</code>.
 Commas <em>always</em> need to be escaped, regardless of the parameter position.
 "Integer" refers to unsigned 16-bit integers (0..0xFFFF).</p>
+
+<p>If required, directive parameters can reference the following list of built-in variables by enclosing the variable name with <code>%</code> signs: A_AhkPath, A_AppData, A_AppDataCommon, A_ComputerName, A_ComSpec, A_Desktop, A_DesktopCommon, A_IsCompiled, A_IsUnicode, A_MyDocuments, A_ProgramFiles, A_Programs, A_ProgramsCommon, A_ScriptDir, A_ScriptFullPath, A_ScriptName, A_Space, A_StartMenu, A_StartMenuCommon, A_Startup, A_StartupCommon, A_Tab, A_Temp, A_UserName, A_WinDir.</p>
+
+<p>In addition, the special variable A_WorkFileName holds the temporary name of the processed .exe file. This can be useful to pass as a parameter to any PostExec directives which need to access the generated .exe.</p>
+
+<p>These built-in variables can also be used in any RT_HTML files supplied to the <code>AddResource</code> directive, below.</p>
+
+<p>If needed, the value returned from the above variables can be sub-setted, or manipulated, by including at the end of the built-in variable name before the ending <code>%</code>, up to 2 parameters (called p2 and p3) all separated by tilde <code>~</code>. if p2 is an integer with an optional leading minus sign <code>-</code>, p2 and p3 are used as the 2nd and 3rd parameters of a <code>SubStr</code> function (v1), otherwise p2 and p3 are used in the 2nd and 3rd parameters of a <code>RegExReplace</code> function. Note that p3 is optional in both cases.</p>
+<p>E.g. <code>%A_ScriptName~1~-4%</code> trims the 3 character extension plus full-stop from the actual script name.
+<br>E.g. <code>%A_ScriptName~\.[^\.]+$~.exe%</code> replaces a variable sized extension plus full-stop, with <code>.exe</code> in the actual script name.
+<p>To include a tilde as data in p2 or p3, preceded it with a back-tick,  i.e. <code>`~</code>.
+<br>To include a back-tick character as data in p2 or p3, double it, i.e. <code>``</code>.</p><br>
 
 <div class="methodShort" id="SetProp"><h2>Set<em>Prop</em></h2>
 <p>Changes a property in the compiled executable's version information.</p>
@@ -68,14 +82,6 @@ If omitted, the default AutoHotkey icon is used.</td></tr>
 </table>
 </div>
 
-<div class="methodShort" id="PostExec"><h2>PostExec</h2>
-<p>Specifies a command to be executed after a successful compilation.</p>
-<pre class="Syntax">;@Ahk2Exe-PostExec Command</pre>
-<table class="info">
-<tr><td width="15%">Command</td><td width="85%">The command to execute.</td></tr>
-</table>
-</div>
-
 <div class="methodShort" id="ConsoleApp"><h2>ConsoleApp</h2>
 <p>Changes the executable subsystem to Console mode.</p>
 <pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
@@ -101,7 +107,7 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <li>10 (RT_RCDATA): Every single other extension.</li>
 <li>11 (RT_MESSAGETABLE)</li>
 <li>12 (RT_GROUP_CURSOR): <code>.cur</code> (not yet supported)</li>
-<li>13 (RT_GROUP_ICON): <code>.ico</code> (not yet supported)</li>
+<li>14 (RT_GROUP_ICON): <code>.ico</code></li>
 <li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
 <li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
 </ul>
@@ -115,6 +121,15 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 note that hexadecimal numbers must have an <code>0x</code> prefix.</td></tr>
 </table>
 <p>The default resource language is US English (0x0409).</p>
+</div>
+
+<div class="methodShort" id="PostExec"><h2>PostExec</h2>
+<p>Specifies a program to be executed after a successful compilation, before any compression is applied to the .exe.</p>
+<pre class="Syntax">;@Ahk2Exe-PostExec Program [parameters]</pre>
+<table class="info">
+<tr><td width="15%">Program</td><td width="85%">The program [plus parameters] to execute.<br>To allow access to the processed .exe file,
+specify the built-in variable <code>%A_WorkFileName%</code> as a parameter (see above).<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
+</table>
 </div>
 
 </body>

@@ -77,7 +77,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
 	SplitPath, AhkFile,, ScriptDir
-	
+
 	ExtraFiles := []
 	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
 	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
@@ -88,7 +88,10 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		Util_Error("Error: Error opening the destination file.", 0x31)
 	
 	tempWD := new CTempWD(ScriptDir)
+
+	DerefIncludeVars.A_WorkFileName := ExeFile
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
+	DerefIncludeVars.Delete("A_WorkFileName")
 	IcoFile := dirState.IcoFile
 
 	if outPreproc := dirState.OutPreproc
