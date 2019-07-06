@@ -275,10 +275,10 @@ DerefIncludePath(path, vars, dosubset := 0)
 	while n < p.Length()
 	{
 		vn := p[n]
-		subs := StrReplace(StrReplace(vn, "````", "`r"), "``~", "`n")
+		subs := StrReplace(StrReplace(vn, "````", "chr(2)"), "``~", "chr(3)")
 		subs := dosubset ? StrSplit(subs, "~",, 3) : [vn]
-		subs.2 := StrReplace(StrReplace(subs.2, "`r", "``"), "`n", "~")
-		subs.3 := StrReplace(StrReplace(subs.3, "`r", "``"), "`n", "~")
+		subs.2 := StrReplace(StrReplace(subs.2, "chr(2)", "``"), "chr(3)", "~")
+		subs.3 := StrReplace(StrReplace(subs.3, "chr(2)", "``"), "chr(3)", "~")
 		if ObjHasKey(vars, subs.1)
 			path .= subset(vars[subs.1], subs) . p[++n]
 		else if SharedVars[subs.1]
