@@ -47,58 +47,46 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 }
 
 Directive_SetName(state, txt)
-{
-	state.verInfo.Name := txt
+{	state.verInfo.Name := txt
 }
-
 Directive_SetDescription(state, txt)
-{
-	state.verInfo.Description := txt
+{	state.verInfo.Description := txt
 }
-
 Directive_SetVersion(state, txt)
-{
-	state.verInfo.Version := txt
+{	state.verInfo.Version := txt
 }
-
 Directive_SetCopyright(state, txt)
-{
-	state.verInfo.Copyright := txt
+{	state.verInfo.Copyright := txt
 }
-
 Directive_SetOrigFilename(state, txt)
-{
-	state.verInfo.OrigFilename := txt
+{	state.verInfo.OrigFilename := txt
 }
-
 Directive_SetCompanyName(state, txt)
-{
-	state.verInfo.CompanyName := txt
+{	state.verInfo.CompanyName := txt
 }
-
 Directive_SetLegalTrademarks(state, txt)
-{
-	state.verInfo.LegalTrademarks := txt
+{	state.verInfo.LegalTrademarks := txt
 }
-
 Directive_SetMainIcon(state, txt := "")
-{
-	state.IcoFile := txt
+{	state.IcoFile := txt
 }
-
 Directive_PostExec(state, txt)
-{
-	state.PostExec.Insert(txt)
+{	state.PostExec.Insert(txt)
 }
-
 Directive_ConsoleApp(state)
-{
-	state.ConsoleApp := true
+{	state.ConsoleApp := true
+}
+Directive_OutputPreproc(state, fileName)
+{	state.OutPreproc := fileName
 }
 
-Directive_OutputPreproc(state, fileName)
+Directive_RequireAdmin(state)
 {
-	state.OutPreproc := fileName
+	work := Util_TempFile()
+	FileAppend <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:v3="urn:schemas-microsoft-com:asm.v3"><assemblyIdentity version="1.1.00.00" name="AutoHotkey" type="win32" /><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" /></dependentAssembly></dependency><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/><supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/><supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/><supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/><supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/></application></compatibility><v3:application><v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"><dpiAware>true</dpiAware></v3:windowsSettings></v3:application><v3:trustInfo><v3:security><v3:requestedPrivileges><v3:requestedExecutionLevel level="requireAdministrator" uiAccess="false" /></v3:requestedPrivileges></v3:security></v3:trustInfo></assembly> 
+	, %work%
+	Directive_AddResource(state, "*24 " work, 1)
+	FileDelete %work%
 }
 
 Directive_UseResourceLang(state, resLang)
