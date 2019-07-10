@@ -87,6 +87,11 @@ If omitted, the default AutoHotkey icon is used.</td></tr>
 <pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
 </div>
 
+<div class="methodShort" id="RequireAdmin"><h2>RequireAdmin</h2>
+<p>Changes the executable to require administrative privileges when run.</p>
+<pre class="Syntax">;@Ahk2Exe-RequireAdmin</pre>
+</div>
+
 <div class="methodShort" id="AddResource"><h2>AddResource</h2>
 <p>Adds a resource to the compiled executable.</p>
 <pre class="Syntax">;@Ahk2Exe-AddResource FileName [, ResourceName]</pre>
@@ -128,7 +133,7 @@ note that hexadecimal numbers must have an <code>0x</code> prefix.</td></tr>
 <pre class="Syntax">;@Ahk2Exe-PostExec Program [parameters]</pre>
 <table class="info">
 <tr><td width="15%">Program</td><td width="85%">The program [plus parameters] to execute.<br>To allow access to the processed .exe file,
-specify the built-in variable <code>%A_WorkFileName%</code> as a parameter (see above).<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
+specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, between double-quotes. (See above.)<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
 </table>
 </div>
 
