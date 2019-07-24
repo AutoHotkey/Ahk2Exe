@@ -93,14 +93,14 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
 	DerefIncludeVars.Delete("A_WorkFileName")
 	IcoFile := dirState.IcoFile
-
+	
 	if outPreproc := dirState.OutPreproc
 	{
 		f := FileOpen(outPreproc, "w", "UTF-8-RAW")
 		f.RawWrite(BinScriptBody, BinScriptBody_Len)
 		f := ""
 	}
-
+	
 	Util_Status("Adding: Master Script")
 	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", ">AUTOHOTKEY SCRIPT<"
 	          , "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")

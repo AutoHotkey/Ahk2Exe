@@ -82,7 +82,6 @@ Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %B
 Gui, Add, Text, x17 y296, Compress exe with
 Gui, Add, CheckBox, x138 y294 w315 h20 Check3 vUseMpress gcompress Checked%LastUseMPRESS%, % CompressDescr[LastUseMPRESS]
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
-
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
 Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
@@ -90,6 +89,7 @@ Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
+GuiControl, Focus, Button1
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
@@ -334,7 +334,7 @@ Gui, +OwnDialogs
 FileSelectFile, ov, S16, %LastExeDir%, Save As, Executable files (*.exe)
 if ErrorLevel
 	return
-if !RegExMatch(ov, "\.[^\\/]+$")
+if !RegExMatch(ov, "\.[^\\/]+$") ;~ append a default file extension is none specified
 	ov .= ".exe"
 GuiControl,, ExeFile, %ov%
 return
