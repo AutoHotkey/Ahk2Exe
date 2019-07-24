@@ -104,7 +104,7 @@ Directive_AddResource(state, rsrc, resName := "")
 	if RegExMatch(rsrc, "^\*(\w+)\s+(.+)$", o)
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
-	if !resFile
+	if !FileExist(rsrc)
 		Util_Error("Error: specified resource does not exist:", 0x36, rsrc)
 	SplitPath, resFile, resFileName,, resExt
 	if !resName
