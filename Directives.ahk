@@ -9,7 +9,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive:", 0x63, cmdline)
 		args := [], nargs := 0
-		o2 := DerefIncludePath(o2, DerefIncludeVars, 1)
+		o2 := DerefIncludePath(o2, DerefIncludeVars, 1) ; Deref parameters
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
 		{
@@ -46,6 +46,9 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	return state
 }
 
+Directive_Let(state, var, txt)
+{	DerefIncludeVars["U_" var] := DerefIncludePath(Trim(txt), DerefIncludeVars, 1)
+}
 Directive_SetName(state, txt)
 {	state.verInfo.Name := txt
 }
@@ -83,8 +86,7 @@ Directive_OutputPreproc(state, fileName)
 Directive_RequireAdmin(state)
 {
 	work := Util_TempFile()
-	FileAppend <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:v3="urn:schemas-microsoft-com:asm.v3"><assemblyIdentity version="1.1.00.00" name="AutoHotkey" type="win32" /><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" /></dependentAssembly></dependency><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/><supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/><supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/><supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/><supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/></application></compatibility><v3:application><v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"><dpiAware>true</dpiAware></v3:windowsSettings></v3:application><v3:trustInfo><v3:security><v3:requestedPrivileges><v3:requestedExecutionLevel level="requireAdministrator" uiAccess="false" /></v3:requestedPrivileges></v3:security></v3:trustInfo></assembly> 
-	, %work%
+	FileAppend <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:v3="urn:schemas-microsoft-com:asm.v3"><assemblyIdentity version="1.1.00.00" name="AutoHotkey" type="win32" /><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" /></dependentAssembly></dependency><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/><supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/><supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/><supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/><supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/></application></compatibility><v3:application><v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"><dpiAware>true</dpiAware></v3:windowsSettings></v3:application><v3:trustInfo><v3:security><v3:requestedPrivileges><v3:requestedExecutionLevel level="requireAdministrator" uiAccess="false" /></v3:requestedPrivileges></v3:security></v3:trustInfo></assembly>, %work%
 	Directive_AddResource(state, "*24 " work, 1)
 	FileDelete %work%
 }
@@ -145,7 +147,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		if resName between 0 and 0xFFFF
 			nameType := "uint"
 	
-	if resType = 23
+	if resType in 4,5,6,9,23,24   ; Deref text-type resources
 	{ 
 		FileRead fData, %resFile%
 		fData := DerefIncludePath(fData, DerefIncludeVars, 1)

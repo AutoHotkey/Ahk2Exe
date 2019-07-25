@@ -29,7 +29,10 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.", 0x41)
-	
+
+	DerefIncludeVars.Delete("A_WorkFileName") ; Clear Directives entries
+	DerefIncludeVars.Delete("U_", "V_")
+
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
@@ -91,7 +94,6 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 
 	DerefIncludeVars.A_WorkFileName := ExeFile
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
-	DerefIncludeVars.Delete("A_WorkFileName")
 	IcoFile := dirState.IcoFile
 	
 	if outPreproc := dirState.OutPreproc
