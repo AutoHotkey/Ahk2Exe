@@ -44,7 +44,7 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 
 <p>As well, special user variables can be created with the format  <code>U_<i>Name</i></code> using the <code>Let</code> directive, described below.</p>
 
-<p>These variables can also be accessed in any RT_MENU, RT_DIALOG, RT_STRING, RT_ACCELERATORS, RT_HTML, and RT_MANIFEST files supplied to the <code>AddResource</code> directive, below.</p>
+<p>In addition to being available for directive parameters, these variables can also be accessed from any RT_MENU, RT_DIALOG, RT_STRING, RT_ACCELERATORS, RT_HTML, and RT_MANIFEST files supplied to the <code>AddResource</code> directive, below.</p>
 
 <p>If needed, the value returned from the above variables can be sub-setted, or manipulated, by including at the end of the built-in variable name before the ending <code>%</code>, up to 2 parameters (called p2 and p3) all separated by tilde <code>~</code>. if p2 is an integer with an optional leading minus sign <code>-</code>, p2 and p3 are used as the 2nd and 3rd parameters of a <a href="https://www.autohotkey.com/docs/commands/SubStr.htm">SubStr</a> function (v1), otherwise p2 and p3 are used as literals in the 2nd and 3rd parameters of a <a href="https://www.autohotkey.com/docs/commands/RegExReplace.htm">RegExReplace</a> function. (Also see <a href="https://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.) Note that p3 is optional in both cases.</p>
 <p>E.g. <code>%A_ScriptName~1~-4%</code> trims the 3 character extension plus full-stop from the actual script name.
@@ -57,8 +57,7 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 <pre class="Syntax">;@Ahk2Exe-Let Name, Value</pre>
 <table class="info">
 <tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>).</td></tr>
-<tr><td width="15%">Value</td><td width="85%">The value to be used.<br>
-Note that any surrounding spaces are trimmed.</td></tr>
+<tr><td width="15%">Value</td><td width="85%">The value to be used.</td></tr>
 </table>
 </div>
 

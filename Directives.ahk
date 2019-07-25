@@ -47,7 +47,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 }
 
 Directive_Let(state, var, txt)
-{	DerefIncludeVars["U_" var] := DerefIncludePath(Trim(txt), DerefIncludeVars, 1)
+{	DerefIncludeVars["U_" var] := DerefIncludePath(txt, DerefIncludeVars, 1)
 }
 Directive_SetName(state, txt)
 {	state.verInfo.Name := txt
