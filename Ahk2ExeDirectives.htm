@@ -44,13 +44,13 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 
 <p>As well, special user variables can be created with the format  <code>U_<i>Name</i></code> using the <code>Let</code> directive, described below.</p>
 
-<p>In addition to being available for directive parameters, these variables can also be accessed from any RT_MENU, RT_DIALOG, RT_STRING, RT_ACCELERATORS, RT_HTML, and RT_MANIFEST files supplied to the <code>AddResource</code> directive, below.</p>
+<p>In addition to being available for directive parameters, all variables can be accessed from any RT_MENU, RT_DIALOG, RT_STRING, RT_ACCELERATORS, RT_HTML, and RT_MANIFEST file supplied to the <code>AddResource</code> directive, below.</p>
 
 <p>If needed, the value returned from the above variables can be sub-setted, or manipulated, by including at the end of the built-in variable name before the ending <code>%</code>, up to 2 parameters (called p2 and p3) all separated by tilde <code>~</code>. if p2 is an integer with an optional leading minus sign <code>-</code>, p2 and p3 are used as the 2nd and 3rd parameters of a <a href="https://www.autohotkey.com/docs/commands/SubStr.htm">SubStr</a> function (v1), otherwise p2 and p3 are used as literals in the 2nd and 3rd parameters of a <a href="https://www.autohotkey.com/docs/commands/RegExReplace.htm">RegExReplace</a> function. (Also see <a href="https://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.) Note that p3 is optional in both cases.</p>
 <p>E.g. <code>%A_ScriptName~1~-4%</code> trims the 3 character extension plus full-stop from the actual script name.
 <br>E.g. <code>%A_ScriptName~\.[^\.]+$~.exe%</code> replaces a variable-sized extension plus full-stop, with <code>.exe</code> in the actual script name.
 <p>To include a tilde as data in p2 or p3, preceded it with a back-tick,  i.e. <code>`~</code>.
-<br>To include a back-tick character as data in p2 or p3, double it, i.e. <code>``</code>.</p><br>
+<br>To include a back-tick character as data in p2 or p3, double it, i.e. <code>``</code>.</p>
 
 <div class="methodShort" id="Let"><h2>Let</h2>
 <p>Creates (or modifies) a user variable which can be accessed by <code>%U_<i>Name</i>%</code>, similar to the built-in variables (see above).</p>
@@ -101,7 +101,7 @@ If omitted, the default AutoHotkey icon is used.</td></tr>
 <div class="methodShort" id="RequireAdmin"><h2>RequireAdmin</h2>
 <p>Changes the executable to require administrative privileges when run.</p>
 <pre class="Syntax">;@Ahk2Exe-RequireAdmin</pre><table class="info">
-<tr><td width="15%"></td><td width="85%">If used, this directive must precede any <code>UseResourceLang</code> directives.<br>Note that this directive causes the manifest to be replaced.</td></tr>
+<tr><td width="15%"></td><td width="85%">If used, this directive must precede any <code>UseResourceLang</code> directives.<br>Note that this directive causes the complete manifest to be replaced.</td></tr>
 </table>
 </div>
 
