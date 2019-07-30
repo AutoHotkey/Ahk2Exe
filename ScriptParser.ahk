@@ -293,22 +293,14 @@ DerefIncludePath(path, vars, dosubset := 0)
 ; ^^ vv Can subset dereferenced value (only when used in Compiler Directives).
 ;
 ; Include at end of builtin variable name before end %, p2 [p3] all separated
-;   by tilde "~". if p2 is [-]integer, p2 and p3 are used as p2, p3 of 'SubStr'
-;   (v1), otherwise p2 and p3 are used as p2, p3 of 'RegExReplace'.
+;   by tilde "~".  p2 and p3 will be used as p2, p3 of 'RegExReplace'.
 ;
-; E.g. %A_ScriptName~1~-4% trims 3 character extension plus full-stop.
-; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces variable sized ext'n with .exe.
+; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces extension with .exe.
 ;
 ; To include tilde as data in p2, p3, preceded with back-tick, i.e. `~
 ; To include back-tick character as data in p2, p3, double it, i.e. ``
 
 subset(val, subs)      ; Returns subset of val using subs.2 & subs.3
 {                      ; if no subs.2 or empty, return val unchanged
-	if (subs.2 = "")     ; If subs.2 [-]integer, use SubStr, else use RegExReplace
-		return val
-	else if (subs.2~="^-?\d+$")
-		if (subs.3 = "")
-			return        SubStr(val, subs.2)
-		else return     SubStr(val, subs.2, subs.3)
-	else return RegExReplace(val, subs.2, subs.3)
+	return subs.2="" ? val : RegExReplace(val, subs.2, subs.3)
 }

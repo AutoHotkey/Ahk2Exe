@@ -9,7 +9,6 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive:", 0x63, cmdline)
 		args := [], nargs := 0
-		o2 := DerefIncludePath(o2, DerefIncludeVars, 1) ; Deref parameters
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
 		{
@@ -18,12 +17,12 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 			StringReplace, ov, ov, ``r, `r, All
 			StringReplace, ov, ov, ``t, `t, All
 			StringReplace, ov, ov, ````, ``, All
-			args.Insert(ov), nargs++
+			args.Insert(DerefIncludePath(ov, DerefIncludeVars, 1)), nargs++
 		}
 		fn := Func("Directive_" o1)
 		if !fn
 			Util_Error("Error: Invalid directive: " o1, 0x63)
-		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1)
+		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1) && !fn.IsVariadic
 			Util_Error("Error: Wrongly formatted directive:", 0x64, cmdline)
 		fn.(state, args*)
 	}
@@ -46,8 +45,15 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	return state
 }
 
-Directive_Let(state, var, txt)
-{	DerefIncludeVars["U_" var] := txt
+Directive_Let(state, txt*)
+{	for k in txt
+	{	wk := StrSplit(txt[k], "=", "`t ", 2)
+		if (wk.Length() != 2)
+			Util_Error("Error: Wrongly formatted directive:", 0x64, "Let " wk.1)
+		DerefIncludeVars["U_" wk.1] := wk.2
+}	}
+Directive_Set(state, name, txt)
+{	state.verInfo[name] := txt
 }
 Directive_SetName(state, txt)
 {	state.verInfo.Name := txt
@@ -188,6 +194,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	{
 		if IsLabel(lbl := "_VerInfo_" k)
 			gosub %lbl%
+		else SafeGetViChild(props, k).SetText(v)  ; Miscellaneous properties
 		continue
 		_VerInfo_Name:
 		SafeGetViChild(props, "ProductName").SetText(v)
@@ -209,12 +216,6 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 		return
 		_VerInfo_OrigFilename:
 		SafeGetViChild(props, "OriginalFilename").SetText(v)
-		return
-		_VerInfo_CompanyName:
-		SafeGetViChild(props, "CompanyName").SetText(v)
-		return
-		_VerInfo_LegalTrademarks:
-		SafeGetViChild(props, "LegalTrademarks").SetText(v)
 		return
 	}
 	
