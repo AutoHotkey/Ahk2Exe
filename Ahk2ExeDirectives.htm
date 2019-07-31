@@ -100,8 +100,7 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 <p>Overrides the custom EXE icon used for compilation.</p>
 <pre class="Syntax">;@Ahk2Exe-SetMainIcon [IcoFile]</pre>
 <table class="info">
-<tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use.
-If omitted, the default AutoHotkey icon is used.</td></tr>
+<tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use. If omitted, the default AutoHotkey icon is used.</td></tr>
 </table>
 </div>
 
@@ -110,10 +109,10 @@ If omitted, the default AutoHotkey icon is used.</td></tr>
 <pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
 </div>
 
-<div class="methodShort" id="RequireAdmin"><h2>RequireAdmin</h2>
-<p>Changes the executable to require administrative privileges when run.</p>
-<pre class="Syntax">;@Ahk2Exe-RequireAdmin</pre><table class="info">
-<tr><td width="15%"></td><td width="85%">If used, this directive must precede any <code>UseResourceLang</code> directives.<br>Note that this directive causes the complete manifest to be replaced.</td></tr>
+<div class="methodShort" id="UpdateManifest"><h2>UpdateManifest</h2>
+<p>Changes details in the .exe's manifest. This directive is for specialised use only.</p>
+<pre class="Syntax">;@Ahk2Exe-UpdateManifest [RequireAdmin, Name, Version]</pre><table class="info">
+<tr><td width="15%">RequireAdmin</td><td width="85%"><i>(Optional)</i> Set to 1 to change the executable to require administrative privileges when run.</td></tr><tr><td width="15%">Name</td><td width="85%"><i>(Optional)</i> The name to be set in the manifest. (Not normally used.)</td></tr><tr><td width="15%">Version</td><td width="85%"><i>(Optional)</i> The version to be set in the manifest. (Not normally used.)</td></tr>
 </table>
 </div>
 

@@ -88,13 +88,8 @@ Directive_ConsoleApp(state)
 Directive_OutputPreproc(state, fileName)
 {	state.OutPreproc := fileName
 }
-
-Directive_RequireAdmin(state)
-{
-	work := Util_TempFile()
-	FileAppend <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:v3="urn:schemas-microsoft-com:asm.v3"><assemblyIdentity version="1.1.00.00" name="AutoHotkey" type="win32" /><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" /></dependentAssembly></dependency><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/><supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/><supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/><supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/><supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/></application></compatibility><v3:application><v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"><dpiAware>true</dpiAware></v3:windowsSettings></v3:application><v3:trustInfo><v3:security><v3:requestedPrivileges><v3:requestedExecutionLevel level="requireAdministrator" uiAccess="false" /></v3:requestedPrivileges></v3:security></v3:trustInfo></assembly>, %work%
-	Directive_AddResource(state, "*24 " work, 1)
-	FileDelete %work%
+Directive_UpdateManifest(state, admin = "", name = "", version = "")
+{	SetManifest(state, admin, name, version)
 }
 
 Directive_UseResourceLang(state, resLang)
@@ -222,7 +217,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	VarSetCapacity(newVI, 16384) ; Should be enough
 	viSize := vi.Save(&newVI)
 	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
-	          , "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
+						, "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
 		Util_Error("Error changing the version information.", 0x67)
 }
 
@@ -249,6 +244,39 @@ SafeGetViChild(vi, name)
 		vi.AddChild(c)
 	}
 	return c
+}
+
+SetManifest(state, admin = "", name = "", version = "")
+{
+		xml := ComObjCreate("Msxml2.DOMDocument")
+		xml.async := false
+		xml.setProperty("SelectionLanguage", "XPath")
+		xml.setProperty("SelectionNamespaces"
+				, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
+				. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
+		if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
+			throw
+		
+		node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
+		if !node ; Not AutoHotkey v1.1?
+			throw
+		(version && node.setAttribute("version", version)) 
+		(name && node.setAttribute("name", name))
+
+		if (admin)
+		{	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
+										. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
+			if !node ; Not AutoHotkey v1.1?
+				throw
+			node.setAttribute("level", "requireAdministrator")
+		}
+		xml := RTrim(xml.xml, "`r`n")
+		VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
+		StrPut(xml, &data, "utf-8")
+		
+		if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
+										, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
+			throw
 }
 
 Util_ObjIsEmpty(obj)
