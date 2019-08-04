@@ -16,6 +16,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		DerefIncludeVars.A_ScriptFullPath := AhkScript
 		DerefIncludeVars.A_ScriptName := ScriptName
 		DerefIncludeVars.A_ScriptDir := ScriptDir
+		
+		global priorlines := []
 	}
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
@@ -54,17 +56,17 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					if StrStartsWith(tline, "IgnoreBegin")
 						ignoreSection := true
 					else if tline !=
-						Options.directives.Insert(RegExReplace(tline
+						Options.directives.Insert(RegExReplace(tline ; Save directive
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
+						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine
 					continue
 				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
-					if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
-						continue
-					cmtBlock := true
+					if !StrStartsWith(tline, "/*@Ahk2Exe-Keep")
+						cmtBlock := true
 					continue
 				}
 				else if StrStartsWith(tline, "*/")
@@ -74,6 +76,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
+			
+			priorline := tline                   ; Save for a directive's A_PriorLine
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 

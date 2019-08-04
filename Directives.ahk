@@ -3,9 +3,11 @@
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
 {
 	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
+	global priorlines
 	for _,cmdline in cmds
 	{
 		Util_Status("Processing directive: " cmdline)
+		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive:", 0x63, cmdline)
 		args := [], nargs := 0
@@ -22,7 +24,8 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		fn := Func("Directive_" o1)
 		if !fn
 			Util_Error("Error: Invalid directive: " o1, 0x63)
-		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1) && !fn.IsVariadic
+		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
+		|| (fn.IsVariadic && !nargs)
 			Util_Error("Error: Wrongly formatted directive:", 0x64, cmdline)
 		fn.(state, args*)
 	}
@@ -91,6 +94,13 @@ Directive_OutputPreproc(state, fileName)
 Directive_UpdateManifest(state, admin = "", name = "", version = "")
 {	SetManifest(state, admin, name, version)
 }
+Directive_Debug(state, txt)
+{	Util_HideHourglass()
+	MsgBox 8257,,% "Debug: " txt
+	IfMsgBox Cancel
+	{	FileDelete % state.ExeFile
+		Exit
+}	}
 
 Directive_UseResourceLang(state, resLang)
 {
@@ -151,8 +161,9 @@ Directive_AddResource(state, rsrc, resName := "")
 	if resType in 4,5,6,9,23,24   ; Deref text-type resources
 	{ 
 		FileRead fData, %resFile%
-		fData := DerefIncludePath(fData, DerefIncludeVars, 1)
-		fSize := StrLen(fData) << !!A_IsUnicode
+		fData1 := DerefIncludePath(fData, DerefIncludeVars, 1)
+		fSize  := StrPut(fData1, "utf-8") - 1
+		StrPut(fData1, &fdata, "utf-8")
 	} else {
 		FileGetSize, fSize, %resFile%
 		VarSetCapacity(fData, fSize)
@@ -176,7 +187,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 {
 	hModule := DllCall("LoadLibraryEx", "str", ExeFile, "ptr", 0, "ptr", 2, "ptr")
 	if !hModule
-		Util_Error("Error: Error opening destination file.", 0x31)
+		Util_Error("Error: Error opening destination file. (D1)", 0x31)
 	
 	hRsrc := DllCall("FindResource", "ptr", hModule, "ptr", 1, "ptr", 16, "ptr") ; Version Info\1
 	hMem := DllCall("LoadResource", "ptr", hModule, "ptr", hRsrc, "ptr")
@@ -218,7 +229,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	viSize := vi.Save(&newVI)
 	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
 						, "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
-		Util_Error("Error changing the version information.", 0x67)
+		Util_Error("Error changing the version information. (D1)", 0x67)
 }
 
 VersionTextToNumber(v)
@@ -248,35 +259,35 @@ SafeGetViChild(vi, name)
 
 SetManifest(state, admin = "", name = "", version = "")
 {
-		xml := ComObjCreate("Msxml2.DOMDocument")
-		xml.async := false
-		xml.setProperty("SelectionLanguage", "XPath")
-		xml.setProperty("SelectionNamespaces"
-				, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
-				. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
-		if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
-			throw
-		
-		node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
-		if !node ; Not AutoHotkey v1.1?
-			throw
-		(version && node.setAttribute("version", version)) 
-		(name && node.setAttribute("name", name))
+	xml := ComObjCreate("Msxml2.DOMDocument")
+	xml.async := false
+	xml.setProperty("SelectionLanguage", "XPath")
+	xml.setProperty("SelectionNamespaces"
+			, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
+			. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
+	if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
+		Util_Error("Error: Error opening destination file. (D2)", 0x31)
 
-		if (admin)
-		{	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
-										. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
-			if !node ; Not AutoHotkey v1.1?
-				throw
-			node.setAttribute("level", "requireAdministrator")
-		}
-		xml := RTrim(xml.xml, "`r`n")
-		VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
-		StrPut(xml, &data, "utf-8")
-		
-		if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
-										, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
-			throw
+	
+	node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D3)", 0x31)
+	(version && node.setAttribute("version", version)) 
+	(name && node.setAttribute("name", name))
+
+	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
+								. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D4)", 0x31)
+	(admin && node.setAttribute("level", "requireAdministrator"))
+	
+	xml := RTrim(xml.xml, "`r`n")
+	VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
+	StrPut(xml, &data, "utf-8")
+	
+	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
+									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
+		Util_Error("Error changing the version information. (D2)", 0x67)
 }
 
 Util_ObjIsEmpty(obj)

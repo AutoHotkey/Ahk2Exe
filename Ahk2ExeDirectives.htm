@@ -42,6 +42,8 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 
 <p>In addition to these variable names, the special variable <code>A_WorkFileName</code> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <code>PostExec</code> directives which need to access the generated .exe.</p>
 
+<p>Also, the special variable <code>A_PriorLine</code> contains the source line immediately preceding the current compiler directive. Intervening lines of blanks and comments only are ignored, as are any intervening compiler directive lines. This variable can be used to 'pluck' constant information from the script source, and use it in later compiler directives. An example would be accessing the version number of the script, which may be changed often. Accessing the version number in this way means that it needs to be changed only once in the source code, and the change will get copied through to the necessary directive. (See the example below for more information.)</p>
+
 <p>As well, special user variables can be created with the format  <code>U_<i>Name</i></code> using the <code>Let</code> directive, described below.</p>
 
 <p>In addition to being available for directive parameters, all variables can be accessed from any RT_MENU, RT_DIALOG, RT_STRING, RT_ACCELERATORS, RT_HTML, and RT_MANIFEST file supplied to the <code>AddResource</code> directive, below.</p>
@@ -51,6 +53,12 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 <p>E.g. <code>%A_ScriptName~\.[^\.]+$~.exe%</code> replaces the extension plus preceding full-stop, with <code>.exe</code> in the actual script name.<br>
 
 (<code>\.[^\.]+$~.exe</code> means scan for a <code>.</code> followed by 1 or more non-<code>.</code> characters followed by end-of-string, and replace them with <code>.exe</code>)</p>
+
+<p>E.g. If there is a source line followed by a compiler directive as follows:<br>
+<code>CodeVersion := "1.2.3.4", company := "My Company"</code><br>
+<code>;@Ahk2Exe-Let version = %A_PriorLine~U)^(.+"){1}(.+)".*$~$2%</code>,<br>
+this would copy the version number <code>1.2.3.4</code> into the special variable <code>U_version</code> for use later.<br>
+(The <code>{1}</code> could be changed to <code>{3}</code> to extract the company name.)</p>
 
 <p>To include a tilde as data in p2 or p3, preceded it with a back-tick,  i.e. <code>`~</code>.
 <br>To include a back-tick character as data in p2 or p3, double it, i.e. <code>``</code>.</p>
@@ -157,6 +165,16 @@ note that hexadecimal numbers must have an <code>0x</code> prefix.<br>The defaul
 <table class="info">
 <tr><td width="15%">Program</td><td width="85%">The program [plus parameters] to execute.<br>To allow access to the processed .exe file,
 specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, between double-quotes. (See above.)<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="Debug"><h2>Debug</h2>
+<p>Shows a msgbox with the supplied text.</p>
+<pre class="Syntax">;@Ahk2Exe-Debug Text</pre>
+<table class="info">
+<tr><td width="15%">Text</td><td width="85%">The text to be shown.
+Include any special variables between <code>%</code> signs to see the (manipulated) contents.</td></tr>
+
 </table>
 </div>
 

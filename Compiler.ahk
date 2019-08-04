@@ -30,21 +30,22 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.", 0x41)
 
-	DerefIncludeVars.Delete("A_WorkFileName") ; Clear Directives entries
-	DerefIncludeVars.Delete("U_", "V_")
+	DerefIncludeVars.Delete("U_", "V_")         ; Clear Directives entries
+	DerefIncludeVars.Delete("A_WorkFileName")
+	DerefIncludeVars.Delete("A_PriorLine")
 
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
-	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
+	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode ; Currently returns ""
 	
-	if !(BinType.IsUnicode)   ; Temporary workaround for AhkType() bug
+	if !(BinType.IsUnicode)                     ; Set A_IsUnicode
 	{
 		FileGetSize size, %ExeFileTmp%
 		Loop Files, %A_ScriptDir%\*bit.bin
-		{ if (A_LoopFileSize = size)
+			if (A_LoopFileSize = size)
 				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
-	}	}
+	}
 	
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
@@ -88,7 +89,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
-		Util_Error("Error: Error opening the destination file.", 0x31)
+		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
 	
 	tempWD := new CTempWD(ScriptDir)
 
@@ -156,7 +157,7 @@ _FailEnd2:
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-		Util_Error("Error: Error opening the destination file.", 0x31)
+		Util_Error("Error: Error opening the destination file. (C2)", 0x31)
 	return
 }
 
