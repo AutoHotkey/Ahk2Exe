@@ -38,7 +38,7 @@ for A_IsCompiled because the code is inside a comment block in the uncompiled sc
 Commas <em>always</em> need to be escaped, regardless of the parameter position.
 "Integer" refers to unsigned 16-bit integers (0..0xFFFF).</p>
 
-<p>If required, directive parameters can reference the following list of built-in variables by enclosing the variable name with <code>%</code> signs:-<br> <code>A_AhkPath</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
+<p>If required, directive parameters can reference the following list of standard built-in variables by enclosing the variable name with <code>%</code> signs:-<br> <code>A_AhkPath</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
 
 <p>In addition to these variable names, the special variable <code>A_WorkFileName</code> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <code>PostExec</code> directives which need to access the generated .exe.</p>
 
@@ -50,18 +50,60 @@ Commas <em>always</em> need to be escaped, regardless of the parameter position.
 
 <p>If needed, the value returned from the above variables can be manipulated by including at the end of the built-in variable name before the ending <code>%</code>, up to 2 parameters (called p2 and p3) all separated by tilde <code>~</code>. The p2 and p3 parameters will be used as literals in the 2nd and 3rd parameters of a <a href="https://www.autohotkey.com/docs/commands/RegExReplace.htm">RegExReplace</a> function to manipulate the value returned. (See <a href="https://www.autohotkey.com/docs/misc/RegEx-QuickRef.htm">RegEx Quick Reference</a>.) Note that p3 is optional.</p>
 
-<p>E.g. <code>%A_ScriptName~\.[^\.]+$~.exe%</code> replaces the extension plus preceding full-stop, with <code>.exe</code> in the actual script name.<br>
-
-(<code>\.[^\.]+$~.exe</code> means scan for a <code>.</code> followed by 1 or more non-<code>.</code> characters followed by end-of-string, and replace them with <code>.exe</code>)</p>
-
-<p>E.g. If there is a source line followed by a compiler directive as follows:<br>
-<code>CodeVersion := "1.2.3.4", company := "My Company"</code><br>
-<code>;@Ahk2Exe-Let version = %A_PriorLine~U)^(.+"){1}(.+)".*$~$2%</code>,<br>
-this would copy the version number <code>1.2.3.4</code> into the special variable <code>U_version</code> for use later.<br>
-(The <code>{1}</code> could be changed to <code>{3}</code> to extract the company name.)</p>
-
 <p>To include a tilde as data in p2 or p3, preceded it with a back-tick,  i.e. <code>`~</code>.
 <br>To include a back-tick character as data in p2 or p3, double it, i.e. <code>``</code>.</p>
+
+Regex examples:<ul>
+<li><code>%A_ScriptName~\.[^\.]+$~.exe%</code> replaces the extension plus preceding full-stop, with <code>.exe</code> in the actual script name.<br>
+
+(<code>\.[^\.]+$~.exe</code> means scan for a <code>.</code> followed by 1 or more non-<code>.</code> characters followed by end-of-string, and replace them with <code>.exe</code>)</li><br>
+
+<li>Assume there is a source line followed by two compiler directives as follows:<br>
+<code>CodeVersion := "1.2.3.4", company := "My Company"</code><br>
+<code>;@Ahk2Exe-Let version = %A_PriorLine~U)^(.+"){1}(.+)".*$~$2%</code><br>
+<code>;@Ahk2Exe-Let company = %A_PriorLine~U)^(.+"){3}(.+)".*$~$2%</code><br>
+These directives copy the version number <code>1.2.3.4</code> into the special variable <code>U_version</code>, and the company name <code>My Company</code> into the special variable <code>U_company</code> for use in other directives later.<br>
+(The <code>{1}</code> in the first regex was changed to <code>{3}</code> in the second regex to select after the third <code>"</code> to extract the company name.)</li></ul><br>
+
+<div class="methodShort" id="AddResource"><h2>AddResource</h2>
+<p>Adds a resource to the compiled executable. (Also see <code>UseResourceLang</code> below)</p>
+<pre class="Syntax">;@Ahk2Exe-AddResource FileName [, ResourceName]</pre>
+<table class="info">
+<tr><td width="15%">FileName</td><td width="85%">The filename of the resource to add. The type of the resource
+(as an integer or string) can be explicitly specified prepending an asterisk to it: <code>*type Filename</code>.
+If omitted, Ahk2Exe automatically detects the type according to the file extension.</td></tr>
+<tr><td width="15%">ResourceName</td><td width="85%"><i>(Optional)</i> The name that the resource will have
+(can be a string or an integer). If omitted, it defaults to the name (with no path) of the file, in uppercase.</td></tr>
+</table>
+<p>Here is a list of common standard resource types and the extensions that trigger them by default.</p>
+<ul>
+<li>2 (RT_BITMAP): <code>.bmp</code>, <code>.dib</code></li>
+<li>4 (RT_MENU)</li>
+<li>5 (RT_DIALOG)</li>
+<li>6 (RT_STRING)</li>
+<li>9 (RT_ACCELERATORS)</li>
+<li>10 (RT_RCDATA): Every single other extension.</li>
+<li>11 (RT_MESSAGETABLE)</li>
+<li>12 (RT_GROUP_CURSOR): <code>.cur</code> (not yet supported)</li>
+<li>14 (RT_GROUP_ICON): <code>.ico</code></li>
+<li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
+<li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
+</ul>
+</div>
+
+<div class="methodShort" id="ConsoleApp"><h2>ConsoleApp</h2>
+<p>Changes the executable subsystem to Console mode.</p>
+<pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
+</div>
+
+<div class="methodShort" id="Debug"><h2>Debug</h2>
+<p>Shows a msgbox with the supplied text, for debugging purposes.</p>
+<pre class="Syntax">;@Ahk2Exe-Debug Text</pre>
+<table class="info">
+<tr><td width="15%">Text</td><td width="85%">The text to be shown.
+Include any special variables between <code>%</code> signs to see the (manipulated) contents.</td></tr>
+</table>
+</div>
 
 <div class="methodShort" id="Let"><h2>Let</h2>
 <p>Creates (or modifies) one or more user variables which can be accessed by <code>%U_<i>Name</i>%</code>, similar to the built-in variables (see above).</p>
@@ -69,6 +111,23 @@ this would copy the version number <code>1.2.3.4</code> into the special variabl
 <table class="info">
 <tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>).</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to be used.</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="PostExec"><h2>PostExec</h2>
+<p>Specifies a program to be executed after a successful compilation, before any compression is applied to the .exe.</p>
+<pre class="Syntax">;@Ahk2Exe-PostExec Program [parameters]</pre>
+<table class="info">
+<tr><td width="15%">Program</td><td width="85%">The program [plus parameters] to execute.<br>To allow access to the processed .exe file,
+specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, between double-quotes. (See above.)<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
+</table>
+</div>
+
+<div class="methodShort" id="SetMainIcon"><h2>SetMainIcon</h2>
+<p>Overrides the custom EXE icon used for compilation.</p>
+<pre class="Syntax">;@Ahk2Exe-SetMainIcon [IcoFile]</pre>
+<table class="info">
+<tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use. If omitted, the default AutoHotkey icon is used.</td></tr>
 </table>
 </div>
 
@@ -96,25 +155,12 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 </div>
 
 <div class="methodShort" id="Set"><h2>Set</h2>
-<p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>;@Ahk2Exe-Set<i>Prop</i></code> directive.</p>
+<p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>Set<i>Prop</i></code> directive. This directive is for specialised use only.</p>
 <pre class="Syntax">;@Ahk2Exe-Set prop, value</pre>
 <table class="info">
 <tr><td width="15%">Prop</td><td width="85%">The name of the property to change.</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>
 </table>
-</div>
-
-<div class="methodShort" id="SetMainIcon"><h2>SetMainIcon</h2>
-<p>Overrides the custom EXE icon used for compilation.</p>
-<pre class="Syntax">;@Ahk2Exe-SetMainIcon [IcoFile]</pre>
-<table class="info">
-<tr><td width="15%">IcoFile</td><td width="85%"><i>(Optional)</i> The icon file to use. If omitted, the default AutoHotkey icon is used.</td></tr>
-</table>
-</div>
-
-<div class="methodShort" id="ConsoleApp"><h2>ConsoleApp</h2>
-<p>Changes the executable subsystem to Console mode.</p>
-<pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
 </div>
 
 <div class="methodShort" id="UpdateManifest"><h2>UpdateManifest</h2>
@@ -124,57 +170,12 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 </table>
 </div>
 
-<div class="methodShort" id="AddResource"><h2>AddResource</h2>
-<p>Adds a resource to the compiled executable.</p>
-<pre class="Syntax">;@Ahk2Exe-AddResource FileName [, ResourceName]</pre>
-<table class="info">
-<tr><td width="15%">FileName</td><td width="85%">The filename of the resource to add. The type of the resource
-(as an integer or string) can be explicitly specified prepending an asterisk to it: <code>*type Filename</code>.
-If omitted, Ahk2Exe automatically detects the type according to the file extension.</td></tr>
-<tr><td width="15%">ResourceName</td><td width="85%"><i>(Optional)</i> The name that the resource will have
-(can be a string or an integer). If omitted, it defaults to the name (with no path) of the file, in uppercase.</td></tr>
-</table>
-<p>Here is a list of common standard resource types and the extensions that trigger them by default.</p>
-<ul>
-<li>2 (RT_BITMAP): <code>.bmp</code>, <code>.dib</code></li>
-<li>4 (RT_MENU)</li>
-<li>5 (RT_DIALOG)</li>
-<li>6 (RT_STRING)</li>
-<li>9 (RT_ACCELERATORS)</li>
-<li>10 (RT_RCDATA): Every single other extension.</li>
-<li>11 (RT_MESSAGETABLE)</li>
-<li>12 (RT_GROUP_CURSOR): <code>.cur</code> (not yet supported)</li>
-<li>14 (RT_GROUP_ICON): <code>.ico</code></li>
-<li>23 (RT_HTML): <code>.htm</code>, <code>.html</code>, <code>.mht</code></li>
-<li>24 (RT_MANIFEST): <code>.manifest</code>. If the name for the resource is not specified, it defaults to <code>1</code></li>
-</ul>
-</div>
-
 <div class="methodShort" id="UseResourceLang"><h2>UseResourceLang</h2>
-<p>Changes the resource language used by <code>@Ahk2Exe-AddResource</code>.</p>
+<p>Changes the resource language used by <code>AddResource</code>.</p>
 <pre class="Syntax">;@Ahk2Exe-UseResourceLang LangCode</pre>
 <table class="info">
 <tr><td width="15%">LangCode</td><td width="85%">The <a href="http://ahkscript.org/docs/misc/Languages.htm">language code</a>. Please
-note that hexadecimal numbers must have an <code>0x</code> prefix.<br>The default resource language is US English (0x0409).<br>This directive is positional and affects all <code>AddResource</code>directives that follow it.<br></td></tr>
-</table>
-</div>
-
-<div class="methodShort" id="PostExec"><h2>PostExec</h2>
-<p>Specifies a program to be executed after a successful compilation, before any compression is applied to the .exe.</p>
-<pre class="Syntax">;@Ahk2Exe-PostExec Program [parameters]</pre>
-<table class="info">
-<tr><td width="15%">Program</td><td width="85%">The program [plus parameters] to execute.<br>To allow access to the processed .exe file,
-specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, between double-quotes. (See above.)<br>If the program changes the .exe, the altered .exe must be moved back to the input file specified by <code>%A_WorkFileName%</code>, by the program.<br>(Note that the .exe will contain binary data.)</td></tr>
-</table>
-</div>
-
-<div class="methodShort" id="Debug"><h2>Debug</h2>
-<p>Shows a msgbox with the supplied text.</p>
-<pre class="Syntax">;@Ahk2Exe-Debug Text</pre>
-<table class="info">
-<tr><td width="15%">Text</td><td width="85%">The text to be shown.
-Include any special variables between <code>%</code> signs to see the (manipulated) contents.</td></tr>
-
+note that hexadecimal numbers must have an <code>0x</code> prefix.<br>The default resource language is US English (0x0409).<br>This directive is positional and affects all <code>AddResource</code> directives that follow it.<br></td></tr>
 </table>
 </div>
 
