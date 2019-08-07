@@ -162,7 +162,7 @@ Directive_AddResource(state, rsrc, resName := "")
 	{ 
 		FileRead fData, %resFile%
 		fData1 := DerefIncludePath(fData, DerefIncludeVars, 1)
-		fSize  := StrPut(fData1, "utf-8") - 1
+		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
 		StrPut(fData1, &fdata, "utf-8")
 	} else {
 		FileGetSize, fSize, %resFile%
