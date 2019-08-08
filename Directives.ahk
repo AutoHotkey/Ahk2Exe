@@ -48,6 +48,9 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	return state
 }
 
+Directive_OutputPreproc(state, fileName) ; Directive not documented?
+{	state.OutPreproc := fileName
+}
 Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
@@ -58,20 +61,20 @@ Directive_Let(state, txt*)
 Directive_Set(state, name, txt)
 {	state.verInfo[name] := txt
 }
-Directive_SetName(state, txt)
-{	state.verInfo.Name := txt
-}
-Directive_SetDescription(state, txt)
-{	state.verInfo.Description := txt
-}
 Directive_SetVersion(state, txt)
 {	state.verInfo.Version := txt
 }
+Directive_SetName(state, txt)
+{	state.verInfo.InternalName := state.verInfo.ProductName := txt
+}
+Directive_SetDescription(state, txt)
+{	state.verInfo.FileDescription := txt
+}
 Directive_SetCopyright(state, txt)
-{	state.verInfo.Copyright := txt
+{	state.verInfo.LegalCopyright := txt
 }
 Directive_SetOrigFilename(state, txt)
-{	state.verInfo.OrigFilename := txt
+{	state.verInfo.OriginalFilename := txt
 }
 Directive_SetCompanyName(state, txt)
 {	state.verInfo.CompanyName := txt
@@ -87,9 +90,6 @@ Directive_PostExec(state, txt)
 }
 Directive_ConsoleApp(state)
 {	state.ConsoleApp := true
-}
-Directive_OutputPreproc(state, fileName)
-{	state.OutPreproc := fileName
 }
 Directive_UpdateManifest(state, admin = "", name = "", version = "")
 {	SetManifest(state, admin, name, version)
@@ -202,13 +202,6 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 			gosub %lbl%
 		else SafeGetViChild(props, k).SetText(v)  ; Miscellaneous properties
 		continue
-		_VerInfo_Name:
-		SafeGetViChild(props, "ProductName").SetText(v)
-		SafeGetViChild(props, "InternalName").SetText(v)
-		return
-		_VerInfo_Description:
-		SafeGetViChild(props, "FileDescription").SetText(v)
-		return
 		_VerInfo_Version:
 		SafeGetViChild(props, "FileVersion").SetText(v)
 		SafeGetViChild(props, "ProductVersion").SetText(v)
@@ -216,12 +209,6 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 		hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
 		NumPut(hiPart, ffi+8, "UInt"), NumPut(loPart, ffi+12, "UInt")
 		NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
-		return
-		_VerInfo_Copyright:
-		SafeGetViChild(props, "LegalCopyright").SetText(v)
-		return
-		_VerInfo_OrigFilename:
-		SafeGetViChild(props, "OriginalFilename").SetText(v)
 		return
 	}
 	
