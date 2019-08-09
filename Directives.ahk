@@ -30,7 +30,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		fn.(state, args*)
 	}
 	
-	if !Util_ObjIsEmpty(state.verInfo)
+	if Util_ObjNotEmpty(state.verInfo)
 	{
 		Util_Status("Changing version information...")
 		ChangeVersionInfo(ExeFile, module, state.verInfo)
@@ -60,6 +60,9 @@ Directive_Let(state, txt*)
 }	}
 Directive_Set(state, name, txt)
 {	state.verInfo[name] := txt
+}
+Directive_SetLanguage(state, txt)
+{	state.verInfo.Language := txt
 }
 Directive_SetVersion(state, txt)
 {	state.verInfo.Version := txt
@@ -198,24 +201,30 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	props := SafeGetViChild(SafeGetViChild(vi, "StringFileInfo"), "040904b0")
 	for k,v in verInfo
 	{
-		if IsLabel(lbl := "_VerInfo_" k)
-			gosub %lbl%
-		else SafeGetViChild(props, k).SetText(v)  ; Miscellaneous properties
+		if !(k = "Language")
+			if IsLabel(lbl := "_VerInfo_" k)
+				gosub %lbl%
+			else SafeGetViChild(props, k).SetText(v)  ; Most properties
 		continue
 		_VerInfo_Version:
 		SafeGetViChild(props, "FileVersion").SetText(v)
 		SafeGetViChild(props, "ProductVersion").SetText(v)
 		ver := VersionTextToNumber(v)
 		hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
-		NumPut(hiPart, ffi+8, "UInt"), NumPut(loPart, ffi+12, "UInt")
+		NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
 		NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
 		return
 	}
-	
 	VarSetCapacity(newVI, 16384) ; Should be enough
 	viSize := vi.Save(&newVI)
-	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
-						, "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
+	
+	if (wk := verInfo.Language)                               ; Change language?
+	{	NumPut(verInfo.Language, newVI, viSize-4, "UShort")
+	}
+	DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
+		, "ushort", 0x409, "ptr", 0, "uint", 0, "uint")         ; Delete lang 0x409
+	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1, "ushort"
+		, wk ? wk : 0x409, "ptr", &newVI, "uint", viSize, "uint") ; Add new language
 		Util_Error("Error changing the version information. (D1)", 0x67)
 }
 
@@ -277,9 +286,8 @@ SetManifest(state, admin = "", name = "", version = "")
 		Util_Error("Error changing the version information. (D2)", 0x67)
 }
 
-Util_ObjIsEmpty(obj)
+Util_ObjNotEmpty(obj)
 {
 	for _,__ in obj
-		return false
-	return true
+		return true
 }
