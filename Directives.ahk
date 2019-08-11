@@ -206,6 +206,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 				gosub %lbl%
 			else SafeGetViChild(props, k).SetText(v)  ; Most properties
 		continue
+		_VerInfo_FileVersion:
 		_VerInfo_Version:
 		SafeGetViChild(props, "FileVersion").SetText(v)
 		SafeGetViChild(props, "ProductVersion").SetText(v)

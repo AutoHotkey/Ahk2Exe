@@ -38,7 +38,7 @@ for A_IsCompiled because the code is inside a comment block in the uncompiled sc
 Commas <em>always</em> need to be escaped, regardless of the parameter position.
 "Integer" refers to unsigned 16-bit integers (0..0xFFFF).</p>
 
-<p>If required, directive parameters can reference the following list of standard built-in variables by enclosing the variable name with <code>%</code> signs:-<br> <code>A_AhkPath</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
+<p>If required, directive parameters can reference the following list of standard built-in variables by enclosing the variable name with <code>%</code> signs:-<br> <code>A_AhkPath</code>, <code>A_AhkVersion</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_PtrSize</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
 
 <p>In addition to these variable names, the special variable <code>A_WorkFileName</code> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <code>PostExec</code> directives which need to access the generated .exe.</p>
 
@@ -132,7 +132,7 @@ specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, betw
 </div>
 
 <div class="methodShort" id="SetProp"><h2>Set<em>Prop</em></h2>
-<p>Changes a property in the compiled executable's version information.</p>
+<p>Changes a property in the compiled executable's version information. Note that all properties are processed in alphabetical order, regardless of the order they are specified.</p>
 <pre class="Syntax">;@Ahk2Exe-Set<i>Prop</i> Value</pre>
 <table class="info">
 <tr><td width="15%">Prop</td><td width="85%">The name of the property to change. Must be one of those listed below.</td></tr>
@@ -156,10 +156,10 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 </div>
 
 <div class="methodShort" id="Set"><h2>Set</h2>
-<p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>Set<i>Prop</i></code> directive. This directive is for specialised use only.</p>
+<p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>Set<i>Prop</i></code> directive. Note that all properties are processed in alphabetical order, regardless of the order they are specified. This directive is for specialised use only.</p>
 <pre class="Syntax">;@Ahk2Exe-Set prop, value</pre>
 <table class="info">
-<tr><td width="15%">Prop</td><td width="85%">The name of the property to change.</td></tr>
+<tr><td width="15%">Prop</td><td width="85%">The name of the property to change.<br>Note that specifying <code>FileVersion</code> here will act the same as the directive <code>SetVersion</code> above. </td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>
 </table>
 </div>
