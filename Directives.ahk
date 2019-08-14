@@ -65,7 +65,8 @@ Directive_SetLanguage(state, txt)
 {	state.verInfo.Language := txt
 }
 Directive_SetVersion(state, txt)
-{	state.verInfo.Version := txt
+{	state.verInfo.FileVersion := txt
+	state.verInfo.ProductVersion := txt
 }
 Directive_SetName(state, txt)
 {	state.verInfo.InternalName := state.verInfo.ProductName := txt
@@ -202,20 +203,14 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	for k,v in verInfo
 	{
 		if !(k = "Language")
-			if IsLabel(lbl := "_VerInfo_" k)
-				gosub %lbl%
-			else SafeGetViChild(props, k).SetText(v)  ; Most properties
-		continue
-		_VerInfo_FileVersion:
-		_VerInfo_Version:
-		SafeGetViChild(props, "FileVersion").SetText(v)
-		SafeGetViChild(props, "ProductVersion").SetText(v)
-		ver := VersionTextToNumber(v)
-		hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
-		NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
-		NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
-		return
-	}
+			SafeGetViChild(props, k).SetText(v)  ; All properties
+		if k in FileVersion,ProductVersion
+		{	ver := VersionTextToNumber(v)
+			hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
+			if (k = "FileVersion")
+					 NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
+			else NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
+	}	}
 	VarSetCapacity(newVI, 16384) ; Should be enough
 	viSize := vi.Save(&newVI)
 	
