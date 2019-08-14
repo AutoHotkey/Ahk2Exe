@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8
 ;
 ; Script description:
@@ -44,6 +44,8 @@ ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
+Menu, FileMenu, Add, S&ave Script Settings As…, SaveAsMenu
+menu, FileMenu, Disable, S&ave Script Settings As…
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
@@ -328,6 +330,8 @@ FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
 if ErrorLevel
 	return
 GuiControl,, AhkFile, %ov%
+menu, FileMenu, Enable, S&ave Script Settings As…
+
 return
 
 BrowseExe:
@@ -351,6 +355,24 @@ return
 DefaultIco:
 GuiControl,, IcoFile
 return
+
+SaveAsMenu:
+Gui, +OwnDialogs
+Gui, Submit, NoHide
+BinFile := A_ScriptDir "\" BinFiles[BinFileId]
+SaveAs := ""
+FileSelectFile, SaveAs, S,% RegExReplace(AhkFile,"\.[^.]+$") "_Compile"
+ , Save Script Settings As, *.ahk            ;^ Removes extension
+If (SaveAs = "") or ErrorLevel
+	Return
+If !RegExMatch(SaveAs,"\.ahk$")
+	SaveAs .= ".ahk"
+FileDelete %SaveAs%
+FileAppend % "RunWait """ A_ScriptDir "\Ahk2Exe.exe"" /in """ AhkFile """"
+. (ExeFile ? " /out """ ExeFile """" : "")
+. (IcoFile ? " /icon """ IcoFile """": "") 
+. " /bin """ BinFile """ /compress " UseMpress, %SaveAs%
+Return
 
 Convert:
 Gui, +OwnDialogs
