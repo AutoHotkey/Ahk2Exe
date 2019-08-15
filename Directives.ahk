@@ -48,8 +48,11 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 	return state
 }
 
-Directive_OutputPreproc(state, fileName) ; Directive not documented?
-{	state.OutPreproc := fileName
+Directive_ConsoleApp(state)
+{	state.ConsoleApp := true
+}
+Directive_Debug(state, txt)
+{	Util_Error( "Debug: " txt, 0)
 }
 Directive_Let(state, txt*)
 {	for k in txt
@@ -58,30 +61,36 @@ Directive_Let(state, txt*)
 			Util_Error("Error: Wrongly formatted directive:", 0x64, "Let " wk.1)
 		DerefIncludeVars["U_" wk.1] := wk.2
 }	}
+Directive_Obey(state, name, txt)
+{	global ahkpath
+	shell := ComObjCreate("WScript.Shell")
+	exec := shell.exec(ahkpath " /ErrorStdOut *")
+	if (SubStr(txt,1,1) = "=")
+		txt := name " := " SubStr(txt,2)
+	exec.StdIn.Write(txt "`nFileAppend % " name ", *")
+	exec.StdIn.Close()
+	DerefIncludeVars["U_" name] := exec.StdOut.Readall()
+}
+Directive_OutputPreproc(state, fileName) ; Directive not documented?
+{	state.OutPreproc := fileName
+}
+Directive_PostExec(state, txt)
+{	state.PostExec.Insert(txt)
+}
 Directive_Set(state, name, txt)
 {	state.verInfo[name] := txt
 }
-Directive_SetLanguage(state, txt)
-{	state.verInfo.Language := txt
-}
-Directive_SetVersion(state, txt)
-{	state.verInfo.FileVersion := txt
-	state.verInfo.ProductVersion := txt
-}
-Directive_SetName(state, txt)
-{	state.verInfo.InternalName := state.verInfo.ProductName := txt
-}
-Directive_SetDescription(state, txt)
-{	state.verInfo.FileDescription := txt
+Directive_SetCompanyName(state, txt)
+{	state.verInfo.CompanyName := txt
 }
 Directive_SetCopyright(state, txt)
 {	state.verInfo.LegalCopyright := txt
 }
-Directive_SetOrigFilename(state, txt)
-{	state.verInfo.OriginalFilename := txt
+Directive_SetDescription(state, txt)
+{	state.verInfo.FileDescription := txt
 }
-Directive_SetCompanyName(state, txt)
-{	state.verInfo.CompanyName := txt
+Directive_SetLanguage(state, txt)
+{	state.verInfo.Language := txt
 }
 Directive_SetLegalTrademarks(state, txt)
 {	state.verInfo.LegalTrademarks := txt
@@ -89,22 +98,18 @@ Directive_SetLegalTrademarks(state, txt)
 Directive_SetMainIcon(state, txt := "")
 {	state.IcoFile := txt
 }
-Directive_PostExec(state, txt)
-{	state.PostExec.Insert(txt)
+Directive_SetName(state, txt)
+{	state.verInfo.InternalName := state.verInfo.ProductName := txt
 }
-Directive_ConsoleApp(state)
-{	state.ConsoleApp := true
+Directive_SetOrigFilename(state, txt)
+{	state.verInfo.OriginalFilename := txt
+}
+Directive_SetVersion(state, txt)
+{	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt
 }
 Directive_UpdateManifest(state, admin = "", name = "", version = "")
 {	SetManifest(state, admin, name, version)
 }
-Directive_Debug(state, txt)
-{	Util_HideHourglass()
-	MsgBox 8257,,% "Debug: " txt
-	IfMsgBox Cancel
-	{	FileDelete % state.ExeFile
-		Exit
-}	}
 
 Directive_UseResourceLang(state, resLang)
 {

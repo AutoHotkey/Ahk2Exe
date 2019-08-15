@@ -460,22 +460,23 @@ Util_Error(txt, exitcode, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
-	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
-	{
-		FileDelete, %ExeFileTmp%
-		ExeFileTmp =
-	}
-	
 	if extra
 		txt .= "`n`nSpecifically: " extra
 	
 	Util_HideHourglass()
 	if exitcode
-		MsgBox, 16, Ahk2Exe Error, % txt
-	else
-		MsgBox, 48, Ahk2Exe Warning, % txt
+		MsgBox, 8208, Ahk2Exe Error, % txt
+	else {
+		MsgBox, 8241, Ahk2Exe Warning, % txt
+		IfMsgBox Cancel
+			exitcode := 2
+	}
+	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
+	{
+		FileDelete, %ExeFileTmp%
+		ExeFileTmp =
+	}
 
-	
 	if CLIMode && exitcode
 	{
 		FileAppend, Failed to compile: %ExeFile%`n, *
@@ -487,6 +488,7 @@ Util_Error(txt, exitcode, extra := "")
 			Exit, exitcode
 		else
 			ExitApp, exitcode
+	Util_DisplayHourglass()
 }
 
 Util_Info(txt)

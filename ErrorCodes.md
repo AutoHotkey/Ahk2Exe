@@ -22,7 +22,7 @@ Possible Errors
 - `(0x3)` Error: /NoDecompile is not supported.
 - `(0x4)` Error: Password protection is not supported.
 - `(0x5)` Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.
-- `(0x6)` Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.
+- `(0x6)` Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.
 - `(0x7)` Error: Cursor resource adding is not supported yet.
 
     
