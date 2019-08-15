@@ -113,6 +113,14 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 <tr><td width="15%">Value</td><td width="85%">The value to be used.</td></tr>
 </table>
 </div>
+<div class="methodShort" id="Obey"><h2>Obey</h2>
+<p>Obeys an isolated AHK command or expression, with result in <code>U_<i>Name</i></code>.</p>
+<pre class="Syntax">;@Ahk2Exe-Obey Name, CmdOrExp</pre>
+<table class="info">
+<tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>) to receive the result.</td></tr>
+<tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to evaluate.<br>Expressions must start with <code>=</code>,<br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>.<br>Commands must use <code>Name</code> as the output variable (usually as the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D0 T2</code>.</td></tr>
+</table>
+</div>
 
 <div class="methodShort" id="PostExec"><h2>PostExec</h2>
 <p>Specifies a program to be executed after a successful compilation, before any compression is applied to the .exe.</p>
@@ -159,7 +167,7 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 <p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>Set<i>Prop</i></code> directive. Note that all properties are processed in alphabetical order, regardless of the order they are specified. This directive is for specialised use only.</p>
 <pre class="Syntax">;@Ahk2Exe-Set prop, value</pre>
 <table class="info">
-<tr><td width="15%">Prop</td><td width="85%">The name of the property to change.<br>Note that specifying <code>FileVersion</code> here will act the same as the directive <code>SetVersion</code> above. </td></tr>
+<tr><td width="15%">Prop</td><td width="85%">The name of the property to change.</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>
 </table>
 </div>
