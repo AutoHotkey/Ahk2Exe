@@ -114,11 +114,12 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 </table>
 </div>
 <div class="methodShort" id="Obey"><h2>Obey</h2>
-<p>Obeys an isolated AHK command or expression, with result in <code>U_<i>Name</i></code>.</p>
+<p>Obeys an isolated AutoHotkey command or expression, with result in <code>U_<i>Name</i></code>.</p>
 <pre class="Syntax">;@Ahk2Exe-Obey Name, CmdOrExp</pre>
 <table class="info">
 <tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>) to receive the result.</td></tr>
-<tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to evaluate.<br>Expressions must start with <code>=</code>,<br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>.<br>Commands must use <code>Name</code> as the output variable (usually as the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D0 T2</code>.</td></tr>
+<tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to evaluate.<br>Expression format must start with <code>=</code>,
+<br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>. <br>Commands must use <code>Name</code> as the output variable (often as the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D2 T2</code>.</td></tr>
 </table>
 </div>
 

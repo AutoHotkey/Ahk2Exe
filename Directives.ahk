@@ -65,12 +65,10 @@ Directive_Obey(state, name, txt)
 {	global ahkpath
 	IfExist %ahkpath%
 	{	shell := ComObjCreate("WScript.Shell")
-		exec := shell.exec(ahkpath " /ErrorStdOut *")
-		if (SubStr(txt,1,1) = "=")
-			txt := name " := " SubStr(txt,2)
-		exec.StdIn.Write(txt "`nFileAppend % " name ", *")
-		exec.StdIn.Close()
-		DerefIncludeVars["U_" name] := exec.StdOut.Readall()
+		ex := shell.exec(ahkpath " /ErrorStdOut *")
+		ex.StdIn.Write((txt~="^=" ? name ":" : "") txt "`nFileAppend % " name ", *")
+		ex.StdIn.Close()
+		DerefIncludeVars["U_" name] := ex.StdOut.Readall()
 }	}
 Directive_OutputPreproc(state, fileName) ; Directive not documented?
 {	state.OutPreproc := fileName
