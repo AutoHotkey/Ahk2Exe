@@ -239,9 +239,7 @@ FindBinFile(name)
 ParseCmdLine:
 if 0 = 0
 	return
-
 Error_ForceExit := true
-
 p := []
 Loop, %0%
 {
@@ -379,8 +377,8 @@ Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
-ConvertCLI:
 
+ConvertCLI:
 SplitPath, AhkFile, ScriptName, ScriptDir
 DerefIncludeVars.A_ScriptFullPath := AhkFile
 DerefIncludeVars.A_ScriptName := ScriptName
@@ -476,8 +474,7 @@ Special thanks:
 return
 
 Util_Status(s)
-{
-	SB_SetText(s)
+{	SB_SetText(s)
 }
 
 Util_Error(txt, exitcode, extra := "")
@@ -496,42 +493,35 @@ Util_Error(txt, exitcode, extra := "")
 			exitcode := 2
 	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
-	{
-		FileDelete, %ExeFileTmp%
+	{	FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
 
 	if CLIMode && exitcode
-	{
-		FileAppend, Failed to compile: %ExeFile%`n, *
+	{	FileAppend, Failed to compile: %ExeFile%`n, *
 		Util_Status("Ready")
 	}
 	
 	if exitcode
 		if !Error_ForceExit
 			Exit, exitcode
-		else
-			ExitApp, exitcode
+		else ExitApp, exitcode
 	Util_DisplayHourglass()
 }
 
 Util_Info(txt)
-{
-	MsgBox, 64, Ahk2Exe, % txt
+{	MsgBox, 64, Ahk2Exe, % txt
 }
 
-Util_DisplayHourglass()
-{                          ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
-  DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
+Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
+{	DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
 }
 
-Util_HideHourglass()
-{                                              ; Reset arrow cursor to standard
-  DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
+Util_HideHourglass()                           ; Reset arrow cursor to standard
+{	DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
 }
 
 Util_ObjNotEmpty(obj)
-{
-	for _,__ in obj
+{	for _,__ in obj
 		return true
 }
