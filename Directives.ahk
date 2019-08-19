@@ -9,7 +9,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		Util_Status("Processing directive: " cmdline)
 		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
-			Util_Error("Error: Invalid directive:", 0x63, cmdline)
+			Util_Error("Error: Invalid directive: (D1)", 0x63, cmdline)
 		args := [], nargs := 0
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
@@ -23,10 +23,10 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		}
 		fn := Func("Directive_" o1)
 		if !fn
-			Util_Error("Error: Invalid directive: " o1, 0x63)
+			Util_Error("Error: Invalid directive:  (D2)" , 0x63, cmdline)
 		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
 		|| (fn.IsVariadic && !nargs)
-			Util_Error("Error: Wrongly formatted directive:", 0x64, cmdline)
+			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, cmdline)
 		fn.(state, args*)
 	}
 	
@@ -64,7 +64,7 @@ Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
 		if (wk.Length() != 2)
-			Util_Error("Error: Wrongly formatted directive:", 0x64, "Let " wk.1)
+			Util_Error("Error: Wrongly formatted directive: (D2)", 0x64, "Let " wk.1)
 		DerefIncludeVars["U_" wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt)
