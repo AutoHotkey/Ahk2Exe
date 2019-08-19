@@ -74,9 +74,9 @@ Loop
 		{	SetTimer Buttons, 50
 			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
 			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
-			.  "and needs to be closed to allow replacement with this new version."
+			.  "and needs to be unloaded to allow replacement with this new version."
 			. "`n`n Press the appropriate button to continue."
-			. " ('Reload' closes and reloads the new " wk " without any parameters.)"
+			. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
 			IfMsgBox Cancel
 				Util_Error("Error: Could not move final compiled binary file to "
 				. "destination.", 0x45)
@@ -95,7 +95,7 @@ Buttons()
 		return
 	SetTimer,, Off
 	WinActivate
-	ControlSetText Button1, &Close
+	ControlSetText Button1, &Unload
 	ControlSetText Button2, && &Reload
 }
 
