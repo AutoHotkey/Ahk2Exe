@@ -54,6 +54,12 @@ Directive_ConsoleApp(state)
 Directive_Debug(state, txt)
 {	Util_Error( "Debug: " txt, 0)
 }
+Directive_ExeName(state, txt)
+{	global ExeFileG
+	SplitPath ExeFileG,, gdir,,gname
+	SplitPath txt,, idir,,iname
+	ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
+}
 Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
@@ -284,10 +290,4 @@ SetManifest(state, admin = "", name = "", version = "")
 	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
 									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
 		Util_Error("Error changing the version information. (D2)", 0x67)
-}
-
-Util_ObjNotEmpty(obj)
-{
-	for _,__ in obj
-		return true
 }

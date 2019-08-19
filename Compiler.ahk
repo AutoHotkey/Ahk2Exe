@@ -4,7 +4,7 @@
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
-	global ExeFileTmp
+	global ExeFileTmp, ExeFileG
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
 		Util_Error("Error: Source file not specified.", 0x33)
@@ -39,14 +39,14 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode ; Currently returns ""
 	
-	if !(BinType.IsUnicode)                     ; Set A_IsUnicode
-	{
-		FileGetSize size, %ExeFileTmp%
-		Loop Files, %A_ScriptDir%\*bit.bin
-			if (A_LoopFileSize = size)
+	if !(BinType.IsUnicode)             ; Set A_IsUnicode
+	{                                   ; Rationale for this code:-
+		FileGetSize size, %ExeFileTmp%    ; For same code base each version bigger;
+		Loop Files, %BinFile%\..\*bit.bin ; Unicode has more code than ANSI;
+			if (A_LoopFileSize = size)      ; 64-bit has bigger pointers than 32-bit
 				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
 	}
-	
+	ExeFileG := ExeFile
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS = 1
@@ -62,12 +62,41 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}
 	
 	; the final step...
-	try FileMove, %ExeFileTmp%, %ExeFile%, 1
-	catch
-		Util_Error("Error: Could not move final compiled binary file to destination.", 0x45)
-	
 	Util_HideHourglass()
+	Util_Status("Moving .exe to destination")
+
+Loop
+	{	FileMove, %ExeFileTmp%, %ExeFileG%, 1
+		if !ErrorLevel
+			break
+		DetectHiddenWindows On
+		if WinExist("ahk_exe " ExeFileG)
+		{	SetTimer Buttons, 50
+			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
+			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
+			.  "and needs to be closed to allow replacement with this new version."
+			. "`n`n Press the appropriate button to continue."
+			. " ('Reload' closes and reloads the new " wk " without any parameters.)"
+			IfMsgBox Cancel
+				Util_Error("Error: Could not move final compiled binary file to "
+				. "destination.", 0x45)
+			WinClose     ahk_exe %ExeFileG%
+			WinWaitClose ahk_exe %ExeFileG%,,1
+			IfMsgBox No
+				Reload := 1
+	}	}
+	if Reload
+		run "%ExeFileG%", %ExeFileG%\..
 	Util_Status("")
+}
+
+Buttons()
+{	IfWinNotExist Ahk2Exe Query
+		return
+	SetTimer,, Off
+	WinActivate
+	ControlSetText Button1, &Close
+	ControlSetText Button2, && &Reload
 }
 
 BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")

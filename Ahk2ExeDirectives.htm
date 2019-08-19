@@ -38,7 +38,9 @@ for A_IsCompiled because the code is inside a comment block in the uncompiled sc
 Commas <em>always</em> need to be escaped, regardless of the parameter position.
 "Integer" refers to unsigned 16-bit integers (0..0xFFFF).</p>
 
-<p>If required, directive parameters can reference the following list of standard built-in variables by enclosing the variable name with <code>%</code> signs:-<br> <code>A_AhkPath</code>, <code>A_AhkVersion</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_PtrSize</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
+<p>If required, directive parameters can reference the following list of standard built-in variables by enclosing the variable name with <code>%</code> signs:-</p> <p><b>Group 1: </b><code>A_AhkPath</code>, <code>A_AppData</code>, <code>A_AppDataCommon</code>, <code>A_ComputerName</code>, <code>A_ComSpec</code>, <code>A_Desktop</code>, <code>A_DesktopCommon</code>, <code>A_MyDocuments</code>, <code>A_ProgramFiles</code>, <code>A_Programs</code>, <code>A_ProgramsCommon</code>, <code>A_ScriptDir</code>, <code>A_ScriptFullPath</code>, <code>A_ScriptName</code>, <code>A_Space</code>, <code>A_StartMenu</code>, <code>A_StartMenuCommon</code>, <code>A_Startup</code>, <code>A_StartupCommon</code>, <code>A_Tab</code>, <code>A_Temp</code>, <code>A_UserName</code>, <code>A_WinDir</code>.</p> 
+
+<p><b>Group 2: </b><code>A_AhkVersion</code>, <code>A_IsCompiled</code>, <code>A_IsUnicode</code>, <code>A_PtrSize</code>.</p> 
 
 <p>In addition to these variable names, the special variable <code>A_WorkFileName</code> holds the temporary name of the processed .exe file. This can be used to pass the file name as a parameter to any <code>PostExec</code> directives which need to access the generated .exe.</p>
 
@@ -91,6 +93,21 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 </ul>
 </div>
 
+<div class="methodShort" id="Bin"><h2>Bin</h2>
+<p>Specifies the Binary version of AutoHotkey to use. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).</p>
+<pre class="Syntax">;@Ahk2Exe-Bin [path\]name</pre>
+<table class="info">
+<tr><td width="15%">[path\]name</td><td width="85%">The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed.
+<br>A DOS mask may be specified for the <code>name</code> part,
+<br>e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three.
+<br>If no path is specified, the standard *.bin files in the compiler folder are searched.
+<br>The compiler will be run for each *.bin file that matches.
+<br>Any use of built-in variable replacements must only be from group 1 above.
+<br>If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
+<br>(To truly comment out this directive, insert a space after the first comment flag.)</td></tr>
+</table>
+</div>
+
 <div class="methodShort" id="ConsoleApp"><h2>ConsoleApp</h2>
 <p>Changes the executable subsystem to Console mode.</p>
 <pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
@@ -105,6 +122,18 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 </table>
 </div>
 
+<div class="methodShort" id="ExeName"><h2>ExeName</h2>
+<p>Specifies the location and name given to the generated .exe file. (Also see the <code>Bin</code> directive.)</p>
+<pre class="Syntax">;@Ahk2Exe-ExeName [path\][name]</pre>
+<table class="info">
+<tr><td width="15%">[path\][name]</td><td width="85%">The .exe file name. Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.
+<br>An example:<br><code>;@Ahk2Exe-Obey bits, = %A_PtrSize% * 8</code><br><code>
+;@Ahk2Exe-Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code><br><code>
+;@Ahk2Exe-ExeName %A_ScriptName~\.[^\.]+$%_%U_type%_%U_bits%</code>
+</td></tr>
+</table>
+</div>
+
 <div class="methodShort" id="Let"><h2>Let</h2>
 <p>Creates (or modifies) one or more user variables which can be accessed by <code>%U_<i>Name</i>%</code>, similar to the built-in variables (see above).</p>
 <pre class="Syntax">;@Ahk2Exe-Let Name = Value [, Name = Value [, ...]]</pre>
@@ -114,12 +143,14 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 </table>
 </div>
 <div class="methodShort" id="Obey"><h2>Obey</h2>
-<p>Obeys an isolated AutoHotkey command or expression, with result in <code>U_<i>Name</i></code>.</p>
+<p>Obeys isolated AutoHotkey commands or expressions, with result in <code>U_<i>Name</i></code>.</p>
 <pre class="Syntax">;@Ahk2Exe-Obey Name, CmdOrExp</pre>
 <table class="info">
 <tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>) to receive the result.</td></tr>
-<tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to evaluate.<br>Expression format must start with <code>=</code>,
-<br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>. <br>Commands must use <code>Name</code> as the output variable (often as the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D2 T2</code>.</td></tr>
+<tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to obey.<br><b>Expression</b> format must start with <code>=</code>,
+<br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>. <br><b>Command</b> format must use <code>Name</code> as the output variable (often the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D2 T2</code><br>(Expressions can be written in command format,
+<br>e.g. <code>Obey bits, bits := %A_PtrSize% * 8</code>.
+<br>If needed, separate multiple commands, expressions with <code>`n</code>.)</td></tr>
 </table>
 </div>
 
@@ -147,7 +178,7 @@ specify the built-in variable <code>%A_WorkFileName%</code> as a parameter, betw
 <tr><td width="15%">Prop</td><td width="85%">The name of the property to change. Must be one of those listed below.</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>
 </table>
-<p>The following properties are supported by this directive:</p>
+<p><b>The following properties are supported by this directive:</b></p>
 <table class="info">
 <tr><td width="15%">CompanyName</td><td width="85%">Changes the company name.</td></tr>
 <tr><td width="15%">Copyright</td><td width="85%">Changes the legal copyright information.</td></tr>

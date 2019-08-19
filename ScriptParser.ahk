@@ -12,11 +12,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
-		
-		DerefIncludeVars.A_ScriptFullPath := AhkScript
-		DerefIncludeVars.A_ScriptName := ScriptName
-		DerefIncludeVars.A_ScriptDir := ScriptDir
-		
+				
 		global priorlines := []
 	}
 	oldLineFile := DerefIncludeVars.A_LineFile
@@ -55,7 +51,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					StringTrimLeft, tline, tline, 9
 					if StrStartsWith(tline, "IgnoreBegin")
 						ignoreSection := true
-					else if tline !=
+					else if Trim(tline) != "" && !(tline ~= "i)^bin" && IsFirstScript)
 						Options.directives.Insert(RegExReplace(tline ; Save directive
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
 						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine

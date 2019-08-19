@@ -19,6 +19,7 @@
 #Include %A_ScriptDir%
 #Include Compiler.ahk
 SendMode Input
+SetWorkingDir %A_ScriptDir%
 
 OnExit("Util_HideHourglass")            ; Reset cursor on exit
 
@@ -379,7 +380,30 @@ Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
+
+SplitPath, AhkFile, ScriptName, ScriptDir
+DerefIncludeVars.A_ScriptFullPath := AhkFile
+DerefIncludeVars.A_ScriptName := ScriptName
+DerefIncludeVars.A_ScriptDir := ScriptDir
+
+DirBins := []
+Loop Read, %AhkFile%
+{
+	if RegExMatch(A_LoopReadLine ;v Handle 1-2 unknown comment characters
+	, "i)^\s*\S{1,2}@Ahk2Exe-Bin\s*[,\s]\s*(.+?)(\s+;|\s*$)", o)
+	{	o := DerefIncludePath(o1, DerefIncludeVars, 1)
+		o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
+		if !(FileExist(o) && RegExReplace(o,"^.+\.") = "bin")
+			Util_Error("Error: The selected AutoHotkeySC binary does not exist."
+			, 0x34, o1)
+		Loop Files, % o
+			DirBins.Push(A_LoopFileLongPath)
+}	}
+if Util_ObjNotEmpty(DirBins)
+	for k in DirBins
+		 AhkCompile(AhkFile, ExeFile, IcoFile, DirBins[k], UseMpress, ScriptFileCP)
+else AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
+
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -465,9 +489,9 @@ Util_Error(txt, exitcode, extra := "")
 	
 	Util_HideHourglass()
 	if exitcode
-		MsgBox, 8208, Ahk2Exe Error, % txt
+		MsgBox, 16, Ahk2Exe Error, % txt
 	else {
-		MsgBox, 8241, Ahk2Exe Warning, % txt
+		MsgBox, 49, Ahk2Exe Warning, % txt
 		IfMsgBox Cancel
 			exitcode := 2
 	}
@@ -504,4 +528,10 @@ Util_DisplayHourglass()
 Util_HideHourglass()
 {                                              ; Reset arrow cursor to standard
   DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
+}
+
+Util_ObjNotEmpty(obj)
+{
+	for _,__ in obj
+		return true
 }
