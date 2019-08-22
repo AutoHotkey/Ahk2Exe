@@ -70,11 +70,13 @@ Directive_Let(state, txt*)
 Directive_Obey(state, name, txt)
 {	global ahkpath
 	IfExist %ahkpath%
-	{	shell := ComObjCreate("WScript.Shell")
-		ex := shell.exec(ahkpath " /ErrorStdOut *")
-		ex.StdIn.Write((txt~="^=" ? name ":" : "") txt "`nFileAppend % " name ", *")
-		ex.StdIn.Close()
-		DerefIncludeVars["U_" name] := ex.StdOut.Readall()
+	{	wk1 := Util_TempFile(, "Obey~"), wk2 := wk1 "o"
+		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileAppend % " name "," wk2
+		. "`n#NoEnv", %wk1%, UTF-8
+		RunWait %ahkpath% %wk1%,,Hide
+		FileRead wk3, %wk2%
+		DerefIncludeVars["U_" name] := wk3
+		FileDelete %wk1%?
 }	}
 Directive_OutputPreproc(state, fileName) ; Directive not documented?
 {	state.OutPreproc := fileName
@@ -94,6 +96,12 @@ Directive_SetCopyright(state, txt)
 Directive_SetDescription(state, txt)
 {	state.verInfo.FileDescription := txt
 }
+Directive_SetFileVersion(state, txt)
+{	state.verInfo.FileVersion := txt
+}
+Directive_SetInternalName(state, txt)
+{	state.verInfo.InternalName := txt
+}
 Directive_SetLanguage(state, txt)
 {	state.verInfo.Language := txt
 }
@@ -108,6 +116,12 @@ Directive_SetName(state, txt)
 }
 Directive_SetOrigFilename(state, txt)
 {	state.verInfo.OriginalFilename := txt
+}
+Directive_SetProductName(state, txt)
+{	state.verInfo.ProductName := txt
+}
+Directive_SetProductVersion(state, txt)
+{	state.verInfo.ProductVersion := txt
 }
 Directive_SetVersion(state, txt)
 {	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt

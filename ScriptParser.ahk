@@ -251,12 +251,12 @@ RegExEscape(t)
 	return t
 }
 
-Util_TempFile(d:="")
+Util_TempFile(d:="", f := "")
 {
 	if ( !StrLen(d) || !FileExist(d) )
-		d:=A_Temp
+		d := A_Temp
 	Loop
-		tempName := d "\~temp" A_TickCount ".tmp"
+		tempName := d "\~Ahk2Exe~" f A_TickCount ".tmp"
 	until !FileExist(tempName)
 	return tempName
 }
