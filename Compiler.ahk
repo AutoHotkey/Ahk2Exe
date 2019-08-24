@@ -70,7 +70,10 @@ Loop
 		if !ErrorLevel
 			break
 		DetectHiddenWindows On
-		if WinExist("ahk_exe " ExeFileG)
+		if !WinExist("ahk_exe " ExeFileG)
+			Util_Error("Error: Could not move final compiled binary file to "
+			. "destination. (C1)", 0x45, """" ExeFileG """")
+		else
 		{	SetTimer Buttons, 50
 			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
 			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
@@ -79,7 +82,7 @@ Loop
 			. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
 			IfMsgBox Cancel
 				Util_Error("Error: Could not move final compiled binary file to "
-				. "destination.", 0x45)
+				. "destination. (C2)", 0x45, """" ExeFileG """")
 			WinClose     ahk_exe %ExeFileG%
 			WinWaitClose ahk_exe %ExeFileG%,,1
 			IfMsgBox No

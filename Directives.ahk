@@ -1,12 +1,11 @@
 #Include <VersionRes>
 
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
-{
-	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
+{	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
 	global priorlines
-	for _,cmdline in cmds
-	{
-		Util_Status("Processing directive: " cmdline)
+	for k, cmdline in cmds
+	{	Util_Status("Processing directive: " cmdline)
+		state["cmdline"] := cmdline
 		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive: (D1)", 0x63, cmdline)
@@ -25,23 +24,17 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		if !fn
 			Util_Error("Error: Invalid directive:  (D2)" , 0x63, cmdline)
 		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
-		|| (fn.IsVariadic && !nargs)
 			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, cmdline)
 		fn.(state, args*)
 	}
-	
 	if Util_ObjNotEmpty(state.verInfo)
-	{
-		Util_Status("Changing version information...")
+	{	Util_Status("Changing version information...")
 		ChangeVersionInfo(ExeFile, module, state.verInfo)
 	}
-	
 	if IcoFile := state.IcoFile
-	{
+	{	Util_Status("Changing the main icon...")
 		if !FileExist(IcoFile)
 			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
-		
-		Util_Status("Changing the main icon...")
 		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
 			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42, IcoFile)
 	}
@@ -51,34 +44,43 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 Directive_ConsoleApp(state)
 {	state.ConsoleApp := true
 }
+Directive_Cont(state,txt*)
+{                                          ; Handled above
+}
 Directive_Debug(state, txt)
 {	Util_Error( "Debug: " txt, 0)
 }
 Directive_ExeName(state, txt)
 {	global ExeFileG
 	SplitPath ExeFileG,, gdir,,gname
-	SplitPath txt,, idir,,iname
+	SplitPath txt     ,, idir,,iname
 	ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
 }
 Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
 		if (wk.Length() != 2)
-			Util_Error("Error: Wrongly formatted directive: (D2)", 0x64, "Let " wk.1)
+			Util_Error("Error: Wrongly formatted directive: (D2)",0x64, state.cmdline)
 		DerefIncludeVars["U_" wk.1] := wk.2
 }	}
-Directive_Obey(state, name, txt)
+Directive_Obey(state, name, txt, extra:=0)
 {	global ahkpath
 	IfExist %ahkpath%
-	{	wk1 := Util_TempFile(, "Obey~"), wk2 := wk1 "o"
-		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileAppend % " name "," wk2
-		. "`n#NoEnv", %wk1%, UTF-8
-		RunWait %ahkpath% %wk1%,,Hide
-		FileRead wk3, %wk2%
-		DerefIncludeVars["U_" name] := wk3
-		FileDelete %wk1%?
+	{	if !(extra ~= "^[0-9]$")
+			Util_Error("Error: Wrongly formatted directive: (D3)",0x64, state.cmdline)
+		wk := Util_TempFile(, "Obey~")
+		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileAppend % " name "," wk 0
+		. "`n#NoEnv", %wk%, UTF-8
+		Loop % extra
+			FileAppend % "`nFileAppend % " name A_Index "," wk A_Index, %wk%, UTF-8
+		RunWait %ahkpath% %wk%,,Hide
+		Loop % extra + 1
+		{	FileRead result, % wk (cnt := A_Index - 1)
+			DerefIncludeVars["U_" name (cnt ? cnt : "")] := result
+		}
+		FileDelete %wk%?
 }	}
-Directive_OutputPreproc(state, fileName) ; Directive not documented?
+Directive_OutputPreproc(state, fileName) ; Old directive not documented?
 {	state.OutPreproc := fileName
 }
 Directive_PostExec(state, txt)

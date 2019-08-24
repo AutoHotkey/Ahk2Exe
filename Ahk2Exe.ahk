@@ -46,7 +46,7 @@ ScriptFileCP := A_FileEncoding
 #include *i __debug.ahk
 
 Menu, FileMenu, Add, S&ave Script Settings As…, SaveAsMenu
-menu, FileMenu, Disable, S&ave Script Settings As…
+Menu, FileMenu, Disable, S&ave Script Settings As…
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
@@ -134,7 +134,7 @@ DllCall("msvcrt\memcpy", "ptr", pGlob, "ptr", pData, "uint", sData, "CDecl")
 DllCall("GlobalUnlock", "ptr", hGlob)
 DllCall("ole32\CreateStreamOnHGlobal", "ptr", hGlob, "int", 1, "ptr*", pStream)
 
-hGdip := DllCall("LoadLibrary", "str", "gdiplus")
+hGdip := DllCall("LoadLibrary", "str", "gdiplus", "Ptr")
 VarSetCapacity(si, 16, 0), NumPut(1, si, "UChar")
 DllCall("gdiplus\GdiplusStartup", "ptr*", gdipToken, "ptr", &si, "ptr", 0)
 DllCall("gdiplus\GdipCreateBitmapFromStream", "ptr", pStream, "ptr*", pBitmap)
@@ -514,11 +514,12 @@ Util_Info(txt)
 }
 
 Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
-{	DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
+{	DllCall("SetSystemCursor", "Ptr",DllCall("LoadCursor", "Ptr",0, "Ptr",32512)
+	,"Ptr",32650)
 }
 
 Util_HideHourglass()                           ; Reset arrow cursor to standard
-{	DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
+{	DllCall("SystemParametersInfo", "Ptr",0x57, "Ptr",0, "Ptr",0, "Ptr",0)
 }
 
 Util_ObjNotEmpty(obj)
