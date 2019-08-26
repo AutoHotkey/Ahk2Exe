@@ -1,6 +1,6 @@
-
+﻿
 PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
-{
+{	global DirDone
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
@@ -50,8 +50,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						continue
 					StringTrimLeft, tline, tline, 9
 					if StrStartsWith(tline, "IgnoreBegin")
-						ignoreSection := true
-					else if Trim(tline) != "" && !(tline ~= "i)^bin" && IsFirstScript)
+						ignoreSection := true       ;v Skip 'Bin' & their 'Cont' directives
+					else if Trim(tline) != "" && !(DirDone[A_Index] && IsFirstScript)
 						Options.directives.Insert(RegExReplace(tline ; Save directive
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
 						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine
@@ -251,7 +251,7 @@ RegExEscape(t)
 	return t
 }
 
-Util_TempFile(d:="", f := "")
+Util_TempFile(d := "", f := "")
 {
 	if ( !StrLen(d) || !FileExist(d) )
 		d := A_Temp

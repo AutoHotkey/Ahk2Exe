@@ -1,4 +1,4 @@
-#Include ScriptParser.ahk
+﻿#Include ScriptParser.ahk
 #Include IconChanger.ahk
 #Include Directives.ahk
 
@@ -8,13 +8,12 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
 		Util_Error("Error: Source file not specified.", 0x33)
-	SplitPath, AhkFile,, AhkFile_Dir,, AhkFile_NameNoExt
-	
-	if ExeFile =
-		ExeFile = %AhkFile_Dir%\%AhkFile_NameNoExt%.exe
-	else
-		ExeFile := Util_GetFullPath(ExeFile)
-	
+
+	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
+	SplitPath ExeFile,, Edir,,    Ename
+	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (Ename ? Ename : Ahk_Name ) ".exe"
+	ExeFile := Util_GetFullPath(ExeFile)
+
 	;ExeFileTmp := ExeFile
 	ExeFileTmp := Util_TempFile()
 	
@@ -24,7 +23,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_DisplayHourglass()
 	
 	IfNotExist, %BinFile%
-		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 0x34, BinFile)
+		Util_Error("Error: The selected AutoHotkeySC binary does not exist. (C1)"
+		, 0x34, BinFile)
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch

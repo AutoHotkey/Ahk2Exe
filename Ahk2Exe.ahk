@@ -13,17 +13,19 @@
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
+SendMode Input
+SetBatchLines -1
+SetWorkingDir %A_ScriptDir%
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
-#Include %A_ScriptDir%
+
 #Include Compiler.ahk
-SendMode Input
-SetWorkingDir %A_ScriptDir%
 
 OnExit("Util_HideHourglass")            ; Reset cursor on exit
 
-CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)", 1:" MPRESS  (if prese&nt)"}
+CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)"
+                 , 1:" MPRESS  (if prese&nt)"}
 
 global DEBUG := !A_IsCompiled
 
@@ -384,23 +386,44 @@ DerefIncludeVars.A_ScriptFullPath := AhkFile
 DerefIncludeVars.A_ScriptName := ScriptName
 DerefIncludeVars.A_ScriptDir := ScriptDir
 
-DirBins := []
-Loop Read, %AhkFile%
-{
-	if RegExMatch(A_LoopReadLine ;v Handle 1-2 unknown comment characters
-	, "i)^\s*\S{1,2}@Ahk2Exe-Bin\s*[,\s]\s*(.+?)(\s+;|\s*$)", o)
-	{	o := DerefIncludePath(o1, DerefIncludeVars, 1)
-		o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
-		if !(FileExist(o) && RegExReplace(o,"^.+\.") = "bin")
-			Util_Error("Error: The selected AutoHotkeySC binary does not exist."
-			, 0x34, o1)
-		Loop Files, % o
-			DirBins.Push(A_LoopFileLongPath)
+global DirDone := []                   ; Process Bin directives
+DirBinsWk := [], DirBins := [], DirExe := [], Cont := 0
+Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
+{	if (Cont=1 && RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
+		DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
+		, DirDone[A_Index] := 1
+	else if RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Bin (.*$)",o)
+		DirBinsWk.Push(RegExReplace(o1, "\s+;.*$")), Cont := 1, DirDone[A_Index]:= 1
+	else Cont := 0
+}
+for k, v in DirBinsWk
+{	StringReplace, v, v, ```,, `n, All
+	Loop Parse, v, `,, %A_Space%%A_Tab%
+	{	StringReplace, o, A_LoopField, `n, `,, All
+		StringReplace, o, o, ``n, `n, All
+		StringReplace, o, o, ``r, `r, All
+		StringReplace, o, o, ``t, `t, All
+		StringReplace, o, o,````, ``, All
+		o := DerefIncludePath(o, DerefIncludeVars, 1)
+		if A_Index = 1
+		{	o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
+			if !(FileExist(o) && RegExReplace(o,"^.+\.") = "bin")
+			 Util_Error("Error: The selected AutoHotkeySC binary does not exist. (A1)"
+			 , 0x34, A_LoopField)
+			Loop Files, % o
+				DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont := A_Index
+		} else if A_Index = 2
+		{	SplitPath ExeFile    ,, edir,,ename
+			SplitPath A_LoopField,, idir,,iname
+			Loop % Cont
+				DirExe[DirExe.MaxIndex()-A_Index+1] 
+				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
+		}	else Util_Error("Error: Wrongly formatted directive: (A1)", 0x64, v)
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins
-		 AhkCompile(AhkFile, ExeFile, IcoFile, DirBins[k], UseMpress, ScriptFileCP)
-else AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
+		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress, ScriptFileCP)
+else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
 
 if !CLIMode
 	Util_Info("Conversion complete.")
@@ -482,7 +505,7 @@ Util_Error(txt, exitcode, extra := "")
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
 	if extra
-		txt .= "`n`nSpecifically: " extra
+		txt .= "`n`nSpecifically:`n" extra
 	
 	Util_HideHourglass()
 	if exitcode
@@ -498,9 +521,8 @@ Util_Error(txt, exitcode, extra := "")
 	}
 
 	if CLIMode && exitcode
-	{	FileAppend, Failed to compile: %ExeFile%`n, *
-		Util_Status("Ready")
-	}
+		FileAppend, Failed to compile: %ExeFile%`n, *
+	Util_Status("Ready")
 	
 	if exitcode
 		if !Error_ForceExit

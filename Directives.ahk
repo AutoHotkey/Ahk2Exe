@@ -1,10 +1,12 @@
-#Include <VersionRes>
+﻿#Include <VersionRes>
 
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
 {	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
 	global priorlines
 	for k, cmdline in cmds
-	{	Util_Status("Processing directive: " cmdline)
+	{	while SubStr(cmds[k+A_Index], 1, 4) = "Cont"
+			cmdline .= SubStr(cmds[k+A_Index], 6)
+		Util_Status("Processing directive: " cmdline)
 		state["cmdline"] := cmdline
 		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
@@ -17,7 +19,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 			StringReplace, ov, ov, ``n, `n, All
 			StringReplace, ov, ov, ``r, `r, All
 			StringReplace, ov, ov, ``t, `t, All
-			StringReplace, ov, ov, ````, ``, All
+			StringReplace, ov, ov,````, ``, All
 			args.Insert(DerefIncludePath(ov, DerefIncludeVars, 1)), nargs++
 		}
 		fn := Func("Directive_" o1)

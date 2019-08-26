@@ -95,7 +95,7 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 
 <div class="methodShort" id="Bin"><h2>Bin</h2>
 <p>Specifies the Binary version of AutoHotkey to use. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).</p>
-<pre class="Syntax">;@Ahk2Exe-Bin [path\]name</pre>
+<pre class="Syntax">;@Ahk2Exe-Bin [path\]name[, [exe_path\][name]]</pre>
 <table class="info">
 <tr><td width="15%">[path\]name</td><td width="85%">The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed.
 <br>A DOS mask may be specified for the <code>name</code> part,
@@ -105,6 +105,7 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <br>Any use of built-in variable replacements must only be from group 1 above.
 <br>If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
 <br>(To truly comment out this directive, insert a space after the first comment flag.)</td></tr>
+<tr><td width="15%">[exe_path\][name]</td><td width="85%"><i>(Optional)</i> The  file name to be given to the .exe.<br>Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.<br>(This parameter can be overridden by the <code>ExeName</code> directive.)</td></tr>
 </table>
 </div>
 
@@ -113,6 +114,13 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <pre class="Syntax">;@Ahk2Exe-ConsoleApp</pre>
 </div>
 
+<div class="methodShort" id="Cont"><h2>Cont</h2>
+<p>Specifies a continuation line for the preceding directive.</p>
+<pre class="Syntax">;@Ahk2Exe-Cont Text</pre>
+<table class="info">
+<tr><td width="15%">Text</td><td width="85%">The text to be appended to the previous directive line. <br>The text starts after the single space following the <code>Cont</code> key-word.</td></tr>
+</table>
+</div>
 <div class="methodShort" id="Debug"><h2>Debug</h2>
 <p>Shows a msgbox with the supplied text, for debugging purposes.</p>
 <pre class="Syntax">;@Ahk2Exe-Debug Text</pre>
