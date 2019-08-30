@@ -95,9 +95,9 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 
 <div class="methodShort" id="Bin"><h2>Bin</h2>
 <p>Specifies the Binary version of AutoHotkey to use. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).</p>
-<pre class="Syntax">;@Ahk2Exe-Bin [path\]name[, [exe_path\][name]]</pre>
+<pre class="Syntax">;@Ahk2Exe-Bin [Path\]Name[, [Exe_path\][Name][, Codepage]]</pre>
 <table class="info">
-<tr><td width="15%">[path\]name</td><td width="85%">The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed.
+<tr><td width="15%">[Path\]Name</td><td width="85%">The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed.
 <br>A DOS mask may be specified for the <code>name</code> part,
 <br>e.g. <code>ANSI*</code>, <code>Unicode 32*</code>, <code>Unicode 64*</code>, or <code>*bit</code> for all three.
 <br>If no path is specified, the standard *.bin files in the compiler folder are searched.
@@ -105,7 +105,9 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <br>Any use of built-in variable replacements must only be from group 1 above.
 <br>If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
 <br>(To truly comment out this directive, insert a space after the first comment flag.)</td></tr>
-<tr><td width="15%">[exe_path\][name]</td><td width="85%"><i>(Optional)</i> The  file name to be given to the .exe.<br>Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.<br>(This parameter can be overridden by the <code>ExeName</code> directive.)</td></tr>
+<tr><td width="15%">Exe_path\<br>Name</td><td width="85%"><i>(Optional)</i> The  file name to be given to the .exe.<br>Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.<br>(This parameter can be overridden by the <code>ExeName</code> directive.)</td></tr>
+<tr><td width="15%">Codepage</td><td width="85%"><i>(Optional)</i> Overrides the default <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">codepage</a>
+ used to process script files.<br>(Scripts should begin with a UTF-8 or UTF-16 byte order mark (BOM), rendering the use of this parameter unnecessary.)</td></tr>
 </table>
 </div>
 
@@ -132,9 +134,9 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 
 <div class="methodShort" id="ExeName"><h2>ExeName</h2>
 <p>Specifies the location and name given to the generated .exe file. (Also see the <code>Bin</code> directive.)</p>
-<pre class="Syntax">;@Ahk2Exe-ExeName [path\][name]</pre>
+<pre class="Syntax">;@Ahk2Exe-ExeName [Path\][Name]</pre>
 <table class="info">
-<tr><td width="15%">[path\][name]</td><td width="85%">The .exe file name. Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.
+<tr><td width="15%">Path\<br>Name</td><td width="85%">The .exe file name. Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.
 <br>An example:<br><code>;@Ahk2Exe-Obey bits, = %A_PtrSize% * 8</code><br><code>
 ;@Ahk2Exe-Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code><br><code>
 ;@Ahk2Exe-ExeName %A_ScriptName~\.[^\.]+$%_%U_type%_%U_bits%</code>
@@ -211,7 +213,7 @@ not modified, it defaults to the AutoHotkey version used to compile the script.<
 
 <div class="methodShort" id="Set"><h2>Set</h2>
 <p>Changes other miscellaneous properties in the compiled executable's version information not covered by the <code>Set<i>Prop</i></code> directive. Note that all properties are processed in alphabetical order, regardless of the order they are specified. This directive is for specialised use only.</p>
-<pre class="Syntax">;@Ahk2Exe-Set prop, value</pre>
+<pre class="Syntax">;@Ahk2Exe-Set Prop, Value</pre>
 <table class="info">
 <tr><td width="15%">Prop</td><td width="85%">The name of the property to change.</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to set the property to.</td></tr>

@@ -1,4 +1,7 @@
-﻿
+﻿;
+; File encoding:  UTF-8 with BOM
+;
+
 ; This code is based on Ahk2Exe's changeicon.cpp
 
 AddOrReplaceIcon(re, IcoFile, ExeFile, iconID := 0)

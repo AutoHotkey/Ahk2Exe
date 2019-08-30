@@ -1,4 +1,7 @@
-﻿#Include <VersionRes>
+﻿;
+; File encoding:  UTF-8 with BOM
+;
+#Include <VersionRes>
 
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
 {	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }

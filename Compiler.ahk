@@ -1,4 +1,7 @@
-﻿#Include ScriptParser.ahk
+﻿;
+; File encoding:  UTF-8 with BOM
+;
+#Include ScriptParser.ahk
 #Include IconChanger.ahk
 #Include Directives.ahk
 
@@ -24,7 +27,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	
 	IfNotExist, %BinFile%
 		Util_Error("Error: The selected AutoHotkeySC binary does not exist. (C1)"
-		, 0x34, BinFile)
+		, 0x34, """" BinFile """")
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch

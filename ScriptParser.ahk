@@ -1,4 +1,7 @@
-﻿
+﻿;
+; File encoding:  UTF-8 with BOM
+;
+
 PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
 {	global DirDone
 	SplitPath, AhkScript, ScriptName, ScriptDir
@@ -26,7 +29,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.", 0x32)
+			Util_Error((IsFirstScript ? "Script" : "#include") " file  cannot be opened.", 0x32, """" AhkScript """")
 		else return
 	
 	cmtBlock := false, contSection := false, ignoreSection := false

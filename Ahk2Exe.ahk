@@ -1,5 +1,5 @@
 ;
-; File encoding:  UTF-8
+; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
 ;	Ahk2Exe - AutoHotkey Script Compiler
@@ -396,11 +396,12 @@ Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
 		DirBinsWk.Push(RegExReplace(o1, "\s+;.*$")), Cont := 1, DirDone[A_Index]:= 1
 	else Cont := 0
 }
-for k, v in DirBinsWk
-{	StringReplace, v, v, ```,, `n, All
+for k, v1 in DirBinsWk
+{	Util_Status("Processing directive: " v1)
+	StringReplace, v, v1, ```,, `n, All
 	Loop Parse, v, `,, %A_Space%%A_Tab%
-	{	StringReplace, o, A_LoopField, `n, `,, All
-		StringReplace, o, o, ``n, `n, All
+	{	StringReplace, o1, A_LoopField, `n, `,, All
+		StringReplace, o,o1, ``n, `n, All
 		StringReplace, o, o, ``r, `r, All
 		StringReplace, o, o, ``t, `t, All
 		StringReplace, o, o,````, ``, All
@@ -409,7 +410,7 @@ for k, v in DirBinsWk
 		{	o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
 			if !(FileExist(o) && RegExReplace(o,"^.+\.") = "bin")
 			 Util_Error("Error: The selected AutoHotkeySC binary does not exist. (A1)"
-			 , 0x34, A_LoopField)
+			 , 0x34, """" o1 """")
 			Loop Files, % o
 				DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont := A_Index
 		} else if A_Index = 2
@@ -418,7 +419,9 @@ for k, v in DirBinsWk
 			Loop % Cont
 				DirExe[DirExe.MaxIndex()-A_Index+1] 
 				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
-		}	else Util_Error("Error: Wrongly formatted directive: (A1)", 0x64, v)
+		}	else if A_Index = 3
+				ScriptFileCP := A_LoopField~="^[0-9]+$" ? "CP" A_LoopField : A_LoopField
+			else Util_Error("Error: Wrongly formatted directive: (A1)", 0x64, v1)
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins
