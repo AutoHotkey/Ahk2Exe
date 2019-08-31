@@ -105,10 +105,14 @@ ExitApp
 
 compress:
 gui, Submit, NoHide
-GuiControl Text, UseMpress, % CompressDescr[UseMPRESS]
+GuiControl Text, UseMPRESS, % CompressDescr[UseMPRESS]
+if (UseMPRESS && !FileExist(wk := {-1:"UPX.exe",1:"MPRESS.exe"}[UseMPRESS]))
+	Util_Status("Warning: """ wk """ is not installed in the compiler folder.")
+else Util_Status("Ready")
+return
 
 GuiDropFiles:
-if A_EventInfo > 3
+if A_EventInfo > 4
 	Util_Error("You cannot drop more than one file of each type into this window!", 0x51)
 loop, parse, A_GuiEvent, `n
 {
@@ -116,6 +120,9 @@ loop, parse, A_GuiEvent, `n
 	if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
 		GuiControl,, AhkFile, %A_LoopField%
 	else GuiControl,, %dropExt%File, %A_LoopField%
+	if (dropExt = "bin")
+		CustomBinFile:=1, BinFile := A_LoopField
+		, Util_Status("""" BinFile """ will be used for this compile only.")
 }
 return
 
@@ -187,7 +194,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	
 	IfNotExist, %A_ScriptDir%\..\AutoHotkey.exe
 	{
-		binFile = %A_ScriptDir%\Unicode 32-bit.bin
+		BinFile = %A_ScriptDir%\Unicode 32-bit.bin
 
 		if !FileExist(BinFile)                  ; Ahk2Exe in non-standard folder?
 		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
@@ -203,20 +210,20 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		rc := ErrorLevel
 		FileDelete,  %A_Temp%\___temp.ahk
 		if rc = 0
-			binFile = %A_ScriptDir%\ANSI 32-bit.bin
+			BinFile = %A_ScriptDir%\ANSI 32-bit.bin
 		else if rc = 0x100
-			binFile = %A_ScriptDir%\Unicode 32-bit.bin
+			BinFile = %A_ScriptDir%\Unicode 32-bit.bin
 		else if rc = 0x300
-			binFile = %A_ScriptDir%\Unicode 64-bit.bin
+			BinFile = %A_ScriptDir%\Unicode 64-bit.bin
 		; else: shouldn't happen
 	}
 	
-	IfNotExist, %binFile%
+	IfNotExist, %BinFile%
 	{
 		MsgBox, 52, Ahk2Exe Error,
 		(LTrim
 		Unable to copy the appropriate binary file as AutoHotkeySC.bin because said file does not exist:
-		%binFile%
+		%BinFile%
 		
 		Do you still want to continue?
 		)
@@ -225,7 +232,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		ExitApp, 0x2 ; Compilation cancelled
 	}
 	
-	FileCopy, %binFile%, %A_ScriptDir%\AutoHotkeySC.bin
+	FileCopy, %BinFile%, %A_ScriptDir%\AutoHotkeySC.bin
 }
 return
 
@@ -378,7 +385,9 @@ Return
 Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
-BinFile := A_ScriptDir "\" BinFiles[BinFileId]
+if !CustomBinFile
+	BinFile := A_ScriptDir "\" BinFiles[BinFileId]
+else CustomBinFile := ""
 
 ConvertCLI:
 SplitPath, AhkFile, ScriptName, ScriptDir
@@ -400,7 +409,9 @@ for k, v1 in DirBinsWk
 {	Util_Status("Processing directive: " v1)
 	StringReplace, v, v1, ```,, `n, All
 	Loop Parse, v, `,, %A_Space%%A_Tab%
-	{	StringReplace, o1, A_LoopField, `n, `,, All
+	{	if A_LoopField =
+			continue
+		StringReplace, o1, A_LoopField, `n, `,, All
 		StringReplace, o,o1, ``n, `n, All
 		StringReplace, o, o, ``r, `r, All
 		StringReplace, o, o, ``t, `t, All
@@ -421,7 +432,7 @@ for k, v1 in DirBinsWk
 				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
 		}	else if A_Index = 3
 				ScriptFileCP := A_LoopField~="^[0-9]+$" ? "CP" A_LoopField : A_LoopField
-			else Util_Error("Error: Wrongly formatted directive: (A1)", 0x64, v1)
+			else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins

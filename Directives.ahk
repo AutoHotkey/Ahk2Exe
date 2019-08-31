@@ -27,7 +27,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		}
 		fn := Func("Directive_" o1)
 		if !fn
-			Util_Error("Error: Invalid directive:  (D2)" , 0x63, cmdline)
+			Util_Error("Error: Invalid directive: (D2)" , 0x63, cmdline)
 		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
 			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, cmdline)
 		fn.(state, args*)
@@ -133,7 +133,7 @@ Directive_SetProductVersion(state, txt)
 Directive_SetVersion(state, txt)
 {	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt
 }
-Directive_UpdateManifest(state, admin = "", name = "", version = "")
+Directive_UpdateManifest(state, admin, name = "", version = "")
 {	SetManifest(state, admin, name, version)
 }
 
