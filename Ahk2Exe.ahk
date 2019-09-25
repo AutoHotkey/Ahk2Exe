@@ -50,33 +50,34 @@ Gui, Add, Link, x287 y25,
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-%A_Year% fincs
-<a href="https://autohotkey.com">https://autohotkey.com</a>
+©2018-%A_Year% Troy Hall (Added girth)
+<a href="http://ahkscript.org">http://ahkscript.org</a>
 Note: Compiling does not guarantee source code protection.
 )
-Gui, Add, Text, x11 y117 w570 h2 +0x1007
-Gui, Add, GroupBox, x11 y124 w570 h86, Required Parameters
+Gui, Add, Text, x11 y117 w1180 h2 +0x1007
+Gui, Add, GroupBox, x11 y124 w1180 h86, Required Parameters
 Gui, Add, Text, x17 y151, &Source (script file)
-Gui, Add, Edit, x137 y146 w315 h23 +Disabled vAhkFile, %AhkFile%
-Gui, Add, Button, x459 y146 w53 h23 gBrowseAhk, &Browse
+Gui, Add, Edit, x137 y146 w980 h23 +Disabled vAhkFile, %AhkFile%
+Gui, Add, Button, x1130 y146 w53 h23 gBrowseAhk, &Browse
 Gui, Add, Text, x17 y180, &Destination (.exe file)
-Gui, Add, Edit, x137 y176 w315 h23 +Disabled vExeFile, %Exefile%
-Gui, Add, Button, x459 y176 w53 h23 gBrowseExe, B&rowse
-Gui, Add, GroupBox, x11 y219 w570 h106, Optional Parameters
+Gui, Add, Edit, x137 y176 w980 h23 +Disabled vExeFile, %Exefile%
+Gui, Add, Button, x1130 y176 w53 h23 gBrowseExe, B&rowse
+Gui, Add, GroupBox, x11 y219 w1180 h106, Optional Parameters
 Gui, Add, Text, x18 y245, Custom Icon (.ico file)
-Gui, Add, Edit, x138 y241 w315 h23 +Disabled vIcoFile, %IcoFile%
-Gui, Add, Button, x461 y241 w53 h23 gBrowseIco, Br&owse
-Gui, Add, Button, x519 y241 w53 h23 gDefaultIco, D&efault
+Gui, Add, Edit, x138 y241 w900 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, Button, x1050 y241 w53 h23 gBrowseIco, Br&owse
+Gui, Add, Button, x1110 y241 w53 h23 gDefaultIco, D&efault
 Gui, Add, Text, x18 y274, Base File (.bin)
 Gui, Add, DDL, x138 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, CheckBox, x138 y298 w315 h20 vUseMpress Checked%LastUseMPRESS%, Use MPRESS (if present) to compress resulting exe
-Gui, Add, Button, x258 y329 w75 h28 Default gConvert, > &Convert <
+Gui, Add, Button, x580 y329 w75 h28 Default gConvert, > &Convert <
 Gui, Add, Statusbar,, Ready
 if !A_IsCompiled
 	Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 else
 	gosub AddPicture
 GuiControl, Focus, Button1
-Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w1200 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
@@ -388,6 +389,9 @@ Original version:
 
 Script rewrite:
   Copyright ©2011-%A_Year% fincs
+
+Additional girth:
+  Copyright ©2018-%A_Year% Troy Hall
 )
 return
 
