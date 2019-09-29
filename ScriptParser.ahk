@@ -1,4 +1,4 @@
-;
+﻿;
 ; File encoding:  UTF-8 with BOM
 ;
 
@@ -167,7 +167,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
 	{
-		global AhkPath:=A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		global AhkPath := UseAhkPath
+		if (AhkPath = "")
+			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 		IfNotExist, %AhkPath%
 		{	

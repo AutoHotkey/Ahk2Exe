@@ -27,7 +27,7 @@ OnExit("Util_HideHourglass")            ; Reset cursor on exit
 CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)"
                  , 1:" MPRESS  (if prese&nt)"}
 
-global DEBUG := !A_IsCompiled
+global UseAhkPath := ""
 
 gosub BuildBinFileList
 gosub LoadSettings
@@ -265,7 +265,7 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
 		goto BadParams
 	
 	if p1 = /bin
@@ -297,7 +297,7 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]")
+Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
 ExitApp, 0x3
 
 _ProcessIn:
@@ -323,6 +323,13 @@ return
 
 _ProcessCompress:
 UseMPRESS := p2
+return
+
+_ProcessAhk:
+if !FileExist(p2)
+	Util_Error("Error: Specified resource does not exist.", 0x36
+	, "Command line parameter /ahk`n""" p2 """")
+UseAhkPath := p2
 return
 
 _ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
