@@ -94,7 +94,8 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 </div>
 
 <div class="methodShort" id="Bin"><h2>Bin</h2>
-<p>Specifies the Binary version of AutoHotkey to use. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).</p>
+<p>Specifies the Binary version of AutoHotkey to be included in the generated .exe. (Also see the <code>ExeName</code> directive.)<br>This directive can be specified many times if necessary, but only in the top level script file (i.e. not in an #Include file).<br>(If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
+<br>To truly comment out this directive, insert a space after the first comment flag.)</td></p>
 <pre class="Syntax">;@Ahk2Exe-Bin [Path\]Name [, [Exe_path\][Name] , Codepage]</pre>
 <table class="info">
 <tr><td width="15%">[Path\]Name</td><td width="85%">The *.bin file to use. If no extension is supplied, <code>.bin</code> is assumed.
@@ -103,11 +104,10 @@ If omitted, Ahk2Exe automatically detects the type according to the file extensi
 <br>If no path is specified, the standard *.bin files in the compiler folder are searched.
 <br>The compiler will be run for each *.bin file that matches.
 <br>Any use of built-in variable replacements must only be from group 1 above.
-<br>If an actual comment is appended to this directive, it must use the <code>&nbsp;;</code> flag.
-<br>(To truly comment out this directive, insert a space after the first comment flag.)</td></tr>
+</tr>
 <tr><td width="15%">Exe_path\<br>Name</td><td width="85%"><i>(Optional)</i> The  file name to be given to the .exe.<br>Any extension supplied will be replaced by <code>.exe</code>.<br>If no path is specified, the .exe will be created in the script folder.<br>If no name is specified, the .exe will have the default name.<br>(This parameter can be overridden by the <code>ExeName</code> directive.)</td></tr>
 <tr><td width="15%">Codepage</td><td width="85%"><i>(Optional)</i> Overrides the default <a href="http://msdn.microsoft.com/en-us/library/dd317756.aspx">codepage</a>
- used to process script files.<br>(Scripts should begin with a UTF-8 or UTF-16 byte order mark (BOM), rendering the use of this parameter unnecessary.)</td></tr>
+ used to process script files.<br>(Scripts should begin with a Unicode byte-order-mark (BOM), rendering the use of this parameter unnecessary.)</td></tr>
 </table>
 </div>
 
