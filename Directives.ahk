@@ -66,7 +66,7 @@ Directive_Let(state, txt*)
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
 		if (wk.Length() != 2)
 			Util_Error("Error: Wrongly formatted directive: (D2)",0x64, state.cmdline)
-		DerefIncludeVars["U_" wk.1] := wk.2
+		DerefIncludeVars[(name ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt, extra:=0)
 {	global ahkpath
@@ -81,7 +81,7 @@ Directive_Obey(state, name, txt, extra:=0)
 		RunWait "%ahkpath%" "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % wk (cnt := A_Index - 1)
-			DerefIncludeVars["U_" name (cnt ? cnt : "")] := result
+			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
 		}
 		FileDelete %wk%?
 }	}

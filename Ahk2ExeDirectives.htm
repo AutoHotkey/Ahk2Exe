@@ -148,7 +148,7 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 <p>Creates (or modifies) one or more user variables which can be accessed by <code>%U_<i>Name</i>%</code>, similar to the built-in variables (see above).</p>
 <pre class="Syntax">;@Ahk2Exe-Let Name = Value [, Name = Value [, ...]]</pre>
 <table class="info">
-<tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>).</td></tr>
+<tr><td width="15%">Name</td><td width="85%">The name of the variable (with or without the leading <code>U_</code>).</td></tr>
 <tr><td width="15%">Value</td><td width="85%">The value to be used.</td></tr>
 </table>
 </div>
@@ -157,7 +157,7 @@ Include any special variables between <code>%</code> signs to see the (manipulat
 <p>Obeys isolated AutoHotkey commands or expressions, with result in <code>U_<i>Name</i></code>.</p>
 <pre class="Syntax">;@Ahk2Exe-Obey Name, CmdOrExp [, Extra]</pre>
 <table class="info">
-<tr><td width="15%">Name</td><td width="85%">The name of the variable (without the leading <code>U_</code>) to receive the result.</td></tr>
+<tr><td width="15%">Name</td><td width="85%">The name of the variable (with or without the leading <code>U_</code>) to receive the result.</td></tr>
 <tr><td width="15%">CmdOrExp</td><td width="85%">The command or expression to obey.<br><b>Expression</b> format must start with <code>=</code>,
 <br>e.g. <code>Obey type, = "%A_IsUnicode%" ? "Unicode" : "ANSI"</code>. <br><b>Command</b> format must use <code>Name</code> as the output variable (often the first parameter),<br>e.g. <code>Obey date, FormatTime date`, R D2 T2</code><br>(Expressions can be written in command format,
 <br>e.g. <code>Obey bits, bits := %A_PtrSize% * 8</code>.
