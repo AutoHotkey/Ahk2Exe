@@ -5,7 +5,7 @@
 ;	Ahk2Exe - AutoHotkey Script Compiler
 ;	Written by fincs - Interface based on the original Ahk2Exe
 ;
-;@Ahk2Exe-Bin             Unicode 32*
+; @Ahk2Exe-Bin             Unicode 32*            ; Commented out
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
