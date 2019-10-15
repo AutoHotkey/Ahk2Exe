@@ -1,6 +1,9 @@
+﻿;
+; File encoding:  UTF-8 with BOM
+;
 
-PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScriptDir="", Options="", iOption=0)
-{
+PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
+{	global DirDone
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
@@ -8,48 +11,76 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
-		Options := { comm: ";", esc: "``" }
+		Options := { comm: ";", esc: "``", directives: [] }
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
-		
-		DerefIncludeVars.A_ScriptFullPath := AhkScript
-		DerefIncludeVars.A_ScriptName := ScriptName
-		DerefIncludeVars.A_ScriptDir := ScriptDir
+				
+		global priorlines := []
 	}
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
 	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+	{
+		OldWorkingDirv2 := A_WorkingDir
+		SetWorkingDir %ScriptDir%
+	}
+	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.")
+			Util_Error((IsFirstScript ? "Script" : "#include") " file  cannot be opened.", 0x32, """" AhkScript """")
 		else return
 	
-	cmtBlock := false, contSection := false
+	cmtBlock := false, contSection := false, ignoreSection := false
 	Loop, Read, %AhkScript%
 	{
 		tline := Trim(A_LoopReadLine)
 		if !cmtBlock
 		{
+			if ignoreSection
+			{
+				if StrStartsWith(tline, Options.comm "@Ahk2Exe-IgnoreEnd")
+					ignoreSection := false
+				continue
+			}
 			if !contSection
 			{
 				if StrStartsWith(tline, Options.comm)
+				{
+					StringTrimLeft, tline, tline, % StrLen(Options.comm)
+					if !StrStartsWith(tline, "@Ahk2Exe-")
+						continue
+					StringTrimLeft, tline, tline, 9
+					if StrStartsWith(tline, "IgnoreBegin")
+						ignoreSection := true       ;v Skip 'Bin' & their 'Cont' directives
+					else if Trim(tline) != "" && !(DirDone[A_Index] && IsFirstScript)
+						Options.directives.Insert(RegExReplace(tline ; Save directive
+						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
+						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine
 					continue
+				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
-					cmtBlock := true
+					if !StrStartsWith(tline, "/*@Ahk2Exe-Keep")
+						cmtBlock := true
 					continue
 				}
+				else if StrStartsWith(tline, "*/")
+					continue ; Will only happen in a 'Keep' section
 			}
 			if StrStartsWith(tline, "(") && !IsFakeCSOpening(tline)
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
 			
+			priorline := tline                   ; Save for a directive's A_PriorLine
+			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
-			if !contSection && RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]?\s+(.*)$", o)
+			if !contSection 
+			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
 			{
 				IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
@@ -106,7 +137,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 					StringReplace, tline, tline, %EscapeComma%, %EscapeTmp%, All
 				
 				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
-					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.")
+					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.", 0x12)
 				_ := Options.esc
 				StringReplace, o1, o1, %_%`%, `%, All
 				StringReplace, o1, o1, %_%`,, `,, All
@@ -125,9 +156,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 			else if !contSection && RegExMatch(tline, "i)^#EscapeChar\s+(.+)$", o)
 				Options.esc := o1, ScriptText .= tline "`n"
 			else if !contSection && RegExMatch(tline, "i)^#DerefChar\s+(.+)$", o)
-				Util_Error("Error: #DerefChar is not supported.")
+				Util_Error("Error: #DerefChar is not supported.", 0x21)
 			else if !contSection && RegExMatch(tline, "i)^#Delimiter\s+(.+)$", o)
-				Util_Error("Error: #Delimiter is not supported.")
+				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
 		}else if StrStartsWith(tline, "*/")
@@ -136,24 +167,31 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	
 	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
 	{
-		static AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		global AhkPath := UseAhkPath
+		if (AhkPath = "")
+			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 		IfNotExist, %AhkPath%
+		{	
+			Util_Error("Warning: AutoHotkey.exe could not be located!`n`nAuto-include"
+. "s from Function Libraries, and 'Obey' directives will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
-		
+		}
 		Util_Status("Auto-including any functions called from a library...")
-		ilibfile = %A_Temp%\_ilib.ahk
-		IfExist, %ilibfile%, FileDelete, %ilibfile%
-		AhkType := AHKType(AhkPath)
-		if !AhkType
-			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 1, AhkPath)
-		if (AhkType.Era = "Legacy")
-			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 1, AhkPath)
+		AhkTypeRet := AHKType(AhkPath)
+		if !AhkTypeRet
+			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
+		if (AhkTypeRet.Era = "Legacy")
+			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
 		tmpErrorLog := Util_TempFile()
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel
-		FileRead,tmpErrorData,%tmpErrorLog%
+		ilibfile := Util_TempFile(, "ilib~")
+		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
+		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
+		{
+			FileRead,tmpErrorData,%tmpErrorLog%
+			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
+		}
 		FileDelete,%tmpErrorLog%
-		if (ErrorLevel = 2)
-			Util_Error("Error: The script contains syntax errors.",1,tmpErrorData)
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
@@ -165,6 +203,12 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList="", FirstScri
 	DerefIncludeVars.A_LineFile := oldLineFile
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
+	
+	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+		SetWorkingDir %OldWorkingDirv2%
+
+	if IsFirstScript
+		return Options.directives
 }
 
 IsFakeCSOpening(tline)
@@ -210,39 +254,56 @@ RegExEscape(t)
 	return t
 }
 
-Util_TempFile(d:="")
+Util_TempFile(d := "", f := "")
 {
 	if ( !StrLen(d) || !FileExist(d) )
-		d:=A_Temp
+		d := A_Temp
 	Loop
-		tempName := d "\~temp" A_TickCount ".tmp"
+		tempName := d "\~Ahk2Exe~" f A_TickCount ".tmp"
 	until !FileExist(tempName)
 	return tempName
 }
 
 class DerefIncludeVars
 {
-    static A_IsCompiled := true
+	static A_IsCompiled := true
 }
 
-DerefIncludePath(path, vars)
+DerefIncludePath(path, vars, dosubset := 0)
 {
-    static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
+	static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
 	p := StrSplit(path, "%")
-    path := p[1]
-    n := 2
+	path := p[1]
+	n := 2
 	while n < p.Length()
 	{
-        vn := p[n]
-		if ObjHasKey(vars, vn)
-			path .= vars[vn] . p[++n]
-		else if SharedVars[vn]
-            path .= %vn% . p[++n]
-        else
-            path .= "%" vn
-        ++n
+		vn := p[n]
+		subs := StrReplace(StrReplace(vn, "````", "chr(2)"), "``~", "chr(3)")
+		subs := dosubset ? StrSplit(subs, "~",, 3) : [vn]
+		subs.2 := StrReplace(StrReplace(subs.2, "chr(2)", "``"), "chr(3)", "~")
+		subs.3 := StrReplace(StrReplace(subs.3, "chr(2)", "``"), "chr(3)", "~")
+		if ObjHasKey(vars, subs.1)
+			path .= subset(vars[subs.1], subs) . p[++n]
+		else if SharedVars[subs.1]
+			vn := subs.1, path .= subset(%vn%, subs) . p[++n]
+		else path .= "%" vn
+		++n
 	}
-    if (n = p.Length())
-        path .= "%" p[n]
-    return path
+	if (n = p.Length())
+		path .= "%" p[n]
+	return path
+}
+; ^^ vv Can subset dereferenced value (only when used in Compiler Directives).
+;
+; Include at end of builtin variable name before end %, p2 [p3] all separated
+;   by tilde "~".  p2 and p3 will be used as p2, p3 of 'RegExReplace'.
+;
+; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces extension with .exe.
+;
+; To include tilde as data in p2, p3, preceded with back-tick, i.e. `~
+; To include back-tick character as data in p2, p3, double it, i.e. ``
+
+subset(val, subs)      ; Returns subset of val using subs.2 & subs.3
+{                      ; if no subs.2 or empty, return val unchanged
+	return subs.2="" ? val : RegExReplace(val, subs.2, subs.3)
 }
