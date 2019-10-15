@@ -95,7 +95,7 @@ Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 gosub AddPicture
 */
 GuiControl, Focus, Button1
-Gui, Show, w1200 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 return
 
 GuiClose:
