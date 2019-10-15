@@ -1,11 +1,11 @@
 ﻿;
-; File encoding:  UTF-8
+; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
 ;	Ahk2Exe - AutoHotkey Script Compiler
 ;	Written by fincs - Interface based on the original Ahk2Exe
 ;
-
+; @Ahk2Exe-Bin             Unicode 32*            ; Commented out
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
@@ -13,18 +13,21 @@
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
+SendMode Input
+SetBatchLines -1
+SetWorkingDir %A_ScriptDir%
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
-#Include %A_ScriptDir%
+
 #Include Compiler.ahk
-SendMode Input
 
 OnExit("Util_HideHourglass")            ; Reset cursor on exit
 
-CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)", 1:" MPRESS  (if prese&nt)"}
+CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)"
+                 , 1:" MPRESS  (if prese&nt)"}
 
-global DEBUG := !A_IsCompiled
+global UseAhkPath := ""
 
 gosub BuildBinFileList
 gosub LoadSettings
@@ -44,6 +47,8 @@ ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
+Menu, FileMenu, Add, S&ave Script Settings As…, SaveAsMenu
+Menu, FileMenu, Disable, S&ave Script Settings As…
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
@@ -100,10 +105,14 @@ ExitApp
 
 compress:
 gui, Submit, NoHide
-GuiControl Text, UseMpress, % CompressDescr[UseMPRESS]
+GuiControl Text, UseMPRESS, % CompressDescr[UseMPRESS]
+if (UseMPRESS && !FileExist(wk := {-1:"UPX.exe",1:"MPRESS.exe"}[UseMPRESS]))
+	Util_Status("Warning: """ wk """ is not installed in the compiler folder.")
+else Util_Status("Ready")
+return
 
 GuiDropFiles:
-if A_EventInfo > 3
+if A_EventInfo > 4
 	Util_Error("You cannot drop more than one file of each type into this window!", 0x51)
 loop, parse, A_GuiEvent, `n
 {
@@ -111,6 +120,9 @@ loop, parse, A_GuiEvent, `n
 	if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
 		GuiControl,, AhkFile, %A_LoopField%
 	else GuiControl,, %dropExt%File, %A_LoopField%
+	if (dropExt = "bin")
+		CustomBinFile:=1, BinFile := A_LoopField
+		, Util_Status("""" BinFile """ will be used for this compile only.")
 }
 return
 
@@ -131,7 +143,7 @@ DllCall("msvcrt\memcpy", "ptr", pGlob, "ptr", pData, "uint", sData, "CDecl")
 DllCall("GlobalUnlock", "ptr", hGlob)
 DllCall("ole32\CreateStreamOnHGlobal", "ptr", hGlob, "int", 1, "ptr*", pStream)
 
-hGdip := DllCall("LoadLibrary", "str", "gdiplus")
+hGdip := DllCall("LoadLibrary", "str", "gdiplus", "Ptr")
 VarSetCapacity(si, 16, 0), NumPut(1, si, "UChar")
 DllCall("gdiplus\GdiplusStartup", "ptr*", gdipToken, "ptr", &si, "ptr", 0)
 DllCall("gdiplus\GdipCreateBitmapFromStream", "ptr", pStream, "ptr*", pBitmap)
@@ -182,7 +194,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	
 	IfNotExist, %A_ScriptDir%\..\AutoHotkey.exe
 	{
-		binFile = %A_ScriptDir%\Unicode 32-bit.bin
+		BinFile = %A_ScriptDir%\Unicode 32-bit.bin
 
 		if !FileExist(BinFile)                  ; Ahk2Exe in non-standard folder?
 		{	FileCopy  %A_AhkPath%\..\Compiler\Unicode 32-bit.bin
@@ -197,20 +209,20 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		rc := ErrorLevel
 		FileDelete,  %A_Temp%\___temp.ahk
 		if rc = 0
-			binFile = %A_ScriptDir%\ANSI 32-bit.bin
+			BinFile = %A_ScriptDir%\ANSI 32-bit.bin
 		else if rc = 0x100
-			binFile = %A_ScriptDir%\Unicode 32-bit.bin
+			BinFile = %A_ScriptDir%\Unicode 32-bit.bin
 		else if rc = 0x300
-			binFile = %A_ScriptDir%\Unicode 64-bit.bin
+			BinFile = %A_ScriptDir%\Unicode 64-bit.bin
 		; else: shouldn't happen
 	}
 	
-	IfNotExist, %binFile%
+	IfNotExist, %BinFile%
 	{
 		MsgBox, 52, Ahk2Exe Error,
 		(LTrim
 		Unable to copy the appropriate binary file as AutoHotkeySC.bin because said file does not exist:
-		%binFile%
+		%BinFile%
 		
 		Do you still want to continue?
 		)
@@ -219,7 +231,7 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		ExitApp, 0x2 ; Compilation cancelled
 	}
 	
-	FileCopy, %binFile%, %A_ScriptDir%\AutoHotkeySC.bin
+	FileCopy, %BinFile%, %A_ScriptDir%\AutoHotkeySC.bin
 }
 return
 
@@ -235,9 +247,7 @@ FindBinFile(name)
 ParseCmdLine:
 if 0 = 0
 	return
-
 Error_ForceExit := true
-
 p := []
 Loop, %0%
 {
@@ -254,7 +264,7 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
 		goto BadParams
 	
 	if p1 = /bin
@@ -286,7 +296,7 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]")
+Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
 ExitApp, 0x3
 
 _ProcessIn:
@@ -314,6 +324,13 @@ _ProcessCompress:
 UseMPRESS := p2
 return
 
+_ProcessAhk:
+if !FileExist(p2)
+	Util_Error("Error: Specified resource does not exist.", 0x36
+	, "Command line parameter /ahk`n""" p2 """")
+UseAhkPath := p2
+return
+
 _ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
 if p2 is number
 	ScriptFileCP := "CP" p2
@@ -327,6 +344,8 @@ FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
 if ErrorLevel
 	return
 GuiControl,, AhkFile, %ov%
+menu, FileMenu, Enable, S&ave Script Settings As…
+
 return
 
 BrowseExe:
@@ -351,12 +370,81 @@ DefaultIco:
 GuiControl,, IcoFile
 return
 
-Convert:
+SaveAsMenu:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
 BinFile := A_ScriptDir "\" BinFiles[BinFileId]
+SaveAs := ""
+FileSelectFile, SaveAs, S,% RegExReplace(AhkFile,"\.[^.]+$") "_Compile"
+ , Save Script Settings As, *.ahk            ;^ Removes extension
+If (SaveAs = "") or ErrorLevel
+	Return
+If !RegExMatch(SaveAs,"\.ahk$")
+	SaveAs .= ".ahk"
+FileDelete %SaveAs%
+FileAppend % "RunWait """ A_ScriptDir "\Ahk2Exe.exe"" /in """ AhkFile """"
+. (ExeFile ? " /out """ ExeFile """" : "")
+. (IcoFile ? " /icon """ IcoFile """": "") 
+. " /bin """ BinFile """ /compress " UseMpress, %SaveAs%
+Return
+
+Convert:
+Gui, +OwnDialogs
+Gui, Submit, NoHide
+if !CustomBinFile
+	BinFile := A_ScriptDir "\" BinFiles[BinFileId]
+else CustomBinFile := ""
+
 ConvertCLI:
-AhkCompile(AhkFile, ExeFile, IcoFile, BinFile, UseMpress, ScriptFileCP)
+SplitPath, AhkFile, ScriptName, ScriptDir
+DerefIncludeVars.A_ScriptFullPath := AhkFile
+DerefIncludeVars.A_ScriptName := ScriptName
+DerefIncludeVars.A_ScriptDir := ScriptDir
+
+global DirDone := []                   ; Process Bin directives
+DirBinsWk := [], DirBins := [], DirExe := [], Cont := 0
+Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
+{	if (Cont=1 && RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
+		DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
+		, DirDone[A_Index] := 1
+	else if RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Bin (.*$)",o)
+		DirBinsWk.Push(RegExReplace(o1, "\s+;.*$")), Cont := 1, DirDone[A_Index]:= 1
+	else Cont := 0
+}
+for k, v1 in DirBinsWk
+{	Util_Status("Processing directive: " v1)
+	StringReplace, v, v1, ```,, `n, All
+	Loop Parse, v, `,, %A_Space%%A_Tab%
+	{	if A_LoopField =
+			continue
+		StringReplace, o1, A_LoopField, `n, `,, All
+		StringReplace, o,o1, ``n, `n, All
+		StringReplace, o, o, ``r, `r, All
+		StringReplace, o, o, ``t, `t, All
+		StringReplace, o, o,````, ``, All
+		o := DerefIncludePath(o, DerefIncludeVars, 1)
+		if A_Index = 1
+		{	o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
+			if !(FileExist(o) && RegExReplace(o,"^.+\.") = "bin")
+			 Util_Error("Error: The selected AutoHotkeySC binary does not exist. (A1)"
+			 , 0x34, """" o1 """")
+			Loop Files, % o
+				DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont := A_Index
+		} else if A_Index = 2
+		{	SplitPath ExeFile    ,, edir,,ename
+			SplitPath A_LoopField,, idir,,iname
+			Loop % Cont
+				DirExe[DirExe.MaxIndex()-A_Index+1] 
+				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
+		}	else if A_Index = 3
+				ScriptFileCP := A_LoopField~="^[0-9]+$" ? "CP" A_LoopField : A_LoopField
+			else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
+}	}
+if Util_ObjNotEmpty(DirBins)
+	for k in DirBins
+		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress, ScriptFileCP)
+else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
+
 if !CLIMode
 	Util_Info("Conversion complete.")
 else
@@ -429,54 +517,54 @@ Special thanks:
 return
 
 Util_Status(s)
-{
-	SB_SetText(s)
+{	SB_SetText(s)
 }
 
 Util_Error(txt, exitcode, extra := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
-	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
-	{
-		FileDelete, %ExeFileTmp%
-		ExeFileTmp =
-	}
-	
 	if extra
-		txt .= "`n`nSpecifically: " extra
+		txt .= "`n`nSpecifically:`n" extra
 	
 	Util_HideHourglass()
 	if exitcode
 		MsgBox, 16, Ahk2Exe Error, % txt
-	else
-		MsgBox, 48, Ahk2Exe Warning, % txt
-
-	
-	if CLIMode && exitcode
-	{
-		FileAppend, Failed to compile: %ExeFile%`n, *
-		Util_Status("Ready")
+	else {
+		MsgBox, 49, Ahk2Exe Warning, % txt
+		IfMsgBox Cancel
+			exitcode := 2
 	}
+	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
+	{	FileDelete, %ExeFileTmp%
+		ExeFileTmp =
+	}
+
+	if CLIMode && exitcode
+		FileAppend, Failed to compile: %ExeFile%`n, *
+	Util_Status("Ready")
 	
 	if exitcode
 		if !Error_ForceExit
 			Exit, exitcode
-		else
-			ExitApp, exitcode
+		else ExitApp, exitcode
+	Util_DisplayHourglass()
 }
 
 Util_Info(txt)
-{
-	MsgBox, 64, Ahk2Exe, % txt
+{	MsgBox, 64, Ahk2Exe, % txt
 }
 
-Util_DisplayHourglass()
-{                          ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
-  DllCall("SetSystemCursor",Ptr,DllCall("LoadCursor",Ptr,0,Ptr,32512),Ptr,32650)
+Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
+{	DllCall("SetSystemCursor", "Ptr",DllCall("LoadCursor", "Ptr",0, "Ptr",32512)
+	,"Ptr",32650)
 }
 
-Util_HideHourglass()
-{                                              ; Reset arrow cursor to standard
-  DllCall("SystemParametersInfo", Ptr,0x57, Ptr,0, Ptr,0, Ptr,0)
+Util_HideHourglass()                           ; Reset arrow cursor to standard
+{	DllCall("SystemParametersInfo", "Ptr",0x57, "Ptr",0, "Ptr",0, "Ptr",0)
+}
+
+Util_ObjNotEmpty(obj)
+{	for _,__ in obj
+		return true
 }

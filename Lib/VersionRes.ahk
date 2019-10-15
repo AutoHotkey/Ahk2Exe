@@ -1,3 +1,6 @@
+﻿;
+; File encoding:  UTF-8 with BOM
+;
 
 class VersionRes
 {

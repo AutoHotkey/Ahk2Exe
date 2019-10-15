@@ -1,5 +1,5 @@
-;
-; File encoding:  UTF-8
+﻿;
+; File encoding:  UTF-8 with BOM
 ;
 
 ; Based on code from SciTEDebug.ahk
