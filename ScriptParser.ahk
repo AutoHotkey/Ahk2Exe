@@ -1,6 +1,9 @@
+﻿;
+; File encoding:  UTF-8 with BOM
+;
 
 PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
-{
+{	global DirDone
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
@@ -12,10 +15,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		
 		OldWorkingDir := A_WorkingDir
 		SetWorkingDir, %ScriptDir%
-		
-		DerefIncludeVars.A_ScriptFullPath := AhkScript
-		DerefIncludeVars.A_ScriptName := ScriptName
-		DerefIncludeVars.A_ScriptDir := ScriptDir
+				
+		global priorlines := []
 	}
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
@@ -28,7 +29,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file """ AhkScript """ cannot be opened.", 0x32)
+			Util_Error((IsFirstScript ? "Script" : "#include") " file  cannot be opened.", 0x32, """" AhkScript """")
 		else return
 	
 	cmtBlock := false, contSection := false, ignoreSection := false
@@ -52,19 +53,19 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						continue
 					StringTrimLeft, tline, tline, 9
 					if StrStartsWith(tline, "IgnoreBegin")
-						ignoreSection := true
-					else if tline !=
-						Options.directives.Insert(RegExReplace(tline
+						ignoreSection := true       ;v Skip 'Bin' & their 'Cont' directives
+					else if Trim(tline) != "" && !(DirDone[A_Index] && IsFirstScript)
+						Options.directives.Insert(RegExReplace(tline ; Save directive
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
+						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine
 					continue
 				}
 				else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
 				{
-					if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
-						continue
-					cmtBlock := true
+					if !StrStartsWith(tline, "/*@Ahk2Exe-Keep")
+						cmtBlock := true
 					continue
 				}
 				else if StrStartsWith(tline, "*/")
@@ -74,6 +75,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
+			
+			priorline := tline                   ; Save for a directive's A_PriorLine
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 
@@ -164,33 +167,31 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
 	{
-		AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		global AhkPath := UseAhkPath
+		if (AhkPath = "")
+			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
 		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 		IfNotExist, %AhkPath%
 		{	
-			Util_Error("Warning: AutoHotkey.exe could not be located!`n`n"
-			. "Auto-includes from Function Libraries will not be processed.",0)
+			Util_Error("Warning: AutoHotkey.exe could not be located!`n`nAuto-include"
+. "s from Function Libraries, and 'Obey' directives will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
 		}
 		Util_Status("Auto-including any functions called from a library...")
-		ilibfile := A_Temp "\_ilib.ahk", preprocfile := ScriptDir "\_ahk2exe.tmp~"
-		IfExist, %ilibfile%, FileDelete, %ilibfile%
-		IfExist, %preprocfile%, FileDelete, %preprocfile%
-		AhkType := AHKType(AhkPath)
-		if !AhkType
+		AhkTypeRet := AHKType(AhkPath)
+		if !AhkTypeRet
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
-		if (AhkType.Era = "Legacy")
-			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) are not allowed as the build used for auto-inclusion of library functions.", 0x26, AhkPath)
+		if (AhkTypeRet.Era = "Legacy")
+			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
 		tmpErrorLog := Util_TempFile()
-		FileAppend, % ScriptText, % preprocfile, UTF-8
-		RunWait, "%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%preprocfile%" 2>"%tmpErrorLog%", %FirstScriptDir%, UseErrorLevel Hide
-		if (ErrorLevel = 2)
+		ilibfile := Util_TempFile(, "ilib~")
+		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
+		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
 		{
 			FileRead,tmpErrorData,%tmpErrorLog%
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		FileDelete,%tmpErrorLog%
-		FileDelete,%preprocfile%
 		IfExist, %ilibfile%
 		{
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
@@ -253,12 +254,12 @@ RegExEscape(t)
 	return t
 }
 
-Util_TempFile(d:="")
+Util_TempFile(d := "", f := "")
 {
 	if ( !StrLen(d) || !FileExist(d) )
-		d:=A_Temp
+		d := A_Temp
 	Loop
-		tempName := d "\~temp" A_TickCount ".tmp"
+		tempName := d "\~Ahk2Exe~" f A_TickCount ".tmp"
 	until !FileExist(tempName)
 	return tempName
 }
@@ -295,22 +296,14 @@ DerefIncludePath(path, vars, dosubset := 0)
 ; ^^ vv Can subset dereferenced value (only when used in Compiler Directives).
 ;
 ; Include at end of builtin variable name before end %, p2 [p3] all separated
-;   by tilde "~". if p2 is [-]integer, p2 and p3 are used as p2, p3 of 'SubStr'
-;   (v1), otherwise p2 and p3 are used as p2, p3 of 'RegExReplace'.
+;   by tilde "~".  p2 and p3 will be used as p2, p3 of 'RegExReplace'.
 ;
-; E.g. %A_ScriptName~1~-4% trims 3 character extension plus full-stop.
-; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces variable sized ext'n with .exe.
+; E.g. %A_ScriptName~\.[^\.]+$~.exe% replaces extension with .exe.
 ;
 ; To include tilde as data in p2, p3, preceded with back-tick, i.e. `~
 ; To include back-tick character as data in p2, p3, double it, i.e. ``
 
 subset(val, subs)      ; Returns subset of val using subs.2 & subs.3
 {                      ; if no subs.2 or empty, return val unchanged
-	if (subs.2 = "")     ; If subs.2 [-]integer, use SubStr, else use RegExReplace
-		return val
-	else if (subs.2~="^-?\d+$")
-		if (subs.3 = "")
-			return        SubStr(val, subs.2)
-		else return     SubStr(val, subs.2, subs.3)
-	else return RegExReplace(val, subs.2, subs.3)
+	return subs.2="" ? val : RegExReplace(val, subs.2, subs.3)
 }

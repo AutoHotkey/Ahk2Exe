@@ -1,15 +1,20 @@
+﻿;
+; File encoding:  UTF-8 with BOM
+;
 #Include <VersionRes>
 
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
-{
-	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
-	for _,cmdline in cmds
-	{
+{	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
+	global priorlines
+	for k, cmdline in cmds
+	{	while SubStr(cmds[k+A_Index], 1, 4) = "Cont"
+			cmdline .= SubStr(cmds[k+A_Index], 6)
 		Util_Status("Processing directive: " cmdline)
+		state["cmdline"] := cmdline
+		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
 		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
-			Util_Error("Error: Invalid directive:", 0x63, cmdline)
+			Util_Error("Error: Invalid directive: (D1)", 0x63, cmdline)
 		args := [], nargs := 0
-		o2 := DerefIncludePath(o2, DerefIncludeVars, 1)
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
 		{
@@ -17,52 +22,95 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 			StringReplace, ov, ov, ``n, `n, All
 			StringReplace, ov, ov, ``r, `r, All
 			StringReplace, ov, ov, ``t, `t, All
-			StringReplace, ov, ov, ````, ``, All
-			args.Insert(ov), nargs++
+			StringReplace, ov, ov,````, ``, All
+			args.Insert(DerefIncludePath(ov, DerefIncludeVars, 1)), nargs++
 		}
 		fn := Func("Directive_" o1)
 		if !fn
-			Util_Error("Error: Invalid directive: " o1, 0x63)
-		if (fn.MinParams-1) > nargs || nargs > (fn.MaxParams-1)
-			Util_Error("Error: Wrongly formatted directive:", 0x64, cmdline)
+			Util_Error("Error: Invalid directive: (D2)" , 0x63, cmdline)
+		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
+			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, cmdline)
 		fn.(state, args*)
 	}
-	
-	if !Util_ObjIsEmpty(state.verInfo)
-	{
-		Util_Status("Changing version information...")
+	if Util_ObjNotEmpty(state.verInfo)
+	{	Util_Status("Changing version information...")
 		ChangeVersionInfo(ExeFile, module, state.verInfo)
 	}
-	
 	if IcoFile := state.IcoFile
-	{
+	{	Util_Status("Changing the main icon...")
 		if !FileExist(IcoFile)
 			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
-		
-		Util_Status("Changing the main icon...")
 		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
 			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42, IcoFile)
 	}
 	return state
 }
 
-Directive_SetName(state, txt)
-{	state.verInfo.Name := txt
+Directive_ConsoleApp(state)
+{	state.ConsoleApp := true
 }
-Directive_SetDescription(state, txt)
-{	state.verInfo.Description := txt
+Directive_Cont(state,txt*)
+{                                          ; Handled above
 }
-Directive_SetVersion(state, txt)
-{	state.verInfo.Version := txt
+Directive_Debug(state, txt)
+{	Util_Error( "Debug: " txt, 0)
 }
-Directive_SetCopyright(state, txt)
-{	state.verInfo.Copyright := txt
+Directive_ExeName(state, txt)
+{	global ExeFileG
+	SplitPath ExeFileG,, gdir,,gname
+	SplitPath txt     ,, idir,,iname
+	ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
 }
-Directive_SetOrigFilename(state, txt)
-{	state.verInfo.OrigFilename := txt
+Directive_Let(state, txt*)
+{	for k in txt
+	{	wk := StrSplit(txt[k], "=", "`t ", 2)
+		if (wk.Length() != 2)
+			Util_Error("Error: Wrongly formatted directive: (D2)",0x64, state.cmdline)
+		DerefIncludeVars[(name ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
+}	}
+Directive_Obey(state, name, txt, extra:=0)
+{	global ahkpath
+	IfExist %ahkpath%
+	{	if !(extra ~= "^[0-9]$")
+			Util_Error("Error: Wrongly formatted directive: (D3)",0x64, state.cmdline)
+		wk := Util_TempFile(, "Obey~")
+		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileAppend % " name "," wk 0
+		. "`n#NoEnv", %wk%, UTF-8
+		Loop % extra
+			FileAppend % "`nFileAppend % " name A_Index "," wk A_Index, %wk%, UTF-8
+		RunWait "%ahkpath%" "%wk%",,Hide
+		Loop % extra + 1
+		{	FileRead result, % wk (cnt := A_Index - 1)
+			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
+		}
+		FileDelete %wk%?
+}	}
+Directive_OutputPreproc(state, fileName) ; Old directive not documented?
+{	state.OutPreproc := fileName
+}
+Directive_PostExec(state, txt)
+{	state.PostExec.Insert(txt)
+}
+Directive_Set(state, name, txt)
+{	state.verInfo[name] := txt
 }
 Directive_SetCompanyName(state, txt)
 {	state.verInfo.CompanyName := txt
+}
+Directive_SetCopyright(state, txt)
+{	state.verInfo.LegalCopyright := txt
+}
+Directive_SetDescription(state, txt)
+{	state.verInfo.FileDescription := txt
+}
+Directive_SetFileVersion(state, txt)
+{	state.verInfo.FileVersion := txt
+}
+Directive_SetInternalName(state, txt)
+{	state.verInfo.InternalName := txt
+}
+Directive_SetLanguage(state, txt)
+{	state.verInfo.Language := txt
 }
 Directive_SetLegalTrademarks(state, txt)
 {	state.verInfo.LegalTrademarks := txt
@@ -70,23 +118,23 @@ Directive_SetLegalTrademarks(state, txt)
 Directive_SetMainIcon(state, txt := "")
 {	state.IcoFile := txt
 }
-Directive_PostExec(state, txt)
-{	state.PostExec.Insert(txt)
+Directive_SetName(state, txt)
+{	state.verInfo.InternalName := state.verInfo.ProductName := txt
 }
-Directive_ConsoleApp(state)
-{	state.ConsoleApp := true
+Directive_SetOrigFilename(state, txt)
+{	state.verInfo.OriginalFilename := txt
 }
-Directive_OutputPreproc(state, fileName)
-{	state.OutPreproc := fileName
+Directive_SetProductName(state, txt)
+{	state.verInfo.ProductName := txt
 }
-
-Directive_RequireAdmin(state)
-{
-	work := Util_TempFile()
-	FileAppend <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0" xmlns:v3="urn:schemas-microsoft-com:asm.v3"><assemblyIdentity version="1.1.00.00" name="AutoHotkey" type="win32" /><dependency><dependentAssembly><assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" /></dependentAssembly></dependency><compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1"><application><supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/><supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0da78}"/><supportedOS Id="{e2011457-1546-43c5-a5fe-008deee3d3f0}"/><supportedOS Id="{35138b9a-5d96-4fbd-8e2d-a2440225f93a}"/><supportedOS Id="{4a2f28e3-53b9-4441-ba9c-d69d4a4a6e38}"/></application></compatibility><v3:application><v3:windowsSettings xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings"><dpiAware>true</dpiAware></v3:windowsSettings></v3:application><v3:trustInfo><v3:security><v3:requestedPrivileges><v3:requestedExecutionLevel level="requireAdministrator" uiAccess="false" /></v3:requestedPrivileges></v3:security></v3:trustInfo></assembly> 
-	, %work%
-	Directive_AddResource(state, "*24 " work, 1)
-	FileDelete %work%
+Directive_SetProductVersion(state, txt)
+{	state.verInfo.ProductVersion := txt
+}
+Directive_SetVersion(state, txt)
+{	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt
+}
+Directive_UpdateManifest(state, admin, name = "", version = "")
+{	SetManifest(state, admin, name, version)
 }
 
 Directive_UseResourceLang(state, resLang)
@@ -145,11 +193,12 @@ Directive_AddResource(state, rsrc, resName := "")
 		if resName between 0 and 0xFFFF
 			nameType := "uint"
 	
-	if resType = 23
+	if resType in 4,5,6,9,23,24   ; Deref text-type resources
 	{ 
 		FileRead fData, %resFile%
-		fData := DerefIncludePath(fData, DerefIncludeVars, 1)
-		fSize := StrLen(fData) << !!A_IsUnicode
+		fData1 := DerefIncludePath(fData, DerefIncludeVars, 1)
+		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
+		StrPut(fData1, &fdata, "utf-8")
 	} else {
 		FileGetSize, fSize, %resFile%
 		VarSetCapacity(fData, fSize)
@@ -173,7 +222,7 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 {
 	hModule := DllCall("LoadLibraryEx", "str", ExeFile, "ptr", 0, "ptr", 2, "ptr")
 	if !hModule
-		Util_Error("Error: Error opening destination file.", 0x31)
+		Util_Error("Error: Error opening destination file. (D1)", 0x31)
 	
 	hRsrc := DllCall("FindResource", "ptr", hModule, "ptr", 1, "ptr", 16, "ptr") ; Version Info\1
 	hMem := DllCall("LoadResource", "ptr", hModule, "ptr", hRsrc, "ptr")
@@ -184,43 +233,26 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	props := SafeGetViChild(SafeGetViChild(vi, "StringFileInfo"), "040904b0")
 	for k,v in verInfo
 	{
-		if IsLabel(lbl := "_VerInfo_" k)
-			gosub %lbl%
-		continue
-		_VerInfo_Name:
-		SafeGetViChild(props, "ProductName").SetText(v)
-		SafeGetViChild(props, "InternalName").SetText(v)
-		return
-		_VerInfo_Description:
-		SafeGetViChild(props, "FileDescription").SetText(v)
-		return
-		_VerInfo_Version:
-		SafeGetViChild(props, "FileVersion").SetText(v)
-		SafeGetViChild(props, "ProductVersion").SetText(v)
-		ver := VersionTextToNumber(v)
-		hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
-		NumPut(hiPart, ffi+8, "UInt"), NumPut(loPart, ffi+12, "UInt")
-		NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
-		return
-		_VerInfo_Copyright:
-		SafeGetViChild(props, "LegalCopyright").SetText(v)
-		return
-		_VerInfo_OrigFilename:
-		SafeGetViChild(props, "OriginalFilename").SetText(v)
-		return
-		_VerInfo_CompanyName:
-		SafeGetViChild(props, "CompanyName").SetText(v)
-		return
-		_VerInfo_LegalTrademarks:
-		SafeGetViChild(props, "LegalTrademarks").SetText(v)
-		return
-	}
-	
+		if !(k = "Language")
+			SafeGetViChild(props, k).SetText(v)  ; All properties
+		if k in FileVersion,ProductVersion
+		{	ver := VersionTextToNumber(v)
+			hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
+			if (k = "FileVersion")
+					 NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
+			else NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
+	}	}
 	VarSetCapacity(newVI, 16384) ; Should be enough
 	viSize := vi.Save(&newVI)
-	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
-	          , "ushort", 0x409, "ptr", &newVI, "uint", viSize, "uint")
-		Util_Error("Error changing the version information.", 0x67)
+	
+	if (wk := verInfo.Language)                               ; Change language?
+	{	NumPut(verInfo.Language, newVI, viSize-4, "UShort")
+	}
+	DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
+		, "ushort", 0x409, "ptr", 0, "uint", 0, "uint")         ; Delete lang 0x409
+	if !DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1, "ushort"
+		, wk ? wk : 0x409, "ptr", &newVI, "uint", viSize, "uint") ; Add new language
+		Util_Error("Error changing the version information. (D1)", 0x67)
 }
 
 VersionTextToNumber(v)
@@ -248,9 +280,35 @@ SafeGetViChild(vi, name)
 	return c
 }
 
-Util_ObjIsEmpty(obj)
+SetManifest(state, admin = "", name = "", version = "")
 {
-	for _,__ in obj
-		return false
-	return true
+	xml := ComObjCreate("Msxml2.DOMDocument")
+	xml.async := false
+	xml.setProperty("SelectionLanguage", "XPath")
+	xml.setProperty("SelectionNamespaces"
+			, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
+			. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
+	if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
+		Util_Error("Error: Error opening destination file. (D2)", 0x31)
+
+	
+	node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D3)", 0x31)
+	(version && node.setAttribute("version", version)) 
+	(name && node.setAttribute("name", name))
+
+	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
+								. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D4)", 0x31)
+	(admin && node.setAttribute("level", "requireAdministrator"))
+	
+	xml := RTrim(xml.xml, "`r`n")
+	VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
+	StrPut(xml, &data, "utf-8")
+	
+	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
+									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
+		Util_Error("Error changing the version information. (D2)", 0x67)
 }

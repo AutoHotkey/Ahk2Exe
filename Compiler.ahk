@@ -1,20 +1,22 @@
+﻿;
+; File encoding:  UTF-8 with BOM
+;
 #Include ScriptParser.ahk
 #Include IconChanger.ahk
 #Include Directives.ahk
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
-	global ExeFileTmp
+	global ExeFileTmp, ExeFileG
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
 		Util_Error("Error: Source file not specified.", 0x33)
-	SplitPath, AhkFile,, AhkFile_Dir,, AhkFile_NameNoExt
-	
-	if ExeFile =
-		ExeFile = %AhkFile_Dir%\%AhkFile_NameNoExt%.exe
-	else
-		ExeFile := Util_GetFullPath(ExeFile)
-	
+
+	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
+	SplitPath ExeFile,, Edir,,    Ename
+	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (Ename ? Ename : Ahk_Name ) ".exe"
+	ExeFile := Util_GetFullPath(ExeFile)
+
 	;ExeFileTmp := ExeFile
 	ExeFileTmp := Util_TempFile()
 	
@@ -24,25 +26,30 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_DisplayHourglass()
 	
 	IfNotExist, %BinFile%
-		Util_Error("Error: The selected AutoHotkeySC binary does not exist.", 0x34, BinFile)
+		Util_Error("Error: The selected AutoHotkeySC binary does not exist. (C1)"
+		, 0x34, """" BinFile """")
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
 		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.", 0x41)
-	
+
+	DerefIncludeVars.Delete("U_", "V_")         ; Clear Directives entries
+	DerefIncludeVars.Delete("A_WorkFileName")
+	DerefIncludeVars.Delete("A_PriorLine")
+
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
-	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
+	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode ; Currently returns ""
 	
-	if !(BinType.IsUnicode)   ; Temporary workaround for AhkType() bug
-	{
-		FileGetSize size, %ExeFileTmp%
-		Loop Files, %A_ScriptDir%\*bit.bin
-		{ if (A_LoopFileSize = size)
+	if !(BinType.IsUnicode)             ; Set A_IsUnicode
+	{                                   ; Rationale for this code:-
+		FileGetSize size, %ExeFileTmp%    ; For same code base each version bigger;
+		Loop Files, %BinFile%\..\*bit.bin ; Unicode has more code than ANSI;
+			if (A_LoopFileSize = size)      ; 64-bit has bigger pointers than 32-bit
 				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
-	}	}
-	
+	}
+	ExeFileG := ExeFile
 	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
 	
 	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS = 1
@@ -58,12 +65,44 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}
 	
 	; the final step...
-	try FileMove, %ExeFileTmp%, %ExeFile%, 1
-	catch
-		Util_Error("Error: Could not move final compiled binary file to destination.", 0x45)
-	
 	Util_HideHourglass()
+	Util_Status("Moving .exe to destination")
+
+Loop
+	{	FileMove, %ExeFileTmp%, %ExeFileG%, 1
+		if !ErrorLevel
+			break
+		DetectHiddenWindows On
+		if !WinExist("ahk_exe " ExeFileG)
+			Util_Error("Error: Could not move final compiled binary file to "
+			. "destination. (C1)", 0x45, """" ExeFileG """")
+		else
+		{	SetTimer Buttons, 50
+			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
+			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
+			.  "and needs to be unloaded to allow replacement with this new version."
+			. "`n`n Press the appropriate button to continue."
+			. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
+			IfMsgBox Cancel
+				Util_Error("Error: Could not move final compiled binary file to "
+				. "destination. (C2)", 0x45, """" ExeFileG """")
+			WinClose     ahk_exe %ExeFileG%
+			WinWaitClose ahk_exe %ExeFileG%,,1
+			IfMsgBox No
+				Reload := 1
+	}	}
+	if Reload
+		run "%ExeFileG%", %ExeFileG%\..
 	Util_Status("")
+}
+
+Buttons()
+{	IfWinNotExist Ahk2Exe Query
+		return
+	SetTimer,, Off
+	WinActivate
+	ControlSetText Button1, &Unload
+	ControlSetText Button2, && &Reload
 }
 
 BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
@@ -85,13 +124,12 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
-		Util_Error("Error: Error opening the destination file.", 0x31)
+		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
 	
 	tempWD := new CTempWD(ScriptDir)
 
 	DerefIncludeVars.A_WorkFileName := ExeFile
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
-	DerefIncludeVars.Delete("A_WorkFileName")
 	IcoFile := dirState.IcoFile
 	
 	if outPreproc := dirState.OutPreproc
@@ -154,7 +192,7 @@ _FailEnd2:
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-		Util_Error("Error: Error opening the destination file.", 0x31)
+		Util_Error("Error: Error opening the destination file. (C2)", 0x31)
 	return
 }
 
