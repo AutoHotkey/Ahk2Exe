@@ -52,7 +52,7 @@ Menu, FileMenu, Disable, S&ave Script Settings As…`tCtrl+S
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
-Menu, HelpMenu, Add, &Help, Help
+Menu, HelpMenu, Add, &Help`tF1, Help
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
 Menu, MenuBar,  Add, &File, :FileMenu
