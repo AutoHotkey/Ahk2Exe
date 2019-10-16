@@ -130,7 +130,7 @@ GuiSize:
 if (A_EventInfo = 1) ; The window has been minimized.
 	return
 
-; Top border / Seperator
+; Top border / Separator
 GuiControl, Move, TopLine, % "w" A_GuiWidth-24
 
 ; GroupBox - Required Parameter
