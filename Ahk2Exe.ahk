@@ -47,8 +47,8 @@ ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
-Menu, FileMenu, Add, S&ave Script Settings As…, SaveAsMenu
-Menu, FileMenu, Disable, S&ave Script Settings As…
+Menu, FileMenu, Add, S&ave Script Settings As…`tCtrl+S, SaveAsMenu
+Menu, FileMenu, Disable, S&ave Script Settings As…`tCtrl+S
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
@@ -344,8 +344,7 @@ FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
 if ErrorLevel
 	return
 GuiControl,, AhkFile, %ov%
-menu, FileMenu, Enable, S&ave Script Settings As…
-
+menu, FileMenu, Enable, S&ave Script Settings As…`tCtrl+S
 return
 
 BrowseExe:
