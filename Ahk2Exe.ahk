@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -22,10 +22,9 @@ SetWorkingDir %A_ScriptDir%
 
 #Include Compiler.ahk
 
-OnExit("Util_HideHourglass")            ; Reset cursor on exit
+OnExit("Util_HideHourglass")             ; Reset cursor on exit
 
-CompressDescr := {-1:" UPX  (if prese&nt)", 0:" (&none)"
-                 , 1:" MPRESS  (if prese&nt)"}
+CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
 global UseAhkPath := ""
 
@@ -85,7 +84,7 @@ Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, D&efault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
-Gui, Add, CheckBox, x137 y294 w315 h20 Check3 vUseMpress gcompress Checked%LastUseMPRESS%, % CompressDescr[LastUseMPRESS]
+Gui, Add, DDL,% "x137 y294 w70 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPress|UPX
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
@@ -96,17 +95,19 @@ gosub AddPicture
 */
 GuiControl, Focus, Button1
 Gui, Show, w594 h383, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
+gosub compress
 return
 
 GuiClose:
 Gui, Submit
+UseMPRESS--
 gosub SaveSettings
 ExitApp
 
 compress:
 gui, Submit, NoHide
-GuiControl Text, UseMPRESS, % CompressDescr[UseMPRESS]
-if (UseMPRESS && !FileExist(wk := {-1:"UPX.exe",1:"MPRESS.exe"}[UseMPRESS]))
+if (UseMPRESS !=1
+ && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
 	Util_Status("Warning: """ wk """ is not installed in the compiler folder.")
 else Util_Status("Ready")
 return
@@ -131,22 +132,21 @@ if (A_EventInfo = 1) ; The window has been minimized.
 	return
 
 ; Top border / Separator
-GuiControl, Move, TopLine, % "w" A_GuiWidth-24
+GuiControl, Move, TopLine,       % "w" A_GuiWidth-24
 
 ; GroupBox - Required Parameter
-GuiControl, Move, AhkFile, % "w" A_GuiWidth-279
-GuiControl, Move, BtnAhkFile, % "x" A_GuiWidth-135
-GuiControl, MoveDraw, GroupA, % "w" A_GuiWidth-24
+GuiControl, Move, AhkFile,       % "w" A_GuiWidth-279
+GuiControl, Move, BtnAhkFile,    % "x" A_GuiWidth-135
+GuiControl, MoveDraw, GroupA,    % "w" A_GuiWidth-24
 
 ; GroupBox - Optional Parameters
-GuiControl, Move, ExeFile, % "w" A_GuiWidth-279
-GuiControl, Move, BtnExeFile, % "x" A_GuiWidth-135
-GuiControl, Move, IcoFile, % "w" A_GuiWidth-279
-GuiControl, Move, BtnIcoFile, % "x" A_GuiWidth-135
+GuiControl, Move, ExeFile,       % "w" A_GuiWidth-279
+GuiControl, Move, BtnExeFile,    % "x" A_GuiWidth-135
+GuiControl, Move, IcoFile,       % "w" A_GuiWidth-279
+GuiControl, Move, BtnIcoFile,    % "x" A_GuiWidth-135
 GuiControl, Move, BtnIcoDefault, % "x" A_GuiWidth-77
-GuiControl, Move, BinFileId, % "w" A_GuiWidth-279
-GuiControl, Move, UseMpress, % "w" A_GuiWidth-279
-GuiControl, MoveDraw, GroupB, % "w" A_GuiWidth-24
+GuiControl, Move, BinFileId,     % "w" A_GuiWidth-279
+GuiControl, MoveDraw, GroupB,    % "w" A_GuiWidth-24
 
 ; Centered "> Convert <" Button
 GuiControl, Move, BtnConvert, % "x" (A_GuiWidth-75)/2
@@ -322,7 +322,7 @@ CLIMode := true
 return
 
 BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or -1 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
+Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
 ExitApp, 0x3
 
 _ProcessIn:
@@ -410,12 +410,13 @@ FileDelete %SaveAs%
 FileAppend % "RunWait """ A_ScriptDir "\Ahk2Exe.exe"" /in """ AhkFile """"
 . (ExeFile ? " /out """ ExeFile """" : "")
 . (IcoFile ? " /icon """ IcoFile """": "") 
-. " /bin """ BinFile """ /compress " UseMpress, %SaveAs%
+. " /bin """ BinFile """ /compress " UseMpress-1, %SaveAs%
 Return
 
 Convert:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
+UseMPRESS--
 if !CustomBinFile
 	BinFile := A_ScriptDir "\" BinFiles[BinFileId]
 else CustomBinFile := ""
@@ -478,17 +479,19 @@ return
 
 LoadSettings:
 RegRead, LastScriptDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir
-RegRead, LastExeDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
-RegRead, LastIconDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
-RegRead, LastIcon, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
-RegRead, LastBinFile, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
+RegRead, LastExeDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
+RegRead, LastIconDir,   HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
+RegRead, LastIcon,      HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
+RegRead, LastBinFile,   HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
 if !FileExist(LastIcon)
 	LastIcon := ""
 if (LastBinFile = "") || !FileExist(LastBinFile)
 	LastBinFile = AutoHotkeySC.bin
-if !CompressDescr[LastUseMPRESS]
+if !CompressCode[LastUseMPRESS]                ; Invalid codes := 0
 	LastUseMPRESS := false
+if CompressCode[LastUseMPRESS] > 0             ; Convert any old codes
+	LastUseMPRESS := CompressCode[LastUseMPRESS]
 return
 
 SaveSettings:
@@ -502,9 +505,9 @@ if IcoFile
 else
 	IcoFileDir := ""
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %ExeFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir, %IcoFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon, %IcoFile%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir,    %ExeFileDir%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir,   %IcoFileDir%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon,      %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS, %UseMPRESS%
 if !CustomBinFile
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
