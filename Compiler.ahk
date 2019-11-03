@@ -58,10 +58,10 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFileTmp%",, Hide
 	}
 	
-	if FileExist(A_ScriptDir "\upx.exe") && UseMPRESS = -1
+	if FileExist(A_ScriptDir "\upx.exe") && UseMPRESS = 2
 	{
 		Util_Status("Compressing final executable with UPX...")
-		RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods "%ExeFileTmp%",, Hide
+		RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods --compress-icons=0 "%ExeFileTmp%",, Hide
 	}
 	
 	; the final step...
