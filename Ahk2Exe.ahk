@@ -1,4 +1,4 @@
-;
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -278,12 +278,12 @@ p := []
 Loop, %0%
 {
 	if %A_Index% = /NoDecompile
-		Util_Error("Error: /NoDecompile is not supported.", 0x23)
+		BadParams("Error: /NoDecompile is not supported.", 0x23)
 	else p.Insert(%A_Index%)
 }
 
 if Mod(p.MaxIndex(), 2)
-	goto BadParams
+	BadParams("Error: Number of parameters un-even.")
 
 Loop, % p.MaxIndex() // 2
 {
@@ -291,23 +291,23 @@ Loop, % p.MaxIndex() // 2
 	p2 := p[2*(A_Index-1)+2]
 	
 	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
-		goto BadParams
+		BadParams("Error: Unrecognised parameter:`n" p1)
 	
 	if p1 = /bin
 		UsesCustomBin := true
 	
 	if p1 = /pass
-		Util_Error("Error: Password protection is not supported.", 0x24)
+		BadParams("Error: Password protection is not supported.", 0x24)
 	
 	if p2 =
-		goto BadParams
+		BadParams("Error: Blank parameter.")
 	
 	StringTrimLeft, p1, p1, 1
 	gosub _Process%p1%
 }
 
 if !AhkFile
-	goto BadParams
+	BadParams("Error: No input file specified.")
 
 if !IcoFile
 	IcoFile := LastIcon
@@ -321,9 +321,9 @@ if UseMPRESS =
 CLIMode := true
 return
 
-BadParams:
-Util_Info("Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
-ExitApp, 0x3
+BadParams(Message, ErrorCode=0x3)
+{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
+}
 
 _ProcessIn:
 AhkFile := p2
@@ -343,10 +343,11 @@ BinFile := p2
 return
 
 _ProcessMPRESS:
-UseMPRESS := p2
-return
-
 _ProcessCompress:
+if !CompressCode[p2]                ; Invalid codes?
+	BadParams("Error: Compress or MPress parameter invalid:`n" p2)
+if CompressCode[p2] > 0             ; Convert any old codes
+	p2 := CompressCode[p2]
 UseMPRESS := p2
 return
 
@@ -549,12 +550,15 @@ Util_Status(s)
 {	SB_SetText(s)
 }
 
-Util_Error(txt, exitcode, extra := "")
+Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
+	
+	if extra1
+		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
 	if exitcode
