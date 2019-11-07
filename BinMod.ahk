@@ -8,17 +8,17 @@
 ; Place the resulting BinMod.exe file in the compiler directory that contains
 ;  Ahk2Exe.exe (e.g. C:\Program Files\AutoHotkey\Compiler\).
 ;
-; Usage examples:
+; -----------------------------  Usage examples  -------------------------------
 ;
 ;  To replace ">AUTOHOTKEY SCRIPT<" with (for example) "DATA" in the .exe:
-;   ;@Ahk2Exe-PostExec "%A_ScriptDir%\BinMod.exe" "%A_WorkFileName%"
-;   :@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<.DATA               "
+;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
+;   ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<.DATA               "
 ;
-;  (Note that the "DATA" field must be space-filled for a total of 19 ch here.)
+;  (Note: The "DATA" field must be space-filled for a total of 19 char here.)
 ;
 ;  To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe:
-;   ;@Ahk2Exe-PostExec "%A_ScriptDir%\BinMod.exe" "%A_WorkFileName%"
-;   :@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2
+;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
+;   ;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2
 ;
 ; ------------------------------------------------------------------------------
 ;
