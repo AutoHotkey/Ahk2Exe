@@ -4,7 +4,7 @@
 #Include <VersionRes>
 
 ProcessDirectives(ExeFile, module, cmds, IcoFile)
-{	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec: [] }
+{	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}, IcoFile: IcoFile, PostExec:[], PostExec0:[], PostExec1:[], PostExec2:[] }
 	global priorlines
 	for k, cmdline in cmds
 	{	while SubStr(cmds[k+A_Index], 1, 4) = "Cont"
@@ -49,7 +49,7 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 Directive_ConsoleApp(state)
 {	state.ConsoleApp := true
 }
-Directive_Cont(state,txt*)
+Directive_Cont(state, txt*)
 {                                          ; Handled above
 }
 Directive_Debug(state, txt)
@@ -88,8 +88,10 @@ Directive_Obey(state, name, txt, extra:=0)
 Directive_OutputPreproc(state, fileName) ; Old directive not documented?
 {	state.OutPreproc := fileName
 }
-Directive_PostExec(state, txt)
-{	state.PostExec.Insert(txt)
+Directive_PostExec(state, txt, when := "")
+{	if !{"":1, 0:1, 1:1, 2:1}[when]        ; Valid is "", 0, 1, 2
+		Util_Error("Error: Wrongly formatted directive: (D4)",0x64, state.cmdline)
+	state["PostExec" when].Insert(txt)
 }
 Directive_Set(state, name, txt)
 {	state.verInfo[name] := txt

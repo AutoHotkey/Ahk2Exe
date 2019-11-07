@@ -50,25 +50,13 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
 	}
 	ExeFileG := ExeFile
-	BundleAhkScript(ExeFileTmp, AhkFile, CustomIcon, fileCP)
-	
-	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS = 1
-	{
-		Util_Status("Compressing final executable with MPRESS...")
-		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFileTmp%",, Hide
-	}
-	
-	if FileExist(A_ScriptDir "\upx.exe") && UseMPRESS = 2
-	{
-		Util_Status("Compressing final executable with UPX...")
-		RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods --compress-icons=0 "%ExeFileTmp%",, Hide
-	}
+	BundleAhkScript(ExeFileTmp, AhkFile, UseMPRESS, CustomIcon, fileCP)
 	
 	; the final step...
 	Util_HideHourglass()
 	Util_Status("Moving .exe to destination")
 
-Loop
+	Loop
 	{	FileMove, %ExeFileTmp%, %ExeFileG%, 1
 		if !ErrorLevel
 			break
@@ -105,7 +93,7 @@ Buttons()
 	ControlSetText Button2, && &Reload
 }
 
-BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
+BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 {
 	; weird bug prevention, for non working default param 'fileCP'
 	if fileCP is space
@@ -170,7 +158,7 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 		if !SetExeSubsystem(ExeFile, 3)
 			Util_Error("Could not change executable subsystem!", 0x61)
 	}
-	
+	SetWorkingDir %A_ScriptDir%
 	for each,cmd in dirState.PostExec
 	{
 		Util_Status("PostExec: " cmd)
@@ -179,8 +167,30 @@ BundleAhkScript(ExeFile, AhkFile, IcoFile="", fileCP="")
 			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
 	}
 	
+	if FileExist(A_ScriptDir "\mpress.exe") && UseMPRESS = 1
+	{
+		Util_Status("Compressing final executable with MPRESS...")
+		RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
+	}
 	
-	return
+	if FileExist(A_ScriptDir "\upx.exe") && UseMPRESS = 2
+	{
+		Util_Status("Compressing final executable with UPX...")
+		RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods --compress-icons=0 "%ExeFile%",, Hide
+	}
+
+	Loop 3
+	{	wk := A_Index-1
+		for each,cmd in dirState["PostExec" wk]
+		{	if (wk = UseMPRESS)
+			{	Util_Status("PostExec" wk ": " cmd)
+				RunWait, % cmd,, UseErrorLevel
+				if (ErrorLevel != 0)
+					Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
+	}	}	}
+	
+	
+	return                             ; BundleAhkScript() exits here
 	
 _FailEnd:
 	gosub _EndUpdateResource
