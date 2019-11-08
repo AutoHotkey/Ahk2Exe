@@ -4,5 +4,6 @@
 *.db
 *.zip
 *.cmd
+*.chm
 *.session
 /__debug.ahk
