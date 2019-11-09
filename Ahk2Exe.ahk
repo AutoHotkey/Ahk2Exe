@@ -84,7 +84,7 @@ Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, D&efault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
-Gui, Add, DDL,% "x137 y294 w70 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPress|UPX
+Gui, Add, DDL,% "x137 y294 w70 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
