@@ -23,6 +23,7 @@
 ;
 ;  Note: In this example, there are empty replacement fields, so the matched
 ;   strings will be completely replaced with 0x00's (nul's).
+;
 ; ------------------------------------------------------------------------------
 ;
 ; Parameter details:
