@@ -1,12 +1,12 @@
 ﻿
-; BinMod; a simple, fast binary hex editor by TAC109.
+; BinMod; a simple, fast binary file editor by TAC109.
 ; Designed be called from Ahk2Exe's 'PostExec' compiler directive.
 ;
 ; -----------------------  Installation Instructions  --------------------------
 ;
 ; Compile BinMod.ahk using the bin file "Unicode 32bit.bin" or "ANSI 32bit.bin".
 ; Place the resulting BinMod.exe file in the compiler directory that contains
-;  Ahk2Exe.exe (e.g. C:\Program Files\AutoHotkey\Compiler\).
+;  Ahk2Exe.exe (e.g. "C:\Program Files\AutoHotkey\Compiler\").
 ;
 ; -----------------------------  Usage examples  -------------------------------
 ;
@@ -14,12 +14,15 @@
 ;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
 ;   ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<.DATA               "
 ;
-;  (Note: The "DATA" field must be space-filled for a total of 19 char here.)
+;  Note: In the example above, the replacement field must be space-filled to 
+;   give a total of 19 characters in order for the compiled program to work.
 ;
 ;  To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe:
 ;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
 ;   ;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2
 ;
+;  Note: In this example, there are empty replacement fields, so the matched
+;   strings will be completely replaced with 0x00's (nul's).
 ; ------------------------------------------------------------------------------
 ;
 ; Parameter details:
@@ -52,7 +55,7 @@
 ; ================================  Program  ===================================
 #NoEnv                               ; For performance & future compatibility
 #Warn                                ; For catching common errors
-#MaxMem 4095                         ; Handle large file
+#MaxMem 4095                         ; Handle large files
 SetBatchLines -1                     ; Run at full speed
 
 if A_PtrSize = 8
