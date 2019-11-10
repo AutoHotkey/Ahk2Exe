@@ -168,15 +168,15 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 	}
 	if UseMPRESS = 1
 	{	Util_Status("Compressing final executable with MPRESS...")
-		if FileExist(A_ScriptDir "\mpress.exe")
+		if FileExist(wk := A_ScriptDir "\mpress.exe")
 			RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
-		else Util_Error("Warning: MPRESS.exe is not installed.",0), UseMPRESS := 9
+		else Util_Error("Warning: """ wk """ not found.",0), UseMPRESS := 9
 	}
 	if UseMPRESS = 2
 	{	Util_Status("Compressing final executable with UPX...")
-		if FileExist(A_ScriptDir "\upx.exe")
+		if FileExist(wk := A_ScriptDir "\upx.exe")
 			RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods --compress-icons=0 "%ExeFile%",, Hide
-		else Util_Error("Warning: UPX.exe is not installed.",0), UseMPRESS := 9
+		else Util_Error("Warning: """ wk """ not found.",0), UseMPRESS := 9
 	}
 	Loop 3
 	{	wk := A_Index-1

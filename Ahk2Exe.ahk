@@ -106,9 +106,9 @@ ExitApp
 
 compress:
 gui, Submit, NoHide
-if (UseMPRESS !=1 &&
-!FileExist(A_ScriptDir "\" . (wk := {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS])))
-	Util_Status("Warning: """ wk """ is not installed correctly.")
+if (UseMPRESS !=1
+ && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
+	Util_Status("Warning: """ wk """ not found.")
 else Util_Status("Ready")
 return
 
