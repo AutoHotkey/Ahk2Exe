@@ -10,12 +10,19 @@
 ;
 ; -----------------------------  Usage examples  -------------------------------
 ;
-;  To replace ">AUTOHOTKEY SCRIPT<" with (for example) "DATA" in the .exe:
+;  To replace ">AUTOHOTKEY SCRIPT<" with "DATA" (for example) in the .exe:
 ;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
 ;   ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<.DATA               "
 ;
 ;  Note: In the example above, the replacement field must be space-filled to 
 ;   give a total of 19 characters in order for the compiled program to work.
+;
+;  To change the "AutoHotkeyGUI" class to "My_String" (for example) add the next
+;   line to the previous example (or replace the 2nd line above if not needed):
+;   ;@Ahk2Exe-Cont  "2.AutoHotkeyGUI.My_String"
+;
+;  Note: In this example, if the replacement field is shorter than 13
+;   characters it will be automatically padded with 0x00's (nul's).
 ;
 ;  To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe:
 ;   ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
