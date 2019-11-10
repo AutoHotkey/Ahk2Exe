@@ -84,7 +84,7 @@ Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, D&efault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
-Gui, Add, DDL,% "x137 y294 w70 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPRESS|UPX
+Gui, Add, DDL,% "x137 y294 w75 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
@@ -106,9 +106,9 @@ ExitApp
 
 compress:
 gui, Submit, NoHide
-if (UseMPRESS !=1
- && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
-	Util_Status("Warning: """ wk """ is not installed in the compiler folder.")
+if (UseMPRESS !=1 &&
+!FileExist(A_ScriptDir "\" . (wk := {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS])))
+	Util_Status("Warning: """ wk """ is not installed correctly.")
 else Util_Status("Ready")
 return
 
