@@ -43,7 +43,7 @@
 ;        "2" - match once with 2 byte/character binary file portion.
 ;        These can be mixed and/or repeated to match more than once.
 ;
-;     b) Simple string for matching.
+;     b) Simple case-sensitive string for matching.
 ;
 ;     c) Simple string to replace matched string.
 ;        If shorter than b, it will be padded with 0x00's.
