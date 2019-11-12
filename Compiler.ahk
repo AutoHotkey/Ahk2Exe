@@ -114,7 +114,7 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 	if !module
 		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
 	
-	tempWD := new CTempWD(ScriptDir)
+	SetWorkingDir % ScriptDir
 
 	DerefIncludeVars.A_WorkFileName := ExeFile
 	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
