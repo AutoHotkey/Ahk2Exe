@@ -135,8 +135,36 @@ Directive_SetProductVersion(state, txt)
 Directive_SetVersion(state, txt)
 {	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt
 }
-Directive_UpdateManifest(state, admin, name = "", version = "")
-{	SetManifest(state, admin, name, version)
+
+Directive_UpdateManifest(state, admin, name = "", version = "", uiaccess = "")
+{	xml := ComObjCreate("Msxml2.DOMDocument")
+	xml.async := false
+	xml.setProperty("SelectionLanguage", "XPath")
+	xml.setProperty("SelectionNamespaces"
+			, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
+			. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
+	if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
+		Util_Error("Error: Error opening destination file. (D2)", 0x31)
+	node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D3)", 0x31)
+	(version && node.setAttribute("version", version)) 
+	(name && node.setAttribute("name", name))
+
+	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
+								. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
+	if !node ; Not AutoHotkey v1.1?
+		Util_Error("Error: Error opening destination file. (D4)", 0x31)
+	(admin=1  && node.setAttribute("level", "requireAdministrator"))
+	(admin=2  && node.setAttribute("level", "highestAvailable"))
+	(uiaccess && node.setAttribute("uiAccess", "true"))
+	xml := RTrim(xml.xml, "`r`n")
+	VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
+	StrPut(xml, &data, "utf-8")
+	
+	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
+									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
+		Util_Error("Error changing the version information. (D2)", 0x67)
 }
 
 Directive_UseResourceLang(state, resLang)
@@ -282,35 +310,3 @@ SafeGetViChild(vi, name)
 	return c
 }
 
-SetManifest(state, admin = "", name = "", version = "")
-{
-	xml := ComObjCreate("Msxml2.DOMDocument")
-	xml.async := false
-	xml.setProperty("SelectionLanguage", "XPath")
-	xml.setProperty("SelectionNamespaces"
-			, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
-			. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
-	if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
-		Util_Error("Error: Error opening destination file. (D2)", 0x31)
-
-	
-	node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
-	if !node ; Not AutoHotkey v1.1?
-		Util_Error("Error: Error opening destination file. (D3)", 0x31)
-	(version && node.setAttribute("version", version)) 
-	(name && node.setAttribute("name", name))
-
-	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
-								. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
-	if !node ; Not AutoHotkey v1.1?
-		Util_Error("Error: Error opening destination file. (D4)", 0x31)
-	(admin && node.setAttribute("level", "requireAdministrator"))
-	
-	xml := RTrim(xml.xml, "`r`n")
-	VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
-	StrPut(xml, &data, "utf-8")
-	
-	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
-									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
-		Util_Error("Error changing the version information. (D2)", 0x67)
-}
