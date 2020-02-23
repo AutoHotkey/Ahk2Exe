@@ -1,5 +1,5 @@
 ﻿/*
- BinMod; a simple, fast binary file editor by TAC109, Edition: 17 Jan 2020.
+ BinMod; a simple, fast binary file editor by TAC109. Edition: 23 Feb 2020.
  Designed be called from Ahk2Exe's 'PostExec' compiler directive.
 
 -------------------------  Installation Instructions  --------------------------
@@ -76,7 +76,7 @@ if 0 < 2
 { MsgBox 16,, Not enough parameters (minimum 2)!
 	ExitApp 1
 }
-FileName := %true%                          ; 1st parameter
+FileName := %true%                          ; 1st parameter is file name
 FileGetSize Sz,  %FileName%
 VarSetCapacity(Bin, Sz)
 FileRead Bin, *c %FileName%
@@ -118,22 +118,20 @@ DllCall("_lclose", UInt,hFile)              ; Close file & finish
 ExitApp 0
 
 ; ==============================  Subroutines  =================================
-InBuf(hayP,hayS, neeP,neeS, sOff=0)         ; Search buffer mcode; gives offset
-{ Static InBuf ; Original version  @ www.autohotkey.com/forum/topic25925.html
-  If (!VarSetCapacity(InBuf)) ; Slightly altered version of InBuf() by wOxxOm
-	{ FiH := "530CEC83E58955|5D8B9C57565251|C28E0F00FB8314|8B104D8B000000|"
-		FiH .= "41D929C1291845|8B000000B18E0F|0C758BC701087D|2A744BACFCC031|"
-		FiH .= "4B36744B2D744B|AD933F754B1474|008B850FAEF293|EBF4751F390000|"
-		FiH .= "7F75AEF2AD4E75|68EBF775FF4739|8A62EB7475AEF2|27386C75AEF226|"
-		FiH .= "AD669356EBF875|39665E75AEF293|434E47EBF7751F|C1DA89FC7589AD|"
-		FiH .= "E283F45D8902EB|87DF87F8558903|AEF2CA87FB87D1|F775FF47393775|"
-		FiH .= "03C783CA89FB89|85F44D8BFC758B|DE75A7F30474C9|0474C985F84D8B|"
-		FiH .= "4FDF89D375A6F3|5F9D08452BF889|14C2C95B595A5E|F0EBD0F7C03100"
-		VarSetCapacity(InBuf, 224, 0)
-		Loop, Parse, FiH, |
-			NumPut( "0x" A_LoopField, InBuf,(7*(A_Index-1)), "Int64" )
+InBuf(hayP, hayS, neeP, neeS, sOff=0)       ; Search buffer; returns offset
+{ Static Buf      ; InBuf() by wOxxOm @ www.autohotkey.com/forum/topic25925.html
+  If (!VarSetCapacity(Buf))                 ; MCode
+	{ h :=  "5589E583EC0C53515256579C8B5D1483FB000F8EC20000008B4D108B451829C129D9"
+. "410F8EB10000008B7D0801C78B750C31C0FCAC4B742A4B742D4B74364B74144B753F93AD93F2"
+. "AE0F858B000000391F75F4EB754EADF2AE757F3947FF75F7EB68F2AE7574EB628A26F2AE756C"
+. "382775F8EB569366AD93F2AE755E66391F75F7EB474E43AD8975FC89DAC1EB02895DF483E203"
+. "8955F887DF87D187FB87CAF2AE75373947FF75F789FB89CA83C7038B75FC8B4DF485C97404F3"
+. "A775DE8B4DF885C97404F3A675D389DF4F89F82B45089D5F5E5A595BC9C2140031C0F7D0EBF0"
+		VarSetCapacity(Buf, StrLen(h)//2)
+		Loop % StrLen(h)//2
+				NumPut("0x" SubStr(h,2*A_Index-1,2), Buf, A_Index-1, "Char")
 	}
-	Return DllCall(&InBuf, UInt,hayP, UInt,neeP, UInt,hayS, UInt,neeS, UInt,sOff)
+	Return DllCall(&Buf, UInt,hayP, UInt,neeP, UInt,hayS, UInt,neeS, UInt,sOff)
 }
 
 ; ===============================  Debugging  ==================================
