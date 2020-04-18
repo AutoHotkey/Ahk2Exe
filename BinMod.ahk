@@ -19,7 +19,7 @@
    Note: In the example above, the replacement field must be upper-case, and 
     space-filled to give a total of 19 characters in order for the compiled
     program to work correctly. This field should start with a space to avoid
-    possible collating problems with any 'FileInclude' commands in the script.
+    RCData collating problems with any 'FileInclude' commands in the script.
 
 2. To change the "AutoHotkeyGUI" class to "My_String" (for example) add the next
     line to the previous example (or replace the 2nd line above if not needed):
