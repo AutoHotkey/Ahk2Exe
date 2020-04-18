@@ -1,5 +1,5 @@
 ﻿/*
- BinMod; a simple, fast binary file editor by TAC109. Edition: 25 Feb 2020.
+ BinMod; a simple, fast binary file editor by TAC109. Edition: 12 Apr 2020.
  Designed be called from Ahk2Exe's 'PostExec' compiler directive.
 
 -------------------------  Installation Instructions  --------------------------
@@ -10,16 +10,17 @@
 
 ------------------------------  Usage examples  --------------------------------
 
-1. To replace ">AUTOHOTKEY SCRIPT<" with "DATA" (for example) in the .exe,
+1. To replace ">AUTOHOTKEY SCRIPT<" with " DATA" (for example) in the .exe,
     add the two following lines to your script:
 
     ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
-    ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<.DATA               "
+    ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<. DATA              "
 
    Note: In the example above, the replacement field must be upper-case, and 
     space-filled to give a total of 19 characters in order for the compiled
-    program to work correctly.
-		
+    program to work correctly. This field should start with a space to avoid
+    possible collating problems with any 'FileInclude' commands in the script.
+
 2. To change the "AutoHotkeyGUI" class to "My_String" (for example) add the next
     line to the previous example (or replace the 2nd line above if not needed):
 
