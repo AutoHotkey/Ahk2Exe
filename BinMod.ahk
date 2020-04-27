@@ -1,5 +1,5 @@
 ﻿/*
- BinMod; a simple, fast binary file editor by TAC109. Edition: 12 Apr 2020.
+ BinMod; a simple, fast binary file editor by TAC109. Edition: 27 Apr 2020.
  Designed be called from Ahk2Exe's 'PostExec' compiler directive.
 
 -------------------------  Installation Instructions  --------------------------
