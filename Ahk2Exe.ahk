@@ -60,11 +60,12 @@ Gui, Menu, MenuBar
 
 Gui, +LastFound +Resize +MinSize594x383
 GuiHwnd := WinExist("")
-Gui, Add, Link, x287 y20,
+Gui, Add, Link, x287 y15,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
 ©2011-2016 fincs
+©2019-%A_Year% TAC109
 <a href="https://www.autohotkey.com">https://www.autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
@@ -370,6 +371,7 @@ Gui, +OwnDialogs
 FileSelectFile, ov, 1, %LastScriptDir%, Open, AutoHotkey files (*.ahk)
 if ErrorLevel
 	return
+SplitPath ov,, LastScriptDir
 GuiControl,, AhkFile, %ov%
 menu, FileMenu, Enable, S&ave Script Settings As…`tCtrl+S
 return
@@ -390,6 +392,7 @@ Gui, +OwnDialogs
 FileSelectFile, ov, 1, %LastIconDir%, Open, Icon files (*.ico)
 if ErrorLevel
 	return
+SplitPath ov,, LastIconDir
 GuiControl,, IcoFile, %ov%
 return
 

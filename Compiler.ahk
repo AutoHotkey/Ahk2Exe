@@ -204,7 +204,11 @@ _FailEnd2:
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-		Util_Error("Error: Error opening the destination file. (C2)", 0x31)
+	{	Util_Error("Error: Error opening the destination file. (C2)", 0
+		,,"This error may be caused by your anti-virus checker.`n"
+		. "Press 'OK' to try again, or 'Cancel' to abandon.")
+		goto _EndUpdateResource
+	}
 	return
 }
 
