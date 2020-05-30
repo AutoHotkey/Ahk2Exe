@@ -291,7 +291,7 @@ Loop, % p.MaxIndex() // 2
 	p1 := p[2*(A_Index-1)+1]
 	p2 := p[2*(A_Index-1)+2]
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
+	if p1 not in /in,/InGui,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
 		BadParams("Error: Unrecognised parameter:`n" p1)
 	
 	if p1 = /bin
@@ -324,13 +324,14 @@ if !GuiOverride
 return
 
 BadParams(Message, ErrorCode=0x3)
-{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
+{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in[Gui] infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
 }
 
 _ProcessIn:
-if SubStr(p2,1,1) = "*"
-	AhkFile := SubStr(p2,2), GuiOverride := 1
-else AhkFile := p2
+_ProcessInGui:
+AhkFile := p2
+if (p1 = "InGui")
+	GuiOverride := 1
 return
 
 _ProcessOut:
