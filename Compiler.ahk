@@ -56,13 +56,13 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	BundleAhkScript(ExeFileTmp, AhkFile, UseMPRESS, CustomIcon, fileCP)
 	
 	; the final step...
-	Util_HideHourglass()
 	Util_Status("Moving .exe to destination")
 
 	Loop
 	{	FileMove, %ExeFileTmp%, %ExeFileG%, 1
 		if !ErrorLevel
 			break
+		Util_HideHourglass()
 		DetectHiddenWindows On
 		if !WinExist("ahk_exe " ExeFileG)
 			Util_Error("Error: Could not move final compiled binary file to "
@@ -84,6 +84,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}	}
 	if Reload
 		run "%ExeFileG%", %ExeFileG%\..
+	Util_HideHourglass()
 	Util_Status("")
 }
 

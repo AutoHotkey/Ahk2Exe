@@ -319,7 +319,8 @@ if !BinFile
 if UseMPRESS =
 	UseMPRESS := LastUseMPRESS
 
-CLIMode := true
+if !GuiOverride
+	CLIMode := true
 return
 
 BadParams(Message, ErrorCode=0x3)
@@ -327,7 +328,9 @@ BadParams(Message, ErrorCode=0x3)
 }
 
 _ProcessIn:
-AhkFile := p2
+if SubStr(p2,1,1) = "*"
+	AhkFile := SubStr(p2,2), GuiOverride := 1
+else AhkFile := p2
 return
 
 _ProcessOut:
