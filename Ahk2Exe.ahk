@@ -327,11 +327,11 @@ BadParams(Message, ErrorCode=0x3)
 { Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in[Gui] infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
 }
 
-_ProcessIn:
 _ProcessInGui:
+GuiOverride := true
+Error_ForceExit := false            ; Falls through...
+_ProcessIn:
 AhkFile := p2
-if (p1 = "InGui")
-	GuiOverride := 1
 return
 
 _ProcessOut:
