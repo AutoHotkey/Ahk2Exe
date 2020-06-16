@@ -15,14 +15,18 @@
 
 SendMode Input
 SetBatchLines -1
-SetWorkingDir %A_ScriptDir%
+
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
 
+global OldWorkingDir := A_WorkingDir
+SetWorkingDir %A_ScriptDir%
+
+#Include %A_ScriptDir%
 #Include Compiler.ahk
 
-OnExit("Util_HideHourglass")             ; Reset cursor on exit
+OnExit("Ahk2ExeExit")                    ; Reset cursor & working directory
 
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
@@ -602,6 +606,11 @@ Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
 
 Util_HideHourglass()                           ; Reset arrow cursor to standard
 {	DllCall("SystemParametersInfo", "Ptr",0x57, "Ptr",0, "Ptr",0, "Ptr",0)
+}
+
+Ahk2ExeExit()
+{	Util_HideHourglass()
+	SetWorkingDir %OldWorkingDir%
 }
 
 Util_ObjNotEmpty(obj)
