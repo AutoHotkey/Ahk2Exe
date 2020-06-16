@@ -14,11 +14,11 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
 	SplitPath ExeFile,, Edir,,    Ename
-	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (Ename ? Ename : Ahk_Name ) ".exe"
+	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (xe:= Ename ? Ename : Ahk_Name ) ".exe"
 	ExeFile := Util_GetFullPath(ExeFile)
 
 	;ExeFileTmp := ExeFile
-	ExeFileTmp := Util_TempFile()
+	ExeFileTmp := Util_TempFile(, "exe~", xe)
 	
 	if BinFile =
 		BinFile = %A_ScriptDir%\AutoHotkeySC.bin

@@ -183,8 +183,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
 		if (AhkTypeRet.Era = "Legacy")
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
-		tmpErrorLog := Util_TempFile()
-		ilibfile := Util_TempFile(, "ilib~")
+		tmpErrorLog := Util_TempFile(, "err~")
+		ilibfile    := Util_TempFile(, "ilib~")
 		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
 		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
 		{
@@ -254,13 +254,16 @@ RegExEscape(t)
 	return t
 }
 
-Util_TempFile(d := "", f := "")
-{
+Util_TempFile(d := "", f := "", xep := "")
+{ static xe := ""
+	if xep
+		xe := xep
 	if ( !StrLen(d) || !FileExist(d) )
 		d := A_Temp
 	Loop
-		tempName := d "\~Ahk2Exe~" f A_TickCount ".tmp"
-	until !FileExist(tempName)
+	{ DllCall("QueryPerformanceCounter", "Int64*", Counter)
+		tempName := d "\~Ahk2Exe~" xe "~" f Counter ".tmp"
+	} until !FileExist(tempName)
 	return tempName
 }
 
