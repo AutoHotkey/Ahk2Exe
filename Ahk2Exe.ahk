@@ -360,7 +360,7 @@ _ProcessAhk:
 if !FileExist(p2)
 	Util_Error("Error: Specified resource does not exist.", 0x36
 	, "Command line parameter /ahk`n""" p2 """")
-UseAhkPath := p2
+UseAhkPath := Util_GetFullPath(p2)
 return
 
 _ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
