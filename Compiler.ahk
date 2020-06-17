@@ -8,15 +8,17 @@
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
 	global ExeFileTmp, ExeFileG
-	AhkFile := Util_GetFullPath(AhkFile)
-	if AhkFile =
-		Util_Error("Error: Source file not specified.", 0x33)
 
+	SetWorkingDir %AhkWorkingDir%
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
 	SplitPath ExeFile,, Edir,,    Ename
 	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (xe:= Ename ? Ename : Ahk_Name ) ".exe"
 	ExeFile := Util_GetFullPath(ExeFile)
-
+	if (CustomIcon != "")
+	{	SplitPath CustomIcon,, Idir,, Iname
+		CustomIcon := (Idir ? Idir : Ahk_Dir) "\" (Iname ? Iname : Ahk_Name ) ".ico"
+		CustomIcon := Util_GetFullPath(CustomIcon)
+	}
 	;ExeFileTmp := ExeFile
 	ExeFileTmp := Util_TempFile(, "exe~", xe)
 	
@@ -31,7 +33,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
-		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination.", 0x41)
+		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination."
+		, 0x41, """" ExeFileTmp """")
 
 	DerefIncludeVars.Delete("U_", "V_")         ; Clear Directives entries
 	DerefIncludeVars.Delete("A_WorkFileName")

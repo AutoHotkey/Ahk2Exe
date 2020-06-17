@@ -15,22 +15,18 @@
 
 SendMode Input
 SetBatchLines -1
-
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
 
-global OldWorkingDir := A_WorkingDir
-SetWorkingDir %A_ScriptDir%
-
 #Include %A_ScriptDir%
 #Include Compiler.ahk
 
-OnExit("Ahk2ExeExit")                    ; Reset cursor & working directory
+OnExit("Util_HideHourglass")             ; Reset cursor on exit
 
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
-global UseAhkPath := ""
+global UseAhkPath := "", AhkWorkingDir := A_WorkingDir
 
 gosub BuildBinFileList
 gosub LoadSettings
@@ -354,7 +350,7 @@ return
 _ProcessMPRESS:
 _ProcessCompress:
 if !CompressCode[p2]                ; Invalid codes?
-	BadParams("Error: Compress or MPress parameter invalid:`n" p2)
+	BadParams("Error: /" p1 " parameter invalid:`n" p2)
 if CompressCode[p2] > 0             ; Convert any old codes
 	p2 := CompressCode[p2]
 UseMPRESS := p2
@@ -435,10 +431,14 @@ if !CustomBinFile
 else CustomBinFile := ""
 
 ConvertCLI:
+AhkFile := Util_GetFullPath(AhkFile)
+if AhkFile =
+	Util_Error("Error: Source file not specified.", 0x33)
 SplitPath, AhkFile, ScriptName, ScriptDir
 DerefIncludeVars.A_ScriptFullPath := AhkFile
 DerefIncludeVars.A_ScriptName := ScriptName
 DerefIncludeVars.A_ScriptDir := ScriptDir
+SetWorkingDir %A_ScriptDir%
 
 global DirDone := []                   ; Process Bin directives
 DirBinsWk := [], DirBins := [], DirExe := [], Cont := 0
@@ -606,11 +606,6 @@ Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
 
 Util_HideHourglass()                           ; Reset arrow cursor to standard
 {	DllCall("SystemParametersInfo", "Ptr",0x57, "Ptr",0, "Ptr",0, "Ptr",0)
-}
-
-Ahk2ExeExit()
-{	Util_HideHourglass()
-	SetWorkingDir %OldWorkingDir%
 }
 
 Util_ObjNotEmpty(obj)
