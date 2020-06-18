@@ -1,28 +1,42 @@
-﻿/*
- BinMod; a simple, fast binary file editor by TAC109. Edition: 27 Apr 2020.
- Designed be called from Ahk2Exe's 'PostExec' compiler directive.
+﻿;
+;@Ahk2Exe-SetVersion     2020.06.20     ; Edition: 20 June 2020
+;@Ahk2Exe-SetCopyright   TAC109
+;@Ahk2Exe-SetCompanyName TAC109
+;@Ahk2Exe-SetProductName BinMod
+;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
 
+
+/*
+ BinMod is a simple, fast binary file editor written by TAC109, designed to be
+ called from Ahk2Exe's 'PostExec' compiler directive. (Use Ahk2Exe included with
+ AutoHotkey v1.1.33+, or for earlier versions get the latest Ahk2Exe beta from
+ https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095).
+ 
 -------------------------  Installation Instructions  --------------------------
-
+                           ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
  Compile BinMod.ahk using the bin file "Unicode 32bit.bin" or "ANSI 32bit.bin".
  Place the resulting BinMod.exe file in the compiler directory that contains
-  Ahk2Exe.exe (e.g. "C:\Program Files\AutoHotkey\Compiler\").
+ Ahk2Exe.exe (usually "C:\Program Files\AutoHotkey\Compiler\").
 
 ------------------------------  Usage examples  --------------------------------
+                                ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+ With the examples below, the user can make alterations to the compiled program
+ to disguise that it is an AutoHotkey compiled script.
 
 1. To replace ">AUTOHOTKEY SCRIPT<" with " DATA" (for example) in the .exe,
-    add the two following lines to your script:
-
+    add the following three lines to your script:
+    
+    ;@Ahk2Exe-Obey U_au, = "%A_IsUnicode%" ? 2 : 1    ; Script ANSI or Unicode?
     ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
-    ;@Ahk2Exe-Cont  "22.>AUTOHOTKEY SCRIPT<. DATA              "
+    ;@Ahk2Exe-Cont  "%U_au%2.>AUTOHOTKEY SCRIPT<. DATA              "
 
-   Note: In the example above, the replacement field must be upper-case, and 
-    space-filled to give a total of 19 characters in order for the compiled
+   Note: In the example above, the 3rd line replacement field must be upper-case
+    and space-filled to give a total of 19 characters in order for the compiled
     program to work correctly. This field should start with a space to avoid
     RCData collating problems with any 'FileInstall' commands in the script.
 
 2. To change the "AutoHotkeyGUI" class to "My_String" (for example) add the next
-    line to the previous example (or replace the 2nd line above if not needed):
+    line to the previous example (or replace the 3rd line above if not needed):
 
     ;@Ahk2Exe-Cont  "2.AutoHotkeyGUI.My_String"
 
@@ -30,18 +44,15 @@
     characters it will be automatically padded with 0x00's (nul's).
 
 3. To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe,
-    add the two following lines to your script:
+    add the following line to your script:
 		
-    ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%"
-    ;@Ahk2Exe-Cont  "11.UPX." "1.UPX!.", 2
+    ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%" "11.UPX." "1.UPX!.", 2
 
    Note: In this example, there are empty replacement fields, so the matched
     strings will be completely replaced with 0x00's (nul's).
 
---------------------------------------------------------------------------------
-
- Parameter details:
-
+----------------------------  Parameters in detail  ----------------------------
+                              ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
    1. FileName of file to be modified. (The file will stay the same length.)
 
    2. One or more parameters specifying changes to be made, with fields thus:
@@ -62,6 +73,10 @@
    Parameters containing spaces must be enclosed in double quotes.
 
 --------------------------------------------------------------------------------
+
+
+
+
 
  Technique inspired by these posts:
    https://www.autohotkey.com/boards/viewtopic.php?f=76&t=13155 by gwarble,
