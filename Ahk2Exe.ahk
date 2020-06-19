@@ -31,8 +31,13 @@ global UseAhkPath := "", AhkWorkingDir := A_WorkingDir
 gosub BuildBinFileList
 gosub LoadSettings
 gosub ParseCmdLine
-if !UsesCustomBin
+if !CustomBinFile
 	gosub CheckAutoHotkeySC
+
+if UseMPRESS =
+	UseMPRESS := LastUseMPRESS
+if IcoFile =
+	IcoFile := LastIcon
 
 if CLIMode
 {
@@ -40,7 +45,6 @@ if CLIMode
 	ExitApp, 0 ; Success
 }
 
-IcoFile = %LastIcon%
 BinFileId := FindBinFile(LastBinFile)
 ScriptFileCP := A_FileEncoding
 
@@ -85,7 +89,7 @@ Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, D&efault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
-Gui, Add, DDL,% "x137 y294 w75 AltSubmit gCompress vUseMPress Choose" LastUseMPRESS+1, (none)|MPRESS|UPX
+Gui, Add, DDL,% "x137 y294 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
@@ -277,100 +281,97 @@ if 0 = 0
 Error_ForceExit := true
 p := []
 Loop, %0%
-{
-	if %A_Index% = /NoDecompile
-		BadParams("Error: /NoDecompile is not supported.", 0x23)
-	else p.Insert(%A_Index%)
-}
+	p.Insert(%A_Index%)
+
+CLIMode := true  ; Set default - may be overridden.
 
 while p.MaxIndex()
 {
 	p1 := p.RemoveAt(1)
 	
-	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk,/gui
+	if SubStr(p1,1,1) != "/" || !(p1fn := Func("CmdArg_" SubStr(p1,2)))
 		BadParams("Error: Unrecognised parameter:`n" p1)
 	
-	if p1 = /bin
-		UsesCustomBin := true
-	
-	if p1 = /pass
-		BadParams("Error: Password protection is not supported.", 0x24)
-	
-	if p1 != /gui
+	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
 	{
 		p2 := p.RemoveAt(1)
 		if p2 =
 			BadParams("Error: Blank or missing parameter for " p1 ".")
 	}
 	
-	StringTrimLeft, p1, p1, 1
-	gosub _Process%p1%
+	%p1fn%(p2)
 }
 
-if !AhkFile
+if (AhkFile = "" && CLIMode)
 	BadParams("Error: No input file specified.")
 
-if !IcoFile
-	IcoFile := LastIcon
-
-if !BinFile
+if BinFile =
 	BinFile := A_ScriptDir "\" LastBinFile
-
-if UseMPRESS =
-	UseMPRESS := LastUseMPRESS
-
-if !GuiOverride
-	CLIMode := true
 return
 
 BadParams(Message, ErrorCode=0x3)
 { Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]")
 }
 
-_ProcessGui:
-GuiOverride := true
-Error_ForceExit := false
-return
+CmdArg_Gui() {
+	global
+	CLIMode := false
+	Error_ForceExit := false
+}
 
-_ProcessIn:
-AhkFile := p2
-return
+CmdArg_In(p2) {
+	global AhkFile := p2
+}
 
-_ProcessOut:
-ExeFile := p2
-return
+CmdArg_Out(p2) {
+	global ExeFile := p2
+}
 
-_ProcessIcon:
-IcoFile := p2
-return
+CmdArg_Icon(p2) {
+	global IcoFile := p2
+}
 
-_ProcessBin:
-CustomBinFile := true
-BinFile := p2
-return
+CmdArg_Bin(p2) {
+	global
+	CustomBinFile := true
+	BinFile := p2
+}
 
-_ProcessMPRESS:
-_ProcessCompress:
-if !CompressCode[p2]                ; Invalid codes?
-	BadParams("Error: /" p1 " parameter invalid:`n" p2)
-if CompressCode[p2] > 0             ; Convert any old codes
-	p2 := CompressCode[p2]
-UseMPRESS := p2
-return
+CmdArg_MPRESS(p2) {
+	CmdArg_Compress(p2)
+}
+CmdArg_Compress(p2) {
+	global
+	if !CompressCode[p2]                ; Invalid codes?
+		BadParams("Error: " p1 " parameter invalid:`n" p2)
+	if CompressCode[p2] > 0             ; Convert any old codes
+		p2 := CompressCode[p2]
+	UseMPRESS := p2
+}
 
-_ProcessAhk:
-if !FileExist(p2)
-	Util_Error("Error: Specified resource does not exist.", 0x36
-	, "Command line parameter /ahk`n""" p2 """")
-UseAhkPath := Util_GetFullPath(p2)
-return
+CmdArg_Ahk(p2) {
+	global
+	if !FileExist(p2)
+		Util_Error("Error: Specified resource does not exist.", 0x36
+		, "Command line parameter /ahk`n""" p2 """")
+	UseAhkPath := Util_GetFullPath(p2)
+}
 
-_ProcessCP: ; for example: '/cp 1252' or '/cp UTF-8'
-if p2 is number
-	ScriptFileCP := "CP" p2
-else
-	ScriptFileCP := p2
-return
+CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
+	global
+	if p2 is number
+		ScriptFileCP := "CP" p2
+	else
+		ScriptFileCP := p2
+}
+
+CmdArg_Pass() {
+	BadParams("Error: Password protection is not supported.", 0x24)
+}
+
+CmdArg_NoDecompile() {
+	BadParams("Error: /NoDecompile is not supported.", 0x23)
+}
 
 BrowseAhk:
 Gui, +OwnDialogs
