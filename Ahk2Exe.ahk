@@ -283,15 +283,11 @@ Loop, %0%
 	else p.Insert(%A_Index%)
 }
 
-if Mod(p.MaxIndex(), 2)
-	BadParams("Error: Number of parameters un-even.")
-
-Loop, % p.MaxIndex() // 2
+while p.MaxIndex()
 {
-	p1 := p[2*(A_Index-1)+1]
-	p2 := p[2*(A_Index-1)+2]
+	p1 := p.RemoveAt(1)
 	
-	if p1 not in /in,/InGui,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk
+	if p1 not in /in,/out,/icon,/pass,/bin,/mpress,/compress,/cp,/ahk,/gui
 		BadParams("Error: Unrecognised parameter:`n" p1)
 	
 	if p1 = /bin
@@ -300,8 +296,12 @@ Loop, % p.MaxIndex() // 2
 	if p1 = /pass
 		BadParams("Error: Password protection is not supported.", 0x24)
 	
-	if p2 =
-		BadParams("Error: Blank parameter.")
+	if p1 != /gui
+	{
+		p2 := p.RemoveAt(1)
+		if p2 =
+			BadParams("Error: Blank or missing parameter for " p1 ".")
+	}
 	
 	StringTrimLeft, p1, p1, 1
 	gosub _Process%p1%
@@ -324,12 +324,14 @@ if !GuiOverride
 return
 
 BadParams(Message, ErrorCode=0x3)
-{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in[Gui] infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]")
+{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]")
 }
 
-_ProcessInGui:
+_ProcessGui:
 GuiOverride := true
-Error_ForceExit := false            ; Falls through...
+Error_ForceExit := false
+return
+
 _ProcessIn:
 AhkFile := p2
 return
