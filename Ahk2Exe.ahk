@@ -234,18 +234,17 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 			FileCopy  %A_AhkPath%\..\Compiler\*bit.bin, %A_ScriptDir%\, 1
 		}
 	} else {
-		try FileDelete, %A_Temp%\___temp.ahk
-		FileAppend, ExitApp `% (A_IsUnicode=1) << 8 | (A_PtrSize=8) << 9, %A_Temp%\___temp.ahk
-		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%A_Temp%\___temp.ahk"
-		rc := ErrorLevel
-		FileDelete,  %A_Temp%\___temp.ahk
-		if rc = 0
+		testAhk := Util_TempFile(,"test~") ;v IsUnicode was removed from v2.0-a111
+		FileAppend, ExitApp StrLen(Chr(0xFFFF)) << 8 | (A_PtrSize=8) << 9, %testAhk%
+		RunWait, "%A_ScriptDir%\..\AutoHotkey.exe" "%testAhk%"
+		if ErrorLevel = 0
 			BinFile = %A_ScriptDir%\ANSI 32-bit.bin
-		else if rc = 0x100
+		else if ErrorLevel = 0x100
 			BinFile = %A_ScriptDir%\Unicode 32-bit.bin
-		else if rc = 0x300
+		else if ErrorLevel = 0x300
 			BinFile = %A_ScriptDir%\Unicode 64-bit.bin
 		; else: shouldn't happen
+		FileDelete,  %testAhk%
 	}
 	
 	IfNotExist, %BinFile%
