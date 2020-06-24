@@ -19,6 +19,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 		CustomIcon := (Idir ? Idir : Ahk_Dir) "\" (Iname ? Iname : Ahk_Name ) ".ico"
 		CustomIcon := Util_GetFullPath(CustomIcon)
 	}
+	SetWorkingDir %Ahk_Dir%             ; Initial folder for any #Include's
+
 	;ExeFileTmp := ExeFile
 	ExeFileTmp := Util_TempFile(, "exe~", xe)
 	
