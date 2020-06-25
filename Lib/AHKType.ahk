@@ -12,13 +12,10 @@ AHKType(exeName)
 	StringSplit, vert, vert, .
 	vert := vert4 | (vert3 << 8) | (vert2 << 16) | (vert1 << 24)
 	
-	exeMachine := GetExeMachine(exeName)
-	if !exeMachine
+	mach := GetExeMachine(exeName)	
+	if (mach.bits != 0x014C) && (mach.bits != 0x8664)
 		return
-	
-	if (exeMachine != 0x014C) && (exeMachine != 0x8664)
-		return
-	
+
 	if !(VersionInfoSize := DllCall("version\GetFileVersionInfoSize", "str", exeName, "uint*", null, "uint"))
 		return
 	
@@ -43,8 +40,8 @@ AHKType(exeName)
 	}
 	
 	Type := { Version: FileVersion
-		, IsUnicode: InStr(FileDescription, "Unicode") ? 1 : ""
-		, PtrSize: exeMachine=0x8664 ? 8 : 4 }
+		, IsUnicode: mach.IsUnicode ? 1 : ""
+		, PtrSize: mach.bits=0x8664 ? 8 : 4 }
 	
 	; We're dealing with a legacy version if it's prior to v1.1
 	Type.Era := vert >= 0x01010000 ? "Modern" : "Legacy"

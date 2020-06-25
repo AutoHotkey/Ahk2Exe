@@ -45,18 +45,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
-	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode ; Currently returns ""
+	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
 
-	if BinType.PtrSize = 8              ; Definitely Unicode
-		DerefIncludeVars.A_IsUnicode := 1
-	
-	if !(BinType.IsUnicode)             ; Set A_IsUnicode
-	{                                   ; Rationale for this code:-
-		FileGetSize size, %ExeFileTmp%    ; For same code base each version bigger;
-		Loop Files, %BinFile%\..\*bit.bin ; Unicode has more code than ANSI;
-			if (A_LoopFileSize = size)
-				DerefIncludeVars.A_IsUnicode := InStr(A_LoopFileName,"Unicode") ? 1 : ""
-	}
 	ExeFileG := ExeFile
 	BundleAhkScript(ExeFileTmp, AhkFile, UseMPRESS, CustomIcon, fileCP)
 	

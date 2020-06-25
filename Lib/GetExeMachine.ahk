@@ -1,13 +1,17 @@
 ﻿;
 ; File encoding:  UTF-8 with BOM
 ;
-
-GetExeMachine(exepath)
-{
-	exe := FileOpen(exepath, "r")
+; See https://www.autohotkey.com/boards/viewtopic.php?f=74&t=77686 for Unicode 
+;  detection details
+;
 	if !exe
 		return
 
+	exe.RawRead(fd, exe.Length)
 	exe.Seek(60), exe.Seek(exe.ReadUInt()+4)
-	return exe.ReadUShort()
+
+	mach := { Bits: exe.ReadUShort(), IsUnicode: !!RegExMatch(fd, "MsgBox\0") }
+	exe.Close()
+
+	return mach
 }
