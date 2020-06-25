@@ -3,7 +3,10 @@
 ;
 ; See https://www.autohotkey.com/boards/viewtopic.php?f=74&t=77686 for Unicode 
 ;  detection details
-;
+
+GetExeMachine(exepath)
+{
+	exe := FileOpen(exepath, "r")
 	if !exe
 		return
 
