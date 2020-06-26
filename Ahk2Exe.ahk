@@ -444,9 +444,15 @@ Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
 {	if (Cont=1 && RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
 		DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
 		, DirDone[A_Index] := 1
-	else if RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Bin (.*$)",o)
+	else if (Cont!=2)
+	&& RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Bin (.*$)",o)
 		DirBinsWk.Push(RegExReplace(o1, "\s+;.*$")), Cont := 1, DirDone[A_Index]:= 1
-	else Cont := 0
+	else if SubStr(LTrim(A_LoopReadLine),1,2) = "/*"
+		Cont := 2
+	else if Cont != 2
+		Cont := 0
+	if (Cont = 2) && A_LoopReadLine~="^\s*\*/|\*/\s*$"  ;End block comment
+		Cont := 0
 }
 for k, v1 in DirBinsWk
 {	Util_Status("Processing directive: " v1)
