@@ -29,7 +29,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	IfNotExist, %AhkScript%
 		if !iOption
-			Util_Error((IsFirstScript ? "Script" : "#include") " file  cannot be opened.", 0x32, """" AhkScript """")
+			Util_Error((IsFirstScript ? "Script" : "#include") " file cannot be opened.", 0x32, """" AhkScript """")
 		else return
 	
 	cmtBlock := false, contSection := false, ignoreSection := false
