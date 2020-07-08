@@ -65,7 +65,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				else if StrStartsWith(tline, "/*")
 				{
 					if !StrStartsWith(tline, "/*@Ahk2Exe-Keep")
-						cmtBlock := true
+						if !(SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
+							cmtBlock := true
 					continue
 				}
 				else if StrStartsWith(tline, "*/")
@@ -161,8 +162,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
-		}else if StrStartsWith(tline, "*/")
-			cmtBlock := false
+		}	else if (tline~="^\*/" 
+		|| SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
+			cmtBlock := false           ; End block comment
 	}
 	
 	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
