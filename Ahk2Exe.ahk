@@ -556,7 +556,7 @@ Original version:
 Script rewrite:
   Copyright ©2011-2016 fincs
 
-Script maintainence:
+Script maintenance:
   2019-%A_Year% TAC109
 
 Special thanks:
