@@ -165,18 +165,14 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 		if (ErrorLevel != 0)
 			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
 	}
-	if UseMPRESS = 1
-	{	Util_Status("Compressing final executable with MPRESS...")
-		if FileExist(wk := A_ScriptDir "\mpress.exe")
-			RunWait, "%A_ScriptDir%\mpress.exe" -q -x "%ExeFile%",, Hide
-		else Util_Error("Warning: """ wk """ not found.",0), UseMPRESS := 9
-	}
-	if UseMPRESS = 2
-	{	Util_Status("Compressing final executable with UPX...")
-		if FileExist(wk := A_ScriptDir "\upx.exe")
-			RunWait, "%A_ScriptDir%\upx.exe" -q --all-methods --compress-icons=0 "%ExeFile%",, Hide
-		else Util_Error("Warning: """ wk """ not found.",0), UseMPRESS := 9
-	}
+	for k, v in {MPRESS: "-q -x", UPX: "-q --all-methods --compress-icons=0"}
+	{	if (UseMPRESS = A_Index)
+		{	Util_Status("Compressing final executable with " k " ...")
+			if FileExist(wk := A_ScriptDir "\" k ".exe")
+				RunWait % """" wk """ " v " """ ExeFile """",, Hide
+			else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
+			. "' specified, but " k ".EXE not in compiler directory.",0), UseMPRESS:=9
+	}	}
 	Loop 3
 	{	wk := A_Index-1
 		for each,cmd in dirState["PostExec" wk]
