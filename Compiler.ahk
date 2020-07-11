@@ -171,7 +171,8 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 			if FileExist(wk := A_ScriptDir "\" k ".exe")
 				RunWait % """" wk """ " v " """ ExeFile """",, Hide
 			else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
-			. "' specified, but " k ".EXE not in compiler directory.",0), UseMPRESS:=9
+				. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
+				, UseMPRESS := 9
 	}	}
 	Loop 3
 	{	wk := A_Index-1
