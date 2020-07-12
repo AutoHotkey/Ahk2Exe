@@ -165,25 +165,20 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 		if (ErrorLevel != 0)
 			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
 	}
-	for k, v in {MPRESS: "-q -x", UPX: "-q --all-methods --compress-icons=0"}
-	{	if (UseMPRESS = A_Index)
-		{	Util_Status("Compressing final executable with " k " ...")
-			if FileExist(wk := A_ScriptDir "\" k ".exe")
-				RunWait % """" wk """ " v " """ ExeFile """",, Hide
-			else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
-				. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
-				, UseMPRESS := 9
-	}	}
-	Loop 3
-	{	wk := A_Index-1
-		for each,cmd in dirState["PostExec" wk]
-		{	if (wk = UseMPRESS)
-			{	Util_Status("PostExec" wk ": " cmd)
-				RunWait, % cmd,, UseErrorLevel
-				if (ErrorLevel != 0)
-					Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
-	}	}	}
-	
+	for k,v in [{MPRESS:"-x"},{UPX:"--all-methods --compress-icons=0"}][UseMPRESS]
+	{	Util_Status("Compressing final executable with " k " ...")
+		if FileExist(wk := A_ScriptDir "\" k ".exe")
+			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
+		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
+			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
+			, UseMPRESS := 9
+	}
+	for each,cmd in dirState["PostExec" UseMPRESS]
+	{	Util_Status("PostExec" UseMPRESS ": " cmd)
+		RunWait, % cmd,, UseErrorLevel
+		if (ErrorLevel != 0)
+			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
+	}
 	
 	return                             ; BundleAhkScript() exits here
 	
