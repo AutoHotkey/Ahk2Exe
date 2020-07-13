@@ -72,7 +72,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				else if StrStartsWith(tline, "*/")
 					continue ; Will only happen in a 'Keep' section
 			}
-			if StrStartsWith(tline, "(") && !IsFakeCSOpening(tline)
+			if StrStartsWith(tline, "(") && !IsFakeCSOpening(SubStr(tline,2))
 				contSection := true
 			else if StrStartsWith(tline, ")")
 				contSection := false
