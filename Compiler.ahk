@@ -158,13 +158,9 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 			Util_Error("Could not change executable subsystem!", 0x61)
 	}
 	SetWorkingDir %A_ScriptDir%
-	for each,cmd in dirState.PostExec
-	{
-		Util_Status("PostExec: " cmd)
-		RunWait, % cmd,, UseErrorLevel
-		if (ErrorLevel != 0)
-			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
-	}
+	
+	RunPostExec(dirState)
+	
 	for k,v in [{MPRESS:"-x"},{UPX:"--all-methods --compress-icons=0"}][UseMPRESS]
 	{	Util_Status("Compressing final executable with " k " ...")
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
@@ -173,12 +169,7 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
 			, UseMPRESS := 9
 	}
-	for each,cmd in dirState["PostExec" UseMPRESS]
-	{	Util_Status("PostExec" UseMPRESS ": " cmd)
-		RunWait, % cmd,, UseErrorLevel
-		if (ErrorLevel != 0)
-			Util_Error("Command failed with RC=" ErrorLevel ":`n" cmd, 0x62)
-	}
+	RunPostExec(dirState, UseMPRESS)
 	
 	return                             ; BundleAhkScript() exits here
 	
@@ -212,6 +203,14 @@ class CTempWD
 		SetWorkingDir % this.oldWD
 	}
 }
+
+RunPostExec(dirState, UseMPRESS := "")
+{	for k, v in dirState["PostExec" UseMPRESS]
+	{	Util_Status("PostExec" UseMPRESS ": " v.1)
+		RunWait % v.1, % v.2 ? v.2 : A_ScriptDir, % "UseErrorLevel " (v.3?"Hide":"")
+		if (ErrorLevel != 0 && !v.4)
+			Util_Error("Command failed with RC=" ErrorLevel ":`n" v.1, 0x62)
+}	}
 
 Util_GetFullPath(path)
 {
