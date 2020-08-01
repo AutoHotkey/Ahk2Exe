@@ -196,7 +196,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		}
 		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
-		{
+		{	ScriptText .= "Exit`n"        ; Don't execute Auto_Includes directly
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
 			FileDelete, %ilibfile%
 		}
