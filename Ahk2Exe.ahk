@@ -28,6 +28,12 @@ CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
 global UseAhkPath := "", AhkWorkingDir := A_WorkingDir
 
+; Set default codepage from any installed AHK
+ScriptFileCP := A_FileEncoding
+RegRead wk, HKCR\\AutoHotkeyScript\Shell\Open\Command
+if (wk != "" && RegExMatch(wk, "i)/(CP\d+)", o))
+	ScriptFileCP := o1
+
 gosub BuildBinFileList
 gosub LoadSettings
 gosub ParseCmdLine
@@ -46,7 +52,6 @@ if CLIMode
 }
 
 BinFileId := FindBinFile(LastBinFile)
-ScriptFileCP := A_FileEncoding
 
 #include *i __debug.ahk
 
@@ -439,7 +444,7 @@ DerefIncludeVars.A_ScriptDir := ScriptDir
 SetWorkingDir %A_ScriptDir%
 
 global DirDone := []                   ; Process Bin directives
-DirBinsWk := [], DirBins := [], DirExe := [], Cont := 0
+DirBinsWk := [], DirBins := [], DirExe := [], DirCP := [], Cont := 0
 Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
 {	if (Cont=1 && RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
 		DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
@@ -480,12 +485,15 @@ for k, v1 in DirBinsWk
 				DirExe[DirExe.MaxIndex()-A_Index+1] 
 				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
 		}	else if A_Index = 3
-				ScriptFileCP := A_LoopField~="^[0-9]+$" ? "CP" A_LoopField : A_LoopField
-			else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
+		{	wk := A_LoopField~="^\d+$" ? "CP" A_LoopField : A_LoopField
+			Loop % Cont
+				DirCP[DirExe.MaxIndex()-A_Index+1] := wk
+		}	else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins
-		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress, ScriptFileCP)
+		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
+		                                       , DirCP[k] ? DirCP[k] : ScriptFileCP)
 else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
 
 if !CLIMode
