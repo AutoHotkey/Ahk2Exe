@@ -94,9 +94,10 @@ Buttons()
 
 BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 {
-	; weird bug prevention, for non working default param 'fileCP'
 	if fileCP is space
-		fileCP := A_FileEncoding
+		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
+			fileCP := "UTF-8"           ; Default for v2 is UTF-8
+		else fileCP := A_FileEncoding
 	
 	try FileEncoding, %fileCP%
 	catch e
@@ -106,6 +107,7 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 
 	ExtraFiles := []
 	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
+
 	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
 	StrPut(ScriptBody, &BinScriptBody, "UTF-8")
 	
