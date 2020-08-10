@@ -591,6 +591,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		MsgBox, 16, Ahk2Exe Error, % txt
 	else {
 		MsgBox, 49, Ahk2Exe Warning, % txt
+		. (extra ? "" : "`n`nPress 'OK' to continue, 'Cancel' to abandon.")
 		IfMsgBox Cancel
 			exitcode := 2
 	}

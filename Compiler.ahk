@@ -21,8 +21,8 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}
 	SetWorkingDir %Ahk_Dir%             ; Initial folder for any #Include's
 
-	;ExeFileTmp := ExeFile
-	ExeFileTmp := Util_TempFile(, "exe~", xe)
+	; Get temp file name - remove any invalid "path/" from exe name (/ should be \)
+	ExeFileTmp := Util_TempFile(, "exe~", RegExReplace(xe,"^.*/"))
 	
 	if BinFile =
 		BinFile = %A_ScriptDir%\AutoHotkeySC.bin
