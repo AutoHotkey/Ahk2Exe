@@ -167,13 +167,13 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			cmtBlock := false           ; End block comment
 	}
 	
-	Loop, % !!IsFirstScript ; equivalent to "if IsFirstScript" except you can break from the block
+	Loop, % !!IsFirstScript ; Like "if IsFirstScript" but can "break" from block
 	{
 		global AhkPath := UseAhkPath
 		if (AhkPath = "")
 			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
-		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 		AhkPath := FileExist(AhkPath) ? AhkPath :A_ScriptDir "\..\AutoHotkeyU32.exe"
+		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 
 		IfNotExist, %AhkPath%
 		{	Util_Error("Warning: AutoHotkey.exe could not be located!`n`nAuto-include"
