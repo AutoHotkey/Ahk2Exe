@@ -56,7 +56,8 @@ BinFileId := FindBinFile(LastBinFile)
 #include *i __debug.ahk
 
 Menu, FileMenu, Add, S&ave Script Settings As…`tCtrl+S, SaveAsMenu
-Menu, FileMenu, Disable, S&ave Script Settings As…`tCtrl+S
+if (!AhkFile)
+	Menu, FileMenu, Disable, S&ave Script Settings As…`tCtrl+S
 Menu, FileMenu, Add, &Convert, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
@@ -129,8 +130,9 @@ loop, parse, A_GuiEvent, `n
 {
 	SplitPath, A_LoopField,,, dropExt
 	if SubStr(dropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
-		GuiControl,, AhkFile, %A_LoopField%
-	else GuiControl,, %dropExt%File, %A_LoopField%
+	{	GuiControl,, AhkFile, %A_LoopField%
+		Menu, FileMenu, Enable, S&ave Script Settings As…`tCtrl+S
+	} else GuiControl,, %dropExt%File, %A_LoopField%
 	if (dropExt = "bin")
 		CustomBinFile:=1, BinFile := A_LoopField
 		, Util_Status("""" BinFile """ will be used for this compile only.")
