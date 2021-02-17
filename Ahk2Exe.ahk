@@ -88,10 +88,11 @@ Gui, Add, GroupBox, x11 y182 w570 h140 cBlue vGroupB, Optional Parameters
 Gui, Add, Text, x17 y208, &Destination (.exe file)
 Gui, Add, Edit, x137 y204 w315 h23 +Disabled vExeFile, %Exefile%
 Gui, Add, Button, x459 y204 w53 h23 gBrowseExe vBtnExeFile, B&rowse
+Gui, Add, Button, x517 y204 w53 h23 gDefaultExe vBtnExeDefault, D&efault
 Gui, Add, Text, x17 y240, Custom &Icon (.ico file)
 Gui, Add, Edit, x137 y236 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x459 y236 w53 h23 gBrowseIco vBtnIcoFile, Br&owse
-Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, D&efault
+Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, Def&ault
 Gui, Add, Text, x17 y270, Base File (.bin)
 Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
@@ -154,6 +155,7 @@ GuiControl, MoveDraw, GroupA,    % "w" A_GuiWidth-24
 ; GroupBox - Optional Parameters
 GuiControl, Move, ExeFile,       % "w" A_GuiWidth-279
 GuiControl, Move, BtnExeFile,    % "x" A_GuiWidth-135
+GuiControl, Move, BtnExeDefault, % "x" A_GuiWidth-77
 GuiControl, Move, IcoFile,       % "w" A_GuiWidth-279
 GuiControl, Move, BtnIcoFile,    % "x" A_GuiWidth-135
 GuiControl, Move, BtnIcoDefault, % "x" A_GuiWidth-77
@@ -403,6 +405,10 @@ if ErrorLevel
 	return
 SplitPath ov,, LastIconDir
 GuiControl,, IcoFile, %ov%
+return
+
+DefaultExe:
+GuiControl,, ExeFile
 return
 
 DefaultIco:
