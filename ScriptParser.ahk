@@ -195,8 +195,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		FileDelete,%tmpErrorLog%
-		IfExist, %ilibfile%             ;v Removed; can trigger '#Warn Unreachable'
-		{	; ScriptText .= "Exit`n"      ; Don't execute Auto_Includes directly
+		IfExist, %ilibfile%
+		{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
+				ScriptText .= "{ Exit`n}`n" ; V1 - don't execute Auto_Includes directly
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
 			FileDelete, %ilibfile%
 		}
