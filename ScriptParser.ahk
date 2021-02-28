@@ -197,7 +197,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
 		{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
-				ScriptText .= "{ Exit`n}`n" ; V1 - don't execute Auto_Includes directly
+				ScriptText .= "if (1)`nExit`n" ; V1 Don't execute Auto_Includes directly
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList, FirstScriptDir, Options)
 			FileDelete, %ilibfile%
 		}
