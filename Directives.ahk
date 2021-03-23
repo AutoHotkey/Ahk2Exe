@@ -75,10 +75,11 @@ Directive_Obey(state, name, txt, extra:=0)
 	{	if !(extra ~= "^[0-9]$")
 			Util_Error("Error: Wrongly formatted directive: (D3)",0x64, state.cmdline)
 		wk := Util_TempFile(, "Obey~")
-		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileAppend % " name "," wk 0
-		. "`n#NoEnv", %wk%, UTF-8
+		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileOpen(""" wk 0
+		. """,""W"",""UTF-8"").Write(" name ")", %wk%, UTF-8
 		Loop % extra
-			FileAppend % "`nFileAppend % " name A_Index "," wk A_Index, %wk%, UTF-8
+			FileAppend % "`nFileOpen(""" wk A_Index
+			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
 		RunWait "%ahkpath%" "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % wk (cnt := A_Index - 1)
