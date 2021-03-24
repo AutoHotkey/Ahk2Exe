@@ -82,7 +82,7 @@ Directive_Obey(state, name, txt, extra:=0)
 			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
 		RunWait "%ahkpath%" "%wk%",,Hide
 		Loop % extra + 1
-		{	FileRead result, % wk (cnt := A_Index - 1)
+		{	FileRead result, % "*p65001 " wk (cnt := A_Index - 1)
 			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
 		}
 		FileDelete %wk%?
