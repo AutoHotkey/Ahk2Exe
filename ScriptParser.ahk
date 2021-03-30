@@ -197,11 +197,11 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
 		{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
-			{ Loop 60                   ; V1 - Generate long random label to prevent
-				{ Random wk, 97, 122      ;   possible '#Warn Unreachable'
-					ScriptText .= Chr(wk)
-				}
-				ScriptText .= ":`nExit`n" ; Don't execute Auto_Includes directly
+			{ Loop 4                    ; v1 - Generate random label prefix
+				{ Random wk, 97, 122
+					ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
+				}                         ; Don't execute Auto_Includes directly
+				ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
 			}
 			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList
 			, FirstScriptDir, Options)
