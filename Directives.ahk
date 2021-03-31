@@ -67,7 +67,7 @@ Directive_Let(state, txt*)
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
 		if (wk.Length() != 2)
 			Util_Error("Error: Wrongly formatted directive: (D2)",0x64, state.cmdline)
-		DerefIncludeVars[(name ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
+		DerefIncludeVars[(wk.1 ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt, extra:=0)
 {	global ahkpath
