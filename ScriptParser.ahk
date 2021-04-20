@@ -172,6 +172,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		global AhkPath := UseAhkPath
 		if (AhkPath = "")
 			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
+		if (!FileExist(AhkPath) && !DerefIncludeVars.A_IsUnicode)
+			AhkPath := A_ScriptDir "\..\AutoHotkeyA32.exe"
 		AhkPath := FileExist(AhkPath) ? AhkPath :A_ScriptDir "\..\AutoHotkeyU32.exe"
 		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
 
