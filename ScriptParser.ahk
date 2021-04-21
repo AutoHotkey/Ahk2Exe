@@ -88,6 +88,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				IncludeFile := o2
 				if RegExMatch(IncludeFile, "\*[iI]\s+?(.*)", o)
 					IgnoreErrors := true, IncludeFile := Trim(o1)
+
+				IncludeFile := StrReplace(IncludeFile,"""") ;Drop any double-quotes (V2)
 				
 				if RegExMatch(IncludeFile, "^<(.+)>$", o)
 				{
@@ -150,7 +152,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
 					StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
 				
-				ExtraFiles.Insert(o1)
+				ExtraFiles.Insert(StrReplace(o1, """")) ; Drop any double-quotes (V2)
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
 				Options.comm := o1, ScriptText .= tline "`n"
