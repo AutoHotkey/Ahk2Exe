@@ -125,7 +125,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 						FileList.Insert(IncludeFile)
 					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
-			}else if !contSection && tline ~= "i)^FileInstall[, \t]"
+			}else if !contSection && tline ~= "i)^FileInstall[(, \t]"
 			{
 				if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
 					continue ; This is an assignment!
@@ -139,7 +139,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					StringReplace, tline, tline, %EscapeCharChar%, %EscapeTmpD%, All
 					StringReplace, tline, tline, %EscapeComma%, %EscapeTmp%, All
 				
-				if !RegExMatch(tline, "i)^FileInstall[ \t]*[, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
+				if !RegExMatch(tline, "i)^FileInstall[ \t]*[(, \t][ \t]*([^,]+?)[ \t]*(,|$)", o) || o1 ~= "[^``]%"
 					Util_Error("Error: Invalid ""FileInstall"" syntax found. Note that the first parameter must not be specified using a continuation section.", 0x12)
 				_ := Options.esc
 				StringReplace, o1, o1, %_%`%, `%, All
