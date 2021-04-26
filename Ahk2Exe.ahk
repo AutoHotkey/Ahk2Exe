@@ -519,7 +519,7 @@ RegRead, LastBinFile,   HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
 if !FileExist(LastIcon)
 	LastIcon := ""
-if (LastBinFile = "") || !FileExist(LastBinFile)
+if (LastBinFile = "") || !FileExist(A_ScriptDir "\" LastBinFile)
 	LastBinFile = AutoHotkeySC.bin
 if !CompressCode[LastUseMPRESS]                ; Invalid codes := 0
 	LastUseMPRESS := false
