@@ -171,14 +171,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	Loop, % !!IsFirstScript ; Like "if IsFirstScript" but can "break" from block
 	{
-		global AhkPath := UseAhkPath
-		if (AhkPath = "")
-			AhkPath := A_IsCompiled ? A_ScriptDir "\..\AutoHotkey.exe" : A_AhkPath
-		if (!FileExist(AhkPath) && !DerefIncludeVars.A_IsUnicode)
-			AhkPath := A_ScriptDir "\..\AutoHotkeyA32.exe"
-		AhkPath := FileExist(AhkPath) ? AhkPath :A_ScriptDir "\..\AutoHotkeyU32.exe"
-		AhkPath := FileExist(AhkPath) ? AhkPath : A_AhkPath
-
+		global AhkPath
 		IfNotExist, %AhkPath%
 		{	Util_Error("Warning: AutoHotkey.exe could not be located!`n`nAuto-include"
 . "s from Function Libraries, and 'Obey' directives will not be processed.",0)
@@ -235,7 +228,8 @@ IsFakeCSOpening(tline)
 
 FindLibraryFile(name, ScriptDir)
 {
-	libs := [ScriptDir "\Lib", A_MyDocuments "\AutoHotkey\Lib", A_ScriptDir "\..\Lib"]
+	global StdLibDir
+	libs := [ScriptDir "\Lib", A_MyDocuments "\AutoHotkey\Lib", StdLibDir]
 	p := InStr(name, "_")
 	if p
 		name_lib := SubStr(name, 1, p-1)
