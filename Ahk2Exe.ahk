@@ -222,11 +222,13 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	{
 		MsgBox, 52, Ahk2Exe Error,
 		(LTrim
-		Unable to copy the appropriate binary file as AutoHotkeySC.bin because the current user does not have write/create privileges in the %A_ScriptDir% folder (perhaps you should run this program as administrator?)
+		Unable to copy the appropriate binary file as AutoHotkeySC.bin because the current user does not have write/create privileges in the %A_ScriptDir% folder.
 		
-		Do you still want to continue?
+		You should run this program once as administrator to complete setup.
+		
+		Abandon this run?
 		)
-		IfMsgBox, Yes
+		IfMsgBox, No
 			return
 		ExitApp, 0x2 ; Compilation cancelled
 	}
@@ -259,9 +261,9 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 		Unable to copy the appropriate binary file as AutoHotkeySC.bin because said file does not exist:
 		%BinFile%
 		
-		Do you still want to continue?
+		Abandon this run?
 		)
-		IfMsgBox, Yes
+		IfMsgBox, No
 			return
 		ExitApp, 0x2 ; Compilation cancelled
 	}
