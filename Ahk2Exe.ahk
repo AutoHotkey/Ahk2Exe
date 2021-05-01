@@ -106,7 +106,7 @@ Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
 gosub AddPicture
 */
 GuiControl, Focus, Button1
-Gui, Show, w594 h383, % "Ahk2Exe for AutoHotkey v" SubStr(A_AhkVersion,1,-1) "9 Beta_1 -- Script to EXE Converter"
+Gui, Show, w594 h383, % "Ahk2Exe for AutoHotkey v" A_AhkVersion -- Script to EXE Converter"
 gosub compress
 return
 
@@ -270,6 +270,9 @@ IfNotExist, %A_ScriptDir%\AutoHotkeySC.bin
 	
 	FileCopy, %BinFile%, %A_ScriptDir%\AutoHotkeySC.bin
 }
+BinType := AHKType(A_ScriptDir "\AutoHotkeySC.bin")
+wk := BinType.PtrSize=8?"Unicode 64":BinType.IsUnicode?"Unicode 32":"ANSI 32"
+BinNames := SubStr(BinNames,1,8) " - " wk "-bit" SubStr(BinNames,9)
 return
 
 FindBinFile(name)
