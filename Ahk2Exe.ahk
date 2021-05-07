@@ -94,7 +94,7 @@ Gui, Add, Edit, x137 y236 w315 h23 +Disabled vIcoFile, %IcoFile%
 Gui, Add, Button, x459 y236 w53 h23 gBrowseIco vBtnIcoFile, Br&owse
 Gui, Add, Button, x517 y236 w53 h23 gDefaultIco vBtnIcoDefault, Def&ault
 Gui, Add, Text, x17 y270, Base File (.bin)
-Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, DDL, x137 y270 w315 h23 R10 AltSubmit gBinChanged vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Text, x17 y296, Compress exe with
 Gui, Add, DDL,% "x137 y294 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Button, x258 y329 w75 h28 Default gConvert vBtnConvert, > &Convert <
@@ -136,8 +136,15 @@ loop, parse, A_GuiEvent, `n
 	} else GuiControl,, %dropExt%File, %A_LoopField%
 	if (dropExt = "bin")
 		CustomBinFile:=1, BinFile := A_LoopField
-		, Util_Status("""" BinFile """ will be used for this compile only.")
+		, Util_Status("""" BinFile """ will be used until 'Base File' changed.")
 }
+return
+
+BinChanged:
+if CustomBinFile
+	Util_Status("Selected 'Base File' will be used.")
+else Util_Status("Ready")
+CustomBinFile := ""
 return
 
 GuiSize:
@@ -444,7 +451,6 @@ Gui, Submit, NoHide
 UseMPRESS--
 if !CustomBinFile
 	BinFile := A_ScriptDir "\" BinFiles[BinFileId]
-else CustomBinFile := ""
 
 ConvertCLI:
 AhkFile := Util_GetFullPath(AhkFile)
