@@ -52,11 +52,12 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	{
 		if !A_IsCompiled
 			AhkPath := A_AhkPath
-		else
-			FileExist(AhkPath := A_ScriptDir "\..\AutoHotkey.exe")
-		 || !BinType.IsUnicode && FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyA32.exe")
-		 || FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyU32.exe")
-		 || FileExist(AhkPath := A_AhkPath)
+		else (wk := 0)                  ; Dummy command to satisfy the interpreter
+			|| !BinType.IsUnicode
+			&& FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyA32.exe")
+			|| FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyU32.exe")
+			|| FileExist(AhkPath := A_ScriptDir "\..\AutoHotkey.exe")
+			|| FileExist(AhkPath := A_AhkPath)
 	}
 	;else even if !FileExist(UseAhkPath), don't fall back to a potentially incompatible EXE.
 	global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
