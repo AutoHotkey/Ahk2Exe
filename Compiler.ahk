@@ -61,9 +61,12 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}
 	;else even if !FileExist(UseAhkPath), don't fall back to a potentially incompatible EXE.
 	global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
+	
+	; v1.1.34 supports compiling with EXE, but in that case uses resource ID 1.
+	ResourceId := SubStr(BinFile, -3) = ".exe" ? "#1" : ">AUTOHOTKEY SCRIPT<"
 
 	ExeFileG := ExeFile
-	BundleAhkScript(ExeFileTmp, AhkFile, UseMPRESS, CustomIcon, fileCP)
+	BundleAhkScript(ExeFileTmp, ResourceId, AhkFile, UseMPRESS, CustomIcon, fileCP)
 	
 	; the final step...
 	Util_Status("Moving .exe to destination")
@@ -107,7 +110,7 @@ Buttons()
 	ControlSetText Button2, && &Reload
 }
 
-BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
+BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 {
 	if fileCP is space
 		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
@@ -144,8 +147,9 @@ BundleAhkScript(ExeFile, AhkFile, UseMPRESS, IcoFile="", fileCP="")
 	}
 	
 	Util_Status("Adding: Master Script")
-	if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", ">AUTOHOTKEY SCRIPT<"
-	          , "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
+	if !DllCall("UpdateResource", "ptr", module, "ptr", 10
+			, "ptr", ResourceId ~= "^#\d+$" ? SubStr(ResourceId, 2) : &ResourceId
+			, "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
 		goto _FailEnd
 		
 	for each,file in ExtraFiles
