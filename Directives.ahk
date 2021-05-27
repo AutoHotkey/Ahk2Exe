@@ -57,11 +57,12 @@ Directive_Debug(state, txt)
 {	Util_Error( "Debug: " txt, 0)
 }
 Directive_ExeName(state, txt)
-{	global ExeFileG
-	SplitPath ExeFileG,, gdir,,gname
-	SplitPath txt     ,, idir,,iname
-	ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
-}
+{	global ExeFileG, StopCDExe
+	if !StopExe
+	{	SplitPath ExeFileG,, gdir,,gname
+		SplitPath txt     ,, idir,,iname
+		ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
+}	}
 Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
@@ -121,7 +122,9 @@ Directive_SetLegalTrademarks(state, txt)
 {	state.verInfo.LegalTrademarks := txt
 }
 Directive_SetMainIcon(state, txt := "")
-{	state.IcoFile := txt
+{	global StopMainIcon
+	if !StopCDIco
+		state.IcoFile := txt
 }
 Directive_SetName(state, txt)
 {	state.verInfo.InternalName := state.verInfo.ProductName := txt
