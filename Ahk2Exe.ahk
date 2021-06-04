@@ -1,4 +1,4 @@
-; 
+﻿; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -575,11 +575,11 @@ for k, v1 in StopCDBin ? [] : DirBinsWk
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins
-		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
+		 ExeFile:= AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
 		                                       , DirCP[k] ? DirCP[k] : ScriptFileCP)
-else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
+else ExeFile:= AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
 
-	Util_Info("Conversion complete.")
+Util_Info("Conversion complete.")
 if CLIMode
 	FileAppend, Successfully compiled: %ExeFile%`n, *
 return
@@ -684,14 +684,14 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	if HeadlessMode {
 		FileAppend, % "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n", *
 	} else {
-	if exitcode
-		MsgBox, 16, Ahk2Exe Error, % txt
-	else {
-		MsgBox, 49, Ahk2Exe Warning, % txt
-	. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
-		IfMsgBox Cancel
-			exitcode := 2
-	}
+		if exitcode
+			MsgBox, 16, Ahk2Exe Error, % txt
+		else {
+			MsgBox, 49, Ahk2Exe Warning, % txt
+		. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
+			IfMsgBox Cancel
+				exitcode := 2
+		}
 	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{	FileDelete, %ExeFileTmp%
