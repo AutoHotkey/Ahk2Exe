@@ -322,19 +322,21 @@ while p.MaxIndex()
 	p1 := p.RemoveAt(1)
 	
 	if SubStr(p1,1,1) != "/" || !(p1fn := Func("CmdArg_" SubStr(p1,2)))
-		BadParams("Error: Unrecognised parameter:`n" p1)
+		BadParams("Unrecognised parameter:`n" p1)
 	
 	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
 	{
 		p2 := p.RemoveAt(1)
 		if p2 =
-			BadParams("Error: Blank or missing parameter for " p1 ".")
+			BadParams("Blank or missing parameter for " p1 ".")
 	}
 	
 	%p1fn%(p2)
 }
 
 if (AhkFile = "" && CLIMode)
+	BadParams("No input file specified.")
+
 if (HeadlessMode && !CLIMode){
 	BadParams("Headless mode requires CLI mode.")
 	ExitApp, 0x3
@@ -394,7 +396,7 @@ CmdArg_MPRESS(p2) {
 CmdArg_Compress(p2) {
 	global
 	if !CompressCode[p2]                ; Invalid codes?
-		BadParams("Error: " p1 " parameter invalid:`n" p2)
+		BadParams(p1 " parameter invalid:`n" p2)
 	if CompressCode[p2] > 0             ; Convert any old codes
 		p2 := CompressCode[p2]
 	UseMPRESS := p2
@@ -425,11 +427,11 @@ CmdArg_ForceReload(){
 }
 
 CmdArg_Pass() {
-	BadParams("Error: Password protection is not supported.", 0x24)
+	BadParams("Password protection is not supported.", 0x24)
 }
 
 CmdArg_NoDecompile() {
-	BadParams("Error: /NoDecompile is not supported.", 0x23)
+	BadParams("/NoDecompile is not supported.", 0x23)
 }
 
 BrowseAhk:
