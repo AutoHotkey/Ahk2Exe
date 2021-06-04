@@ -1,4 +1,4 @@
-﻿; 
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -316,6 +316,7 @@ Loop, %0%
 CLIMode := true  
 SilentMode := false
 ForceReload := false
+Verbose := false
 
 while p.MaxIndex()
 {
@@ -361,6 +362,7 @@ BadParams(Message, ErrorCode=0x3)
 	`t[/cp codepage]
 	`t[/ahk path\name]
 	`t[/ForceReload]
+	`t[/verbose]
 	)
 	Util_Error(Message, ErrorCode,, params)
 }
@@ -423,6 +425,10 @@ CmdArg_Silent(){
 
 CmdArg_ForceReload(){
 	global ForceReload:= true
+}
+
+CmdArg_Verbose(){
+	global Verbose:= true
 }
 
 CmdArg_Pass() {
@@ -661,12 +667,11 @@ return
 Util_Status(s)
 {
 	global
-	if SilentMode{
+	if Verbose{
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
-	}else 
+	} 
 		SB_SetText(s)
-
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
