@@ -352,17 +352,17 @@ BadParams(Message, ErrorCode=0x3)
 	(LTrim
 	Command Line Parameters:
 	Ahk2Exe.exe
-	`t[/silent]
-	`t[/gui]
-	`t /in infile.ahk
-	`t[/out outfile.exe]
-	`t[/icon iconfile.ico]
-	`t[/bin AutoHotkeySC.bin]
-	`t[/compress 0 (none), 1 (MPRESS), or 2 (UPX)]
-	`t[/cp codepage]
-	`t[/ahk path\name]
-	`t[/ForceReload]
-	`t[/verbose]
+	`t[/silent]	          Disable MsgBoxes and instead output errors/info to stderr/stdout
+	`t[/gui]                    Show the GUI instead of immediately compiling
+	`t /in infile.ahk           The path and name of the script to compile
+	`t[/out outfile.exe]        The path/name of the output .exe to be created
+	`t[/icon iconfile.ico]      The icon file to be used
+	`t[/bin AutoHotkeySC.bin]   The .bin file to be used
+	`t[/compress number]        Compress the .exe, number can be 0 (no compression), 1 (MPRESS) or 2 (UPX)
+	`t[/cp codepage]            Overrides the default codepage used to read script files
+	`t[/ahk path\name]          The path\name of AutoHotkey.exe to be used when compiling the script
+	`t[/ForceReload]            Force the script to be reloaded if it's running
+	`t[/verbose]                Output the compiler status to stdout
 	)
 	Util_Error(Message, ErrorCode,, params)
 }
