@@ -1,4 +1,4 @@
-; 
+﻿; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -702,9 +702,10 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	Util_Status("Ready")
 	
 	if exitcode
-		if !Error_ForceExit
-			Exit, exitcode
-		else ExitApp, exitcode
+		if Error_ForceExit || SilentMode
+			ExitApp, %exitcode%
+		else
+			Exit, %exitcode% 
 	Util_DisplayHourglass()
 }
 
