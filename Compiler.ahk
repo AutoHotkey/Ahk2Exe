@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8 with BOM
 ;
 #Include ScriptParser.ahk
@@ -7,7 +7,7 @@
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
-	global ExeFileTmp, ExeFileG
+	global ExeFileTmp, ExeFileG, HeadlessMode, ForceReload
 
 	SetWorkingDir %AhkWorkingDir%
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
@@ -80,9 +80,19 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 		if !WinExist("ahk_exe " ExeFileG)
 			Util_Error("Error: Could not move final compiled binary file to "
 			. "destination. (C1)", 0x45, """" ExeFileG """")
-		else
-		{	SetTimer Buttons, 50
+		else {	
+			if ForceReload {
+				WinGet, ExePid, PID, ahk_exe %ExeFileG%
+				Process, Close, %ExePid%
+				Process, WaitClose, %ExePid%, 1
+			}else {
 			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
+				if HeadlessMode {
+					Util_Error(wk " is still running, "
+					.  "and needs to be unloaded to allow replacement with this new version."
+					. "`nPass /ForceReload to always reload when compiling.", 0x45)
+				} else {
+					SetTimer Buttons, 50
 			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
 			.  "and needs to be unloaded to allow replacement with this new version."
 			. "`n`n Press the appropriate button to continue."
@@ -94,9 +104,12 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 			WinWaitClose ahk_exe %ExeFileG%,,1
 			IfMsgBox No
 				Reload := 1
-	}	}
-	if Reload
-		run "%ExeFileG%", %ExeFileG%\..
+				}
+			}
+		}	
+	}
+	if ForceReload || Reload
+		Run "%ExeFileG%", %ExeFileG%\..
 	Util_HideHourglass()
 	Util_Status("")
 }

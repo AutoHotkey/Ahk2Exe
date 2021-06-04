@@ -1,4 +1,4 @@
-﻿; 
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -12,6 +12,7 @@
 ;@Ahk2Exe-SetCompanyName  AutoHotkey
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
+;@Ahk2Exe-ConsoleApp
 
 SendMode Input
 SetBatchLines -1
@@ -54,6 +55,8 @@ if CLIMode
 	gosub ConvertCLI
 	ExitApp, 0 ; Success
 }
+
+WinHide ahk_exe %A_ScriptName% ahk_class ConsoleWindowClass ; hide the console window if not in CLI mode
 
 BinFileId := FindBinFile(LastBinFile)
 
@@ -309,7 +312,10 @@ p := []
 Loop, %0%
 	p.Insert(%A_Index%)
 
-CLIMode := true  ; Set default - may be overridden.
+; Set defaults - may be overridden.
+CLIMode := true  
+HeadlessMode := false
+ForceReload := false
 
 while p.MaxIndex()
 {
@@ -329,14 +335,33 @@ while p.MaxIndex()
 }
 
 if (AhkFile = "" && CLIMode)
-	BadParams("Error: No input file specified.")
+if (HeadlessMode && !CLIMode){
+	BadParams("Headless mode requires CLI mode.")
+	ExitApp, 0x3
+}
 
 if BinFile =
 	BinFile := A_ScriptDir "\" LastBinFile
 return
 
 BadParams(Message, ErrorCode=0x3)
-{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/bin AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]")
+{
+	params = 
+	(LTrim
+	Command Line Parameters:
+	Ahk2Exe.exe
+	`t[/headless]
+	`t[/gui]
+	`t /in infile.ahk
+	`t[/out outfile.exe]
+	`t[/icon iconfile.ico]
+	`t[/bin AutoHotkeySC.bin]
+	`t[/compress 0 (none), 1 (MPRESS), or 2 (UPX)]
+	`t[/cp codepage]
+	`t[/ahk path\name]
+	`t[/ForceReload]
+	)
+	Util_Error(Message, ErrorCode,, params)
 }
 
 CmdArg_Gui() {
@@ -389,6 +414,14 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 		ScriptFileCP := "CP" p2
 	else
 		ScriptFileCP := p2
+}
+
+CmdArg_Headless(){
+	global HeadlessMode:= true
+}
+
+CmdArg_ForceReload(){
+	global ForceReload:= true
 }
 
 CmdArg_Pass() {
@@ -544,9 +577,8 @@ if Util_ObjNotEmpty(DirBins)
 		                                       , DirCP[k] ? DirCP[k] : ScriptFileCP)
 else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
 
-if !CLIMode
 	Util_Info("Conversion complete.")
-else
+if CLIMode
 	FileAppend, Successfully compiled: %ExeFile%`n, *
 return
 
@@ -626,12 +658,19 @@ Special thanks:
 return
 
 Util_Status(s)
-{	SB_SetText(s)
+{
+	global
+	if HeadlessMode{
+		if s not in ,Ready
+			FileAppend, Ahk2Exe Status: %s%`n, *
+	}else 
+		SB_SetText(s)
+
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
-	global CLIMode, Error_ForceExit, ExeFileTmp
+	global CLIMode, Error_ForceExit, ExeFileTmp, HeadlessMode
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
@@ -640,6 +679,9 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
+	if HeadlessMode {
+		FileAppend, % "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n", *
+	} else {
 	if exitcode
 		MsgBox, 16, Ahk2Exe Error, % txt
 	else {
@@ -647,6 +689,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
 		IfMsgBox Cancel
 			exitcode := 2
+	}
 	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{	FileDelete, %ExeFileTmp%
@@ -665,7 +708,13 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 }
 
 Util_Info(txt)
-{	MsgBox, 64, Ahk2Exe, % txt
+{	
+	global
+	if HeadlessMode
+		FileAppend, Ahk2Exe Info: %txt%`n, *
+	else
+		MsgBox, 64, Ahk2Exe, % txt
+
 }
 
 Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
