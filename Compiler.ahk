@@ -7,7 +7,7 @@
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
-	global ExeFileTmp, ExeFileG, HeadlessMode, ForceReload
+	global ExeFileTmp, ExeFileG, SilentMode, ForceReload
 
 	SetWorkingDir %AhkWorkingDir%
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
@@ -87,7 +87,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 				Process, WaitClose, %ExePid%, 1
 			}else {
 				wk := """" RegExReplace(ExeFileG, "^.+\\") """"
-				if HeadlessMode {
+				if SilentMode {
 					Util_Error(wk " is still running, "
 					.  "and needs to be unloaded to allow replacement with this new version."
 					. "`nPass /ForceReload to always reload when compiling.", 0x45)

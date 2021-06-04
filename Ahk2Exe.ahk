@@ -1,4 +1,4 @@
-﻿; 
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -314,7 +314,7 @@ Loop, %0%
 
 ; Set defaults - may be overridden.
 CLIMode := true  
-HeadlessMode := false
+SilentMode := false
 ForceReload := false
 
 while p.MaxIndex()
@@ -337,9 +337,8 @@ while p.MaxIndex()
 if (AhkFile = "" && CLIMode)
 	BadParams("No input file specified.")
 
-if (HeadlessMode && !CLIMode){
-	BadParams("Headless mode requires CLI mode.")
-	ExitApp, 0x3
+if (SilentMode && !CLIMode){
+	BadParams("/silent requires CLI mode.")
 }
 
 if BinFile =
@@ -352,7 +351,7 @@ BadParams(Message, ErrorCode=0x3)
 	(LTrim
 	Command Line Parameters:
 	Ahk2Exe.exe
-	`t[/headless]
+	`t[/silent]
 	`t[/gui]
 	`t /in infile.ahk
 	`t[/out outfile.exe]
@@ -418,8 +417,8 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 		ScriptFileCP := p2
 }
 
-CmdArg_Headless(){
-	global HeadlessMode:= true
+CmdArg_Silent(){
+	global SilentMode:= true
 }
 
 CmdArg_ForceReload(){
@@ -662,7 +661,7 @@ return
 Util_Status(s)
 {
 	global
-	if HeadlessMode{
+	if SilentMode{
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
 	}else 
@@ -672,7 +671,7 @@ Util_Status(s)
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
-	global CLIMode, Error_ForceExit, ExeFileTmp, HeadlessMode
+	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
@@ -681,8 +680,8 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
-	if HeadlessMode {
-		FileAppend, % "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n", *
+	if CLIMode && SilentMode {
+		FileAppend, % "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n", **
 	} else {
 		if exitcode
 			MsgBox, 16, Ahk2Exe Error, % txt
@@ -699,7 +698,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	}
 
 	if CLIMode && exitcode
-		FileAppend, Failed to compile: %ExeFile%`n, *
+		FileAppend, Failed to compile: %ExeFile%`n, **
 	Util_Status("Ready")
 	
 	if exitcode
@@ -712,7 +711,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 Util_Info(txt)
 {	
 	global
-	if HeadlessMode
+	if SilentMode
 		FileAppend, Ahk2Exe Info: %txt%`n, *
 	else
 		MsgBox, 64, Ahk2Exe, % txt
