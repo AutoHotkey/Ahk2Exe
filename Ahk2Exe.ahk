@@ -1,4 +1,4 @@
-; 
+﻿; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -671,7 +671,7 @@ Util_Status(s)
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
 	} 
-		SB_SetText(s)
+	SB_SetText(s)
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
@@ -717,7 +717,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 Util_Info(txt)
 {	
 	global
-	if SilentMode
+	if CLIMode
 		FileAppend, Ahk2Exe Info: %txt%`n, *
 	else
 		MsgBox, 64, Ahk2Exe, % txt
