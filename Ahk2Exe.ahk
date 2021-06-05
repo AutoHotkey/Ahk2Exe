@@ -12,7 +12,6 @@
 ;@Ahk2Exe-SetCompanyName  AutoHotkey
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
-;@Ahk2Exe-ConsoleApp
 
 SendMode Input
 SetBatchLines -1
@@ -55,8 +54,6 @@ if CLIMode
 	gosub ConvertCLI
 	ExitApp, 0 ; Success
 }
-
-WinHide ahk_exe %A_ScriptName% ahk_class ConsoleWindowClass ; hide the console window if not in CLI mode
 
 BinFileId := FindBinFile(LastBinFile)
 
