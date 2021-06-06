@@ -713,12 +713,11 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 
 Util_Info(txt)
 {	
-	global
+	global CLIMode
 	if CLIMode
 		FileAppend, Ahk2Exe Info: %txt%`n, *
 	else
 		MsgBox, 64, Ahk2Exe, % txt
-
 }
 
 Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
