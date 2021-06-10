@@ -663,7 +663,7 @@ return
 
 Util_Status(s)
 {
-	global
+	global Verbose
 	if Verbose{
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
