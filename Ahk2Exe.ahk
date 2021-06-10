@@ -1,4 +1,4 @@
-﻿; 
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -713,8 +713,8 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 
 Util_Info(txt)
 {	
-	global CLIMode
-	if CLIMode
+	global SilentMode
+	if SilentMode
 		FileAppend, Ahk2Exe Info: %txt%`n, *
 	else
 		MsgBox, 64, Ahk2Exe, % txt
