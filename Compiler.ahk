@@ -133,7 +133,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	
 	try FileEncoding, %fileCP%
 	catch e
-		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.", 0x53)
+		Util_Error("Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
 	SplitPath, AhkFile,, ScriptDir
 
@@ -145,7 +145,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
-		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
+		Util_Error("Error opening the destination file. (C1)", 0x31)
 	
 	SetWorkingDir % ScriptDir
 
@@ -200,7 +200,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	{	Util_Status("Compressing final executable with " k " ...")
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
 			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
-		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
+		else Util_Error("""" wk """ not found.`n`n'Compress exe with " k
 			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
 			, UseMPRESS := 9
 	}
@@ -218,7 +218,7 @@ _FailEnd2:
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-	{	Util_Error("Error: Error opening the destination file. (C2)", 0
+	{	Util_Error("Error opening the destination file. (C2)", 0
 		,,"This error may be caused by your anti-virus checker.`n"
 		. "Press 'OK' to try again, or 'Cancel' to abandon.")
 		goto _EndUpdateResource
