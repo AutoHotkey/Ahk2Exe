@@ -1,4 +1,4 @@
-; 
+﻿; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -683,7 +683,10 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	
 	Util_HideHourglass()
 	if CLIMode && SilentMode {
-		FileAppend, % "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n", **
+		txt :=  "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n"
+		try FileAppend, %txt%, **
+		catch
+			FileAppend, %txt%, *
 	} else {
 		if exitcode
 			MsgBox, 16, Ahk2Exe Error, % txt
@@ -699,8 +702,11 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		ExeFileTmp =
 	}
 
-	if CLIMode && exitcode
-		FileAppend, Failed to compile: %ExeFile%`n, **
+	if CLIMode && exitcode{
+		try FileAppend, Failed to compile: %ExeFile%`n, **
+		catch
+			FileAppend, Failed to compile: %ExeFile%`n, *
+	}
 	Util_Status("Ready")
 	
 	if exitcode
