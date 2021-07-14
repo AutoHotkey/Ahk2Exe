@@ -83,13 +83,18 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			if !contSection 
 			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
 			{
+				IncludeFile := Trim(IncludeFile,"""'") ; Drop any quotes (V2)
+				
 				IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
 				IncludeFile := o2
 				if RegExMatch(IncludeFile, "\*[iI]\s+?(.*)", o)
 					IgnoreErrors := true, IncludeFile := Trim(o1)
 
-				IncludeFile := Trim(IncludeFile,"""'") ;Drop any quotes (V2)
+				if SubStr(IncludeFile, 1, 1) = "*" ; References to Embedded Scripts have
+				{	ScriptText .= tline "`n"         ; a filename which starts with * and
+					continue                         ; will be handled by the interpreter
+				}
 				
 				if RegExMatch(IncludeFile, "^<(.+)>$", o)
 				{
@@ -173,10 +178,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	{
 		global AhkPath
 		IfNotExist, %AhkPath%
-		{	Util_Error("Warning: AutoHotkey.exe could not be located!`n`nAuto-include"
-. "s from Function Libraries, and 'Obey' directives will not be processed.",0)
 			break ; Don't bother with auto-includes because the file does not exist
-		}
 		Util_Status("Auto-including any functions called from a library...")
 		AhkTypeRet := AHKType(AhkPath)
 		if !AhkTypeRet
@@ -185,7 +187,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
 		tmpErrorLog := Util_TempFile(, "err~")
 		ilibfile    := Util_TempFile(, "ilib~")
-		RunWait, "%comspec%" /c ""%AhkPath%" /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
+		sw := AhkPath~="i)Ahk2Exe.exe$" ? "/Script" : ""
+		RunWait, "%comspec%" /c ""%AhkPath%" %sw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
 		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
 		{
 			FileRead,tmpErrorData,%tmpErrorLog%
@@ -193,15 +196,18 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		}
 		FileDelete,%tmpErrorLog%
 		IfExist, %ilibfile%
-		{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
-			{ Loop 4                    ; v1 - Generate random label prefix
-				{ Random wk, 97, 122
-					ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
-				}                         ; Don't execute Auto_Includes directly
-				ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
+		{	FileGetSize wk, %ilibfile%
+			if wk > 3
+			{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
+				{ Loop 4                    ; v1 - Generate random label prefix
+					{ Random wk, 97, 122
+						ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
+					}                         ; Don't execute Auto_Includes directly
+					ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
+				}
+				PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList
+				, FirstScriptDir, Options)
 			}
-			PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList
-			, FirstScriptDir, Options)
 			FileDelete, %ilibfile%
 		}
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline

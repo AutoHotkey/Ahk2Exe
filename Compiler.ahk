@@ -30,12 +30,12 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_DisplayHourglass()
 	
 	IfNotExist, %BinFile%
-		Util_Error("Error: The selected AutoHotkeySC binary does not exist. (C1)"
+		Util_Error("Error: The selected Base file does not exist. (C1)"
 		, 0x34, """" BinFile """")
 	
 	try FileCopy, %BinFile%, %ExeFileTmp%, 1
 	catch
-		Util_Error("Error: Unable to copy AutoHotkeySC binary file to destination."
+		Util_Error("Error: Unable to copy Base file to destination."
 		, 0x41, """" ExeFileTmp """")
 
 	DerefIncludeVars.Delete("U_", "V_")         ; Clear Directives entries
@@ -47,20 +47,21 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	DerefIncludeVars.A_PtrSize := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
 
-	global AhkPath := UseAhkPath
-	if (AhkPath = "")
-	{
-		if !A_IsCompiled
-			AhkPath := A_AhkPath
-		else (wk := 0)                  ; Dummy command to satisfy the interpreter
-			|| !BinType.IsUnicode
-			&& FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyA32.exe")
-			|| FileExist(AhkPath := A_ScriptDir "\..\AutoHotkeyU32.exe")
-			|| FileExist(AhkPath := A_ScriptDir "\..\AutoHotkey.exe")
-			|| FileExist(AhkPath := A_AhkPath)
-	}
-	;else even if !FileExist(UseAhkPath), don't fall back to a potentially incompatible EXE.
-	global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
+	global AhkPath := UseAhkPath         ; = any /ahk parameter
+	
+	; V2 alphas and betas expected to match as breaking changes between versions
+	if (AhkPath="") ; Later v2 versions will have base as .exe, and so must match
+		if !(AhkPath:=ExeFiles[BinType.Version BinType.Summary]) ;Match .exe to base
+			if SubStr(BinType.Version, 1, 1) = 1
+				for k, v in ExeFiles ; If not exact v1 match, use highest v1 AHK version
+					if SubStr(k, 1, 1) = 1
+						AhkPath := v
+
+	IfNotExist, %AhkPath%
+		Util_Error("Warning: AutoHotkey could not be located!`n`nAuto-includes "
+. "from Function Libraries and any 'Obey' directives will not be processed.",0)
+
+global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 	
 	; v1.1.34 supports compiling with EXE, but in that case uses resource ID 1.
 	ResourceId := SubStr(BinFile, -3) = ".exe" ? "#1" : ">AUTOHOTKEY SCRIPT<"
@@ -114,6 +115,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	Util_Status("")
 	Return ExeFileG
 }
+; ---------------------------- End of AHKCompile -------------------------------
 
 Buttons()
 {	IfWinNotExist Ahk2Exe Query
@@ -225,6 +227,7 @@ _EndUpdateResource:
 	}
 	return
 }
+; -------------------------- End of BundleAhkScript ----------------------------
 
 class CTempWD
 {
