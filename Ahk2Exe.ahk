@@ -276,34 +276,59 @@ p := []
 Loop, %0%
 	p.Insert(%A_Index%)
 
-CLIMode := true  ; Set default - may be overridden.
+; Set defaults - may be overridden.
+CLIMode := true  
+SilentMode := false
+ForceReload := false
+Verbose := false
 
 while p.MaxIndex()
 {
 	p1 := p.RemoveAt(1)
 	
 	if SubStr(p1,1,1) != "/" || !(p1fn := Func("CmdArg_" SubStr(p1,2)))
-		BadParams("Error: Unrecognised parameter:`n" p1)
+		BadParams("Unrecognised parameter:`n" p1)
 	
 	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
 	{
 		p2 := p.RemoveAt(1)
 		if p2 =
-			BadParams("Error: Blank or missing parameter for " p1 ".")
+			BadParams("Blank or missing parameter for " p1 ".")
 	}
 	
 	%p1fn%(p2)
 }
 
 if (AhkFile = "" && CLIMode)
-	BadParams("Error: No input file specified.")
+	BadParams("No input file specified.")
+
+if (SilentMode && !CLIMode){
+	BadParams("/silent requires CLI mode.")
+}
 
 if BinFile =
 	BinFile := LastBinFile
 return
 
 BadParams(Message, ErrorCode=0x3)
-{ Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]")
+{
+	params = 
+	(LTrim
+	Command Line Parameters:
+	%A_ScriptName%
+	`t[/silent]
+	`t[/gui]
+	`t /in infile.ahk
+	`t[/out outfile.exe]
+	`t[/icon iconfile.ico]
+	`t[/base AutoHotkeySC.bin]
+	`t[/compress 0 (none), 1 (MPRESS), or 2 (UPX)]
+	`t[/cp codepage]
+	`t[/ahk path\name]
+	`t[/ForceReload]
+	`t[/verbose]
+	)
+	Util_Error(Message, ErrorCode,, params)
 }
 
 CmdArg_Gui() {
@@ -341,7 +366,7 @@ CmdArg_MPRESS(p2) {
 CmdArg_Compress(p2) {
 	global
 	if !CompressCode[p2]                ; Invalid codes?
-		BadParams("Error: " p1 " parameter invalid:`n" p2)
+		BadParams(p1 " parameter invalid:`n" p2)
 	if CompressCode[p2] > 0             ; Convert any old codes
 		p2 := CompressCode[p2]
 	UseMPRESS := p2
@@ -363,12 +388,24 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 		ScriptFileCP := p2
 }
 
+CmdArg_Silent(){
+	global SilentMode:= true
+}
+
+CmdArg_ForceReload(){
+	global ForceReload:= true
+}
+
+CmdArg_Verbose(){
+	global Verbose:= true
+}
+
 CmdArg_Pass() {
-	BadParams("Error: Password protection is not supported.", 0x24)
+	BadParams("Password protection is not supported.", 0x24)
 }
 
 CmdArg_NoDecompile() {
-	BadParams("Error: /NoDecompile is not supported.", 0x23)
+	BadParams("/NoDecompile is not supported.", 0x23)
 }
 
 BrowseAhk:
@@ -566,13 +603,12 @@ for k, v1 in StopCDBin ? [] : DirBinsWk
 }	}
 if Util_ObjNotEmpty(DirBins)
 	for k in DirBins
-		 AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
+		 ExeFile:= AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
 		                                       , DirCP[k] ? DirCP[k] : ScriptFileCP)
-else AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
+else ExeFile:= AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
 
-if !CLIMode
-	Util_Info("Conversion complete.")
-else
+Util_Info("Conversion complete.")
+if CLIMode
 	FileAppend, Successfully compiled: %ExeFile%`n, *
 return
 
@@ -657,12 +693,18 @@ Special thanks:
 return
 
 Util_Status(s)
-{	SB_SetText(s)
+{
+	global Verbose
+	if Verbose{
+		if s not in ,Ready
+			FileAppend, Ahk2Exe Status: %s%`n, *
+	} 
+	SB_SetText(s)
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
-	global CLIMode, Error_ForceExit, ExeFileTmp
+	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
@@ -671,32 +713,48 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
-	if exitcode
-		MsgBox, 16, Ahk2Exe Error, % txt
-	else {
-		MsgBox, 49, Ahk2Exe Warning, % txt
-	. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
-		IfMsgBox Cancel
-			exitcode := 2
+	if CLIMode && SilentMode {
+		txt :=  "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n"
+		try FileAppend, %txt%, **
+		catch
+			FileAppend, %txt%, *
+	} else {
+		if exitcode
+			MsgBox, 16, Ahk2Exe Error, % txt
+		else {
+			MsgBox, 49, Ahk2Exe Warning, % txt
+		. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
+			IfMsgBox Cancel
+				exitcode := 2
+		}
 	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{	FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
 
-	if CLIMode && exitcode
-		FileAppend, Failed to compile: %ExeFile%`n, *
+	if CLIMode && exitcode{
+		try FileAppend, Failed to compile: %ExeFile%`n, **
+		catch
+			FileAppend, Failed to compile: %ExeFile%`n, *
+	}
 	Util_Status("Ready")
 	
 	if exitcode
-		if !Error_ForceExit
-			Exit, exitcode
-		else ExitApp, exitcode
+		if Error_ForceExit || SilentMode
+			ExitApp, %exitcode%
+		else
+			Exit, %exitcode% 
 	Util_DisplayHourglass()
 }
 
 Util_Info(txt)
-{	MsgBox, 64, Ahk2Exe, % txt
+{	
+	global SilentMode
+	if SilentMode
+		FileAppend, Ahk2Exe Info: %txt%`n, *
+	else
+		MsgBox, 64, Ahk2Exe, % txt
 }
 
 Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)

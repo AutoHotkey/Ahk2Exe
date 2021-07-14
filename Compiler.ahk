@@ -7,7 +7,7 @@
 
 AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
 {
-	global ExeFileTmp, ExeFileG
+	global ExeFileTmp, ExeFileG, SilentMode, ForceReload
 
 	SetWorkingDir %AhkWorkingDir%
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
@@ -81,25 +81,39 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 		if !WinExist("ahk_exe " ExeFileG)
 			Util_Error("Error: Could not move final compiled binary file to "
 			. "destination. (C1)", 0x45, """" ExeFileG """")
-		else
-		{	SetTimer Buttons, 50
-			wk := """" RegExReplace(ExeFileG, "^.+\\") """"
-			MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
-			.  "and needs to be unloaded to allow replacement with this new version."
-			. "`n`n Press the appropriate button to continue."
-			. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
-			IfMsgBox Cancel
-				Util_Error("Error: Could not move final compiled binary file to "
-				. "destination. (C2)", 0x45, """" ExeFileG """")
-			WinClose     ahk_exe %ExeFileG%
-			WinWaitClose ahk_exe %ExeFileG%,,1
-			IfMsgBox No
-				Reload := 1
-	}	}
-	if Reload
-		run "%ExeFileG%", %ExeFileG%\..
+		else {	
+			if ForceReload {
+				WinGet, ExePid, PID, ahk_exe %ExeFileG%
+				Process, Close, %ExePid%
+				Process, WaitClose, %ExePid%, 1
+			}else {
+				wk := """" RegExReplace(ExeFileG, "^.+\\") """"
+				if SilentMode {
+					Util_Error(wk " is still running, "
+					.  "and needs to be unloaded to allow replacement with this new version."
+					. "`nPass /ForceReload to always reload when compiling.", 0x45)
+				} else {
+					SetTimer Buttons, 50
+					MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
+					.  "and needs to be unloaded to allow replacement with this new version."
+					. "`n`n Press the appropriate button to continue."
+					. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
+					IfMsgBox Cancel
+						Util_Error("Error: Could not move final compiled binary file to "
+						. "destination. (C2)", 0x45, """" ExeFileG """")
+					WinClose     ahk_exe %ExeFileG%
+					WinWaitClose ahk_exe %ExeFileG%,,1
+					IfMsgBox No
+						Reload := 1
+				}
+			}
+		}	
+	}
+	if ForceReload || Reload
+		Run "%ExeFileG%", %ExeFileG%\..
 	Util_HideHourglass()
 	Util_Status("")
+	Return ExeFileG
 }
 ; ---------------------------- End of AHKCompile -------------------------------
 
@@ -121,7 +135,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	
 	try FileEncoding, %fileCP%
 	catch e
-		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.", 0x53)
+		Util_Error("Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
 	SplitPath, AhkFile,, ScriptDir
 
@@ -133,7 +147,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
-		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
+		Util_Error("Error opening the destination file. (C1)", 0x31)
 	
 	SetWorkingDir % ScriptDir
 
@@ -188,7 +202,7 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	{	Util_Status("Compressing final executable with " k " ...")
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
 			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
-		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
+		else Util_Error("""" wk """ not found.`n`n'Compress exe with " k
 			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
 			, UseMPRESS := 9
 	}
@@ -206,7 +220,7 @@ _FailEnd2:
 	
 _EndUpdateResource:
 	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-	{	Util_Error("Error: Error opening the destination file. (C2)", 0
+	{	Util_Error("Error opening the destination file. (C2)", 0
 		,,"This error may be caused by your anti-virus checker.`n"
 		. "Press 'OK' to try again, or 'Cancel' to abandon.")
 		goto _EndUpdateResource
