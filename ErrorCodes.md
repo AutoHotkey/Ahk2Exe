@@ -31,14 +31,14 @@ Possible Errors
 - `(0x1)` Error: Error opening the destination file.
 - `(0x2)` Script or #include cannot be opened.
 - `(0x3)` Error: Source file not specified.
-- `(0x4)` Error: The selected AutoHotkeySC binary does not exist.
+- `(0x4)` Error: The selected Base file does not exist.
 - `(0x5)` Error changing icon: File does not exist.
 - `(0x6)` Error: Specified resource does not exist.
 	
     
 ### `(0x40+)` File write
 
-- `(0x1)` Error: Unable to copy AutoHotkeySC binary file to destination.
+- `(0x1)` Error: Unable to copy Base file to destination.
 - `(0x2)` Error changing icon: Unable to read icon or icon was of the wrong format.
 - `(0x3)` Error adding script file
 - `(0x4)` Error adding FileInstall file

@@ -58,7 +58,7 @@ Directive_Debug(state, txt)
 }
 Directive_ExeName(state, txt)
 {	global ExeFileG, StopCDExe
-	if !StopExe
+	if !StopCDExe
 	{	SplitPath ExeFileG,, gdir,,gname
 		SplitPath txt     ,, idir,,iname
 		ExeFileG := (idir ? idir : gdir) "\" (iname ? iname : gname) ".exe"
@@ -81,15 +81,16 @@ Directive_Obey(state, name, txt, extra:=0)
 		Loop % extra
 			FileAppend % "`nFileOpen(""" wk A_Index
 			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
-		RunWait "%ahkpath%" "%wk%",,Hide
+		sw := AhkPath~="i)Ahk2Exe.exe$" ? "/Script" : ""
+		RunWait "%ahkpath%" %sw% "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % "*p65001 " wk (cnt := A_Index - 1)
 			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
 		}
 		FileDelete %wk%?
 }	}
-Directive_OutputPreproc(state, fileName) ; Old directive not documented?
-{	state.OutPreproc := fileName
+Directive_OutputPreproc(state, FileName) ; Old directive not documented?
+{	state.OutPreproc := FileName
 }
 Directive_PostExec(state, txt, when="", WorkingDir="", Hidden=0, IgnoreErrors=0)
 {	if !({"":1,0:1,1:1,2:1}[when] && {"":1,0:1,1:1}[Hidden] 
@@ -122,7 +123,7 @@ Directive_SetLegalTrademarks(state, txt)
 {	state.verInfo.LegalTrademarks := txt
 }
 Directive_SetMainIcon(state, txt := "")
-{	global StopMainIcon
+{	global StopCDIco
 	if !StopCDIco
 		state.IcoFile := txt
 }
