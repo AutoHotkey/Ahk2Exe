@@ -4,7 +4,7 @@
 ; Script description:
 ;	Ahk2Exe - AutoHotkey Script Compiler
 ;	Written by fincs - Interface based on the original Ahk2Exe
-; Updated by TAC109 since 2019
+;	Updated by TAC109 since 2019
 ;
 ; @Ahk2Exe-Bin             Unicode 32*            ; Commented out
 ;@Ahk2Exe-SetName         Ahk2Exe
@@ -223,7 +223,7 @@ return
 */
 
 BuildBinFileList:
-FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","–") ; Any default is first
+FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","—") ; Any default is first
 FindBinsExes(A_ScriptDir "\*",, "")                      ; Rest of \Compiler
 if SubStr(A_LineFile,1,1) = "*"                          ; if I am worthy,
 	FindBinsExes(A_ScriptDir "\Ahk2Exe.exe", "\|", "","\") ;   add me to the lists
@@ -248,16 +248,17 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 			&& A_LoopFileName != "AutoHotkey.exe" || A_LoopFileExt = "bin")
 		{	Type := AHKType(A_LoopFileLongPath) ; Get Unicode data and other stats
 			if (A_LoopFileExt = "exe")
-			{	ExeFiles[Type.Version Type.Summary] := A_LoopFileLongPath, Count++
-				wk := StrSplit(Type.Version,[".","-"])
+			{	if !(ExeFiles[Type.Version Type.Summary]) ; Keep only first of a version
+					ExeFiles[Type.Version Type.Summary] := A_LoopFileLongPath
+				wk := StrSplit(Type.Version,[".","-"]), Count++
 				if !(wk.1 = 1 &&  wk.3 >= 34 
 				||   wk.1 = 2 && (wk.3 = wk.3+0 || wk.3 >= "a135"))
 					continue
 			}
 			BinFiles.Push(A_LoopFileLongPath), Count+=2
 			BinNames .= "|v" Type.Version " " Type.Summary " " A_LoopFileName 
-	}	}                                     ; Count+=1 if file added to ExeFiles{}
-	return Count                            ; Count+=2 if file added to BinFiles[]
+	}	}                        ; Count+=1 if file (could be) added to ExeFiles{}
+	return Count               ; Count+=2 if file added to BinFiles[]
 }
 
 FindBinFile(name)
@@ -373,10 +374,10 @@ CmdArg_NoDecompile() {
 
 BrowseAhk:
 Gui, +OwnDialogs
-FileSelectFile, ov, 1, %LastScriptDir%, Open Script, AutoHotkey files (*.ahk)
+FileSelectFile, ov, 1, %LastAhkDir%, Open Script, AutoHotkey files (*.ahk)
 if ErrorLevel
 	return
-SplitPath ov,, LastScriptDir
+SplitPath ov,, LastAhkDir
 GuiControl,, AhkFile, %ov%
 SetCDBin(ov)
 menu, FileMenu, Enable, S&ave script settings As…`tCtrl+S
@@ -396,10 +397,10 @@ return
 
 BrowseIco:
 Gui, +OwnDialogs
-FileSelectFile, ov, 1, %LastIconDir%, Open Custom Icon, Icon files (*.ico)
+FileSelectFile, ov, 1, %LastIcoDir%, Open Custom Icon, Icon files (*.ico)
 if ErrorLevel
 	return
-SplitPath ov,, LastIconDir
+SplitPath ov,, LastIcoDir
 GuiControl,, IcoFile, %ov%
 StopCDIco := 1
 return
@@ -577,10 +578,10 @@ else
 return
 
 LoadSettings:
-RegRead, LastScriptDir, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir
+RegRead, LastAhkDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir
 RegRead, LastExeDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir
 RegRead, LastBinDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir
-RegRead, LastIconDir,   HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir
+RegRead, LastIcoDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir
 RegRead, LastIcon,      HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile,   HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
@@ -596,11 +597,7 @@ return
 
 SaveAsDefault:
 Gui, Submit, NoHide
-if IcoFile
-	SplitPath, IcoFile,, IcoFileDir
-else
-	IcoFileDir := ""
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIconDir,   %IcoFileDir%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir,    %LastIcoDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon,      %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS,% UseMPRESS-1
 if !(BinFile = SBDMes)
@@ -609,17 +606,9 @@ Util_Status("Options saved as default")
 return
 
 SaveSettings:
-SplitPath, AhkFile,, AhkFileDir
-if ExeFile
-	SplitPath, ExeFile,, ExeFileDir
-else
-	ExeFileDir := LastExeDir
-if BinFile
-	SplitPath BinFile,, BinFileDir
-else BinFileDir := LastBinDir
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastScriptDir, %AhkFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir,    %ExeFileDir%
-RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir,    %BinFileDir%
+RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir, %LastAhkDir%
+RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %LastExeDir%
+RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir, %LastBinDir%
 return
 
 Help:
