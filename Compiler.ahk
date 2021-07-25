@@ -21,7 +21,7 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 	}
 	SetWorkingDir %Ahk_Dir%             ; Initial folder for any #Include's
 
-	; Get temp file name - remove any invalid "path/" from exe name (/ should be \)
+	; Get temp file name. Remove any invalid "path/" from exe name (/ should be \)
 	ExeFileTmp := Util_TempFile(, "exe~", RegExReplace(xe,"^.*/"))
 	
 	if BinFile =
@@ -67,7 +67,7 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 	ResourceId := SubStr(BinFile, -3) = ".exe" ? "#1" : ">AUTOHOTKEY SCRIPT<"
 
 	ExeFileG := ExeFile
-	BundleAhkScript(ExeFileTmp, ResourceId, AhkFile, UseMPRESS, CustomIcon, fileCP)
+	BundleAhkScript(ExeFileTmp, ResourceId, AhkFile, UseMPRESS, CustomIcon, fileCP, BinFile)
 	
 	; the final step...
 	Util_Status("Moving .exe to destination")
@@ -112,7 +112,7 @@ Buttons()
 	ControlSetText Button2, && &Reload
 }
 
-BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
+BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 {
 	if fileCP is space
 		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
@@ -134,7 +134,11 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile, fileCP)
 	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
 	if !module
 		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
-	
+
+	if BinFile ~= "i)\\Ahk2Exe.exe$" ;If base is self, oust Ahk2Exe logo from .exe
+		DllCall("UpdateResource", "ptr", module, "ptr", 10
+		, "str", "LOGO.PNG", "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
+
 	SetWorkingDir % ScriptDir
 
 	DerefIncludeVars.A_WorkFileName := ExeFile
@@ -237,7 +241,7 @@ RunPostExec(dirState, UseMPRESS := "")
 }	}
 
 Util_GetFullPath(path)
-{
-	VarSetCapacity(fullpath, 260 * (!!A_IsUnicode + 1))
-	return DllCall("GetFullPathName", "str", path, "uint", 260, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
+{	Size := DllCall("GetFullPathName", "str", path, "uint", 0, "ptr", 0, "ptr", 0, "uint")
+	VarSetCapacity(fullpath, size << !!A_IsUnicode)
+	return DllCall("GetFullPathName", "str", path, "uint", size, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
 }
