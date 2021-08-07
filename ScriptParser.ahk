@@ -176,7 +176,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	Loop, % !!IsFirstScript ; Like "if IsFirstScript" but can "break" from block
 	{
-		global AhkPath
+		global AhkPath, AhkSw
 		IfNotExist, %AhkPath%
 			break ; Don't bother with auto-includes because the file does not exist
 		Util_Status("Auto-including any functions called from a library...")
@@ -185,16 +185,28 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
 		if (AhkTypeRet.Era = "Legacy")
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
-		tmpErrorLog := Util_TempFile(, "err~")
-		ilibfile    := Util_TempFile(, "ilib~")
-		sw := AhkPath~="i)Ahk2Exe.exe$" ? "/Script" : ""
-		RunWait, "%comspec%" /c ""%AhkPath%" %sw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%tmpErrorLog%"", %FirstScriptDir%, UseErrorLevel Hide
+		
+		if !((Modl:=DllCall("LoadLibraryEx","Str",AhkPath,"Ptr",0,"Int",0x22,"Ptr"))
+		&& ((wk:=DllCall("FindResource","Ptr",Modl,"Str","#1","Ptr",10,"Ptr")) || 1)
+		&& DllCall("FreeLibrary", "ptr", Modl)) ;^ ResourceID = 1?
+			Util_Error("Error: Cannot determine AutoHotkey vintage.", 0x54, AhkPath)
+		AhkSw := wk ? " /Script " : " "
+		
+		ilibfile := Util_TempFile(, "ilib~")
+		RunWait,"%comspec%" /c ""%AhkPath%"%AhkSw%/iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%E"", %FirstScriptDir%, UseErrorLevel Hide
 		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
-		{
-			FileRead,tmpErrorData,%tmpErrorLog%
+		{	FileDelete %ilibfile%         ; Try again without CMD (avoid UNC path bug)
+			RunWait, "%AhkPath%" %AhkSw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%A", %FirstScriptDir%, UseErrorLevel Hide
+		}
+		if (ErrorLevel = 2)
+		{	FileRead tmpErrorData,%ilibfile%E
+			FileDelete %ilibfile%?
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
-		FileDelete,%tmpErrorLog%
+		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
+		{	FileDelete %ilibfile%?
+			Util_Error("Error: Call to """ AhkPath """ has failed.`nError code is "ErrLev, 0x51)
+		}
 		IfExist, %ilibfile%
 		{	FileGetSize wk, %ilibfile%
 			if wk > 3
@@ -207,12 +219,12 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				}
 				PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList
 				, FirstScriptDir, Options)
-			}
-			FileDelete, %ilibfile%
-		}
+		}	}
+		If (ilibfile)
+			FileDelete, %ilibfile%?
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
-	
+
 	DerefIncludeVars.A_LineFile := oldLineFile
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%

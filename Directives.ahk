@@ -71,8 +71,8 @@ Directive_Let(state, txt*)
 		DerefIncludeVars[(wk.1 ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt, extra:=0)
-{	global ahkpath
-	IfExist %ahkpath%
+{	global AhkPath, AhkSw
+	IfExist %AhkPath%
 	{	if !(extra ~= "^[0-9]$")
 			Util_Error("Error: Wrongly formatted directive: (D3)",0x64, state.cmdline)
 		wk := Util_TempFile(, "Obey~")
@@ -81,8 +81,7 @@ Directive_Obey(state, name, txt, extra:=0)
 		Loop % extra
 			FileAppend % "`nFileOpen(""" wk A_Index
 			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
-		sw := AhkPath~="i)Ahk2Exe.exe$" ? "/Script" : ""
-		RunWait "%ahkpath%" %sw% "%wk%",,Hide
+		RunWait "%AhkPath%" %AhkSw% "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % "*p65001 " wk (cnt := A_Index - 1)
 			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result

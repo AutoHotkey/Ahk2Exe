@@ -256,7 +256,8 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 					continue
 			}
 			BinFiles.Push(A_LoopFileLongPath), Count+=2
-			BinNames .= "|v" Type.Version " " Type.Summary " " A_LoopFileName 
+			BinNames .= "|v" Type.Version " " Type.Summary " " 
+			. (A_LoopFileName = "AutoHotkeySC.bin" ? "(Default)" : A_LoopFileName)
 	}	}                        ; Count+=1 if file (could be) added to ExeFiles{}
 	return Count               ; Count+=2 if file added to BinFiles[]
 }
@@ -270,18 +271,16 @@ FindBinFile(name)
 }
 
 ParseCmdLine:
-if 0 = 0
+if !A_Args.MaxIndex()
 	return
 Error_ForceExit := true
-p := []
-Loop, %0%
-	p.Insert(%A_Index%)
 
 ; Set defaults - may be overridden.
-CLIMode := true  
+CLIMode := true
 SilentMode := false
 ForceReload := false
 Verbose := false
+p := A_Args.Clone()       ; Don't deplete A_Args here as needed in 'Restart:'
 
 while p.MaxIndex()
 {
@@ -312,7 +311,7 @@ if BinFile =
 return
 
 BadParams(Message, ErrorCode=0x3)
-{
+{ global Error_ForceExit := true
 	params = 
 	(LTrim
 	Command Line Parameters:
@@ -344,21 +343,20 @@ CmdArg_In(p2) {
 }
 
 CmdArg_Out(p2) {
-	global ExeFile := p2, StopCDExe := 1
+	global StopCDExe := 1, ExeFile := p2
 }
 
 CmdArg_Icon(p2) {
-	global IcoFile := p2, StopCDIco := 1
+	global StopCDIco := 1, IcoFile := p2
 }
 
 CmdArg_Base(p2) {
-	global
-	StopCDBin := 1, BinFile := p2
+	global StopCDBin := 1, BinFile := p2, LastBinFile := p2
+	FindBinsExes(p2, "\|", "")
 }
 
 CmdArg_Bin(p2) {
-	global
-	StopCDBin := 1, BinFile := p2
+	CmdArg_Base(p2)
 }
 
 CmdArg_MPRESS(p2) {
@@ -452,7 +450,7 @@ if FindBinsExes(ov, "\|", "") > 1
 {	GuiControl,,       BinFileId, |%BinNames% 
 	GuiControl Choose, BinFileId, % BinFiles.MaxIndex()
 	Util_Status("""" ov """ temporarily added to 'Base file' list.")
-} else Util_Status("""" ov """ Invalid!")
+} else Util_Status("""" ov """ invalid!")
 return
 
 DefaultExe:

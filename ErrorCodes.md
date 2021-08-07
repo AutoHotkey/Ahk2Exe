@@ -48,9 +48,10 @@ Possible Errors
     
 ### `(0x50+)` Miscellaneous
 
-- `(0x1)` You cannot drop more than one file of each type into this window!
-- `(0x2)` Error: cannot find AutoHotkey help file!
+- `(0x1)` Call to AutoHotkey has failed, Error code is n
+- `(0x2)` Error: Cannot find AutoHotkey help file!
 - `(0x3)` Error: Invalid codepage parameter was given.
+- `(0x4)` Error: Cannot determine AutoHotkey vintage.
 
 
 ### `(0x60+)` Compiler directives
