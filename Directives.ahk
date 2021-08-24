@@ -3,18 +3,18 @@
 ;
 #Include <VersionRes>
 
-ProcessDirectives(ExeFile, module, cmds, IcoFile)
-{	state := { ExeFile: ExeFile, module: module, resLang: 0x409, verInfo: {}
+ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile)
+{	state := { ExeFile: ExeFile, Module: Module, resLang: 0x409, verInfo: {}
 	, IcoFile: IcoFile, PostExec:[], PostExec0:[], PostExec1:[], PostExec2:[] }
-	global priorlines
-	for k, cmdline in cmds
-	{	while SubStr(cmds[k+A_Index], 1, 4) = "Cont"
-			cmdline .= SubStr(cmds[k+A_Index], 6)
-		Util_Status("Processing directive: " cmdline)
-		state["cmdline"] := cmdline
-		DerefIncludeVars.A_PriorLine := priorlines.RemoveAt(1) 
-		if !RegExMatch(cmdline, "^(\w+)(?:\s+(.+))?$", o)
-			Util_Error("Error: Invalid directive: (D1)", 0x63, cmdline)
+
+	for k, Cmd in Directives
+	{	while SubStr(Directives[k+A_Index], 1, 4) = "Cont"
+			Cmd .= SubStr(Directives[k+A_Index], 6)
+		Util_Status("Processing directive: " Cmd)
+		state.Cmd := Cmd
+		DerefIncludeVars.A_PriorLine := state.PriorLine := PriorLines[k] 
+		if !RegExMatch(Cmd, "^(\w+)(?:\s+(.+))?$", o)
+			Util_Error("Error: Invalid directive: (D1)", 0x63, Cmd)
 		args := [], nargs := 0
 		StringReplace, o2, o2, ```,, `n, All
 		Loop, Parse, o2, `,, %A_Space%%A_Tab%
@@ -28,25 +28,25 @@ ProcessDirectives(ExeFile, module, cmds, IcoFile)
 		}
 		fn := Func("Directive_" o1)
 		if !fn
-			Util_Error("Error: Invalid directive: (D2)" , 0x63, cmdline)
+			Util_Error("Error: Invalid directive: (D2)" , 0x63, Cmd)
 		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
-			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, cmdline)
+			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, Cmd)
 		fn.(state, args*)
 	}
 	if Util_ObjNotEmpty(state.verInfo)
 	{	Util_Status("Changing version information...")
-		ChangeVersionInfo(ExeFile, module, state.verInfo)
+		ChangeVersionInfo(ExeFile, Module, state.verInfo)
 	}
 	if IcoFile := state.IcoFile
 	{	Util_Status("Changing the main icon...")
 		if !FileExist(IcoFile)
 			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
-		if !AddOrReplaceIcon(module, IcoFile, ExeFile, 159)
+		if !AddOrReplaceIcon(Module, IcoFile, ExeFile, 159)
 			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42, IcoFile)
 	}
 	return state
 }
-
+; ---------------------------- Handle Directives -------------------------------
 Directive_ConsoleApp(state)
 {	state.ConsoleApp := true
 }
@@ -67,14 +67,14 @@ Directive_Let(state, txt*)
 {	for k in txt
 	{	wk := StrSplit(txt[k], "=", "`t ", 2)
 		if (wk.Length() != 2)
-			Util_Error("Error: Wrongly formatted directive: (D2)",0x64, state.cmdline)
+			Util_Error("Error: Wrongly formatted directive: (D2)", 0x64, state.Cmd)
 		DerefIncludeVars[(wk.1 ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt, extra:=0)
 {	global AhkPath, AhkSw
 	IfExist %AhkPath%
 	{	if !(extra ~= "^[0-9]$")
-			Util_Error("Error: Wrongly formatted directive: (D3)",0x64, state.cmdline)
+			Util_Error("Error: Wrongly formatted directive: (D3)", 0x64, state.Cmd)
 		wk := Util_TempFile(, "Obey~")
 		FileAppend % (txt~="^=" ? name ":" : "") txt "`nFileOpen(""" wk 0
 		. """,""W"",""UTF-8"").Write(" name ")", %wk%, UTF-8
@@ -88,14 +88,14 @@ Directive_Obey(state, name, txt, extra:=0)
 		}
 		FileDelete %wk%?
 }	}
-Directive_OutputPreproc(state, FileName) ; Old directive not documented?
-{	state.OutPreproc := FileName
-}
 Directive_PostExec(state, txt, when="", WorkingDir="", Hidden=0, IgnoreErrors=0)
 {	if !({"":1,0:1,1:1,2:1}[when] && {"":1,0:1,1:1}[Hidden] 
 	&& {"":1,0:1,1:1}[IgnoreErrors])
-		Util_Error("Error: Wrongly formatted directive: (D4)",0x64, state.cmdline)
+		Util_Error("Error: Wrongly formatted directive: (D4)", 0x64, state.Cmd)
 	state["PostExec" when].Push([txt, WorkingDir, Hidden, IgnoreErrors])
+}
+Directive_ResourceID(state, txt)
+{	state.ResourceID := txt
 }
 Directive_Set(state, name, txt)
 {	state.verInfo[name] := txt
@@ -150,17 +150,17 @@ Directive_UpdateManifest(state, admin, name = "", version = "", uiaccess = "")
 			, "xmlns:v1='urn:schemas-microsoft-com:asm.v1' "
 			. "xmlns:v3='urn:schemas-microsoft-com:asm.v3'")
 	if !xml.load("res://" state.ExeFile "/#24/#1") ; Load current manifest
-		Util_Error("Error: Error opening destination file. (D2)", 0x31)
+		Util_Error("Error: Error opening destination file. (D2)", 0x31, state.Cmd)
 	node := xml.selectSingleNode("/v1:assembly/v1:assemblyIdentity")
 	if !node ; Not AutoHotkey v1.1?
-		Util_Error("Error: Error opening destination file. (D3)", 0x31)
+		Util_Error("Error: Error opening destination file. (D3)", 0x31, state.Cmd)
 	(version && node.setAttribute("version", version)) 
 	(name && node.setAttribute("name", name))
 
 	node := xml.selectSingleNode("/v1:assembly/v3:trustInfo/v3:security"
 								. "/v3:requestedPrivileges/v3:requestedExecutionLevel")
 	if !node ; Not AutoHotkey v1.1?
-		Util_Error("Error: Error opening destination file. (D4)", 0x31)
+		Util_Error("Error: Error opening destination file. (D4)", 0x31, state.Cmd)
 	(admin=1  && node.setAttribute("level", "requireAdministrator"))
 	(admin=2  && node.setAttribute("level", "highestAvailable"))
 	(uiaccess && node.setAttribute("uiAccess", "true"))
@@ -168,17 +168,17 @@ Directive_UpdateManifest(state, admin, name = "", version = "", uiaccess = "")
 	VarSetCapacity(data, data_size := StrPut(xml, "utf-8") - 1)
 	StrPut(xml, &data, "utf-8")
 	
-	if !DllCall("UpdateResource", "ptr", state.module, "ptr", 24, "ptr", 1
+	if !DllCall("UpdateResource", "ptr", state.Module, "ptr", 24, "ptr", 1
 									, "ushort", 1033, "ptr", &data, "uint", data_size, "uint")
-		Util_Error("Error changing the version information. (D2)", 0x67)
+		Util_Error("Error changing the version information. (D2)", 0x67, state.Cmd)
 }
 
 Directive_UseResourceLang(state, resLang)
 {
 	if resLang is not integer
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, resLang)
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, state.Cmd)
 	if resLang not between 0 and 0xFFFF
-		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, resLang)
+		Util_Error("Error: Resource language must be an integer between 0 and 0xFFFF.", 0x65, state.Cmd)
 	state.resLang := resLang+0
 }
 
@@ -189,7 +189,8 @@ Directive_AddResource(state, rsrc, resName := "")
 		resType := o1, rsrc := o2
 	resFile := Util_GetFullPath(rsrc)
 	if !FileExist(rsrc)
-		Util_Error("Error: specified resource does not exist:", 0x36, rsrc)
+		Util_Error("Error: specified resource does not exist:", 0x36
+		, SubStr(state.PriorLine,1,1)=Chr(127)?SubStr(state.PriorLine,2):state.Cmd)
 	SplitPath, resFile, resFileName,, resExt
 	if !resName
 		resName := resFileName, defResName := true
@@ -202,7 +203,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		else if resExt = ico
 			resType := 14 ; RT_GROUP_ICON
 		else if resExt = cur
-			Util_Error("Error: Cursor resource adding is not supported yet!", 0x27)
+			Util_Error("Error: Cursor resource adding is not supported yet!", 0x27, state.Cmd)
 		else if resExt in htm,html,mht
 			resType := 23 ; RT_HTML
 		else if resExt = manifest
@@ -217,40 +218,70 @@ Directive_AddResource(state, rsrc, resName := "")
 	{
 		if resName is not integer
 			resName := 0
-		AddOrReplaceIcon(state.module, resFile, state.ExeFile, resName)
+		AddOrReplaceIcon(state.Module, resFile, state.ExeFile, resName)
 		return
 	}
 	typeType := "str"
 	nameType := "str"
 	if resType is integer
 		if resType between 0 and 0xFFFF
-			typeType := "uint"
+			typeType := "ptr"
+	resName := resName ~= "^#\d+$" ? SubStr(resName, 2) : resName
 	if resName is integer
 		if resName between 0 and 0xFFFF
-			nameType := "uint"
+			nameType := "ptr"
 	
 	if resType in 4,5,6,9,23,24   ; Deref text-type resources
-	{ 
-		FileRead fData, %resFile%
+	{	FileRead fData, %resFile%
 		fData1 := DerefIncludePath(fData, DerefIncludeVars, 1)
 		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
-		StrPut(fData1, &fdata, "utf-8")
-	} else {
-		FileGetSize, fSize, %resFile%
+		StrPut(fData1, &fData, "utf-8")
+	} 
+	else if SubStr(resExt,1,2) = "ah" && resType = 10
+	{	OldA_s := [], OldA_s.Push(DerefIncludeVars.A_ScriptFullPath) 
+		OldA_s.Push(DerefIncludeVars.A_ScriptName)
+		OldA_s.Push(DerefIncludeVars.A_ScriptDir)
+		OldA_s.Push(DerefIncludeVars.A_LineFile)
+
+		SplitPath, resFile, ScriptName, ScriptDir
+		DerefIncludeVars.A_ScriptFullPath := resFile
+		DerefIncludeVars.A_ScriptName     := ScriptName
+		DerefIncludeVars.A_ScriptDir      := ScriptDir
+		DerefIncludeVars.A_LineFile       := resFile
+		tempWD := new CTempWD(ScriptDir)
+
+		PreprocessScript(fData1 := "", resFile, Directives := [], PriorLines := [])
+		dirState := ProcessDirectives(state.ExeFile, state.Module
+		, Directives, PriorLines, "")
+
+		if dirState.ConsoleApp                     ; Pass any ConsoleApp up chain
+			state.ConsoleApp := dirState.ConsoleApp
+		for k, v in ["PostExec", "PostExec0", "PostExec1", "PostExec2"]
+			state[v].Push(dirState[v]*)              ; Pass any PostExec up chain
+
+		DerefIncludeVars.A_LineFile       := OldA_s.Pop()
+		DerefIncludeVars.A_ScriptDir      := OldA_s.Pop()
+		DerefIncludeVars.A_ScriptName     := OldA_s.Pop()
+		DerefIncludeVars.A_ScriptFullPath := OldA_s.Pop()
+
+		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
+		StrPut(fData1, &fData, "utf-8")
+	} 
+	else
+	{	FileGetSize, fSize, %resFile%
 		VarSetCapacity(fData, fSize)
 		FileRead, fData, *c %resFile%
 	}
 	pData := &fData
 	if resType = 2
-	{
-		; Remove BM header in order to make it a valid bitmap resource
+	{	; Remove BM header in order to make it a valid bitmap resource
 		if fSize < 14
-			Util_Error("Error: Impossible BMP file!", 0x66)
+			Util_Error("Error: Impossible BMP file!", 0x66, state.Cmd)
 		pData += 14, fSize -= 14
 	}
-	if !DllCall("UpdateResource", "ptr",state.module, typeType,resType, nameType
+	if !DllCall("UpdateResource", "ptr",state.Module, typeType,resType, nameType
 	, resName, "ushort",state.resLang, "ptr",pData, "uint",fSize, "uint")
-		Util_Error("Error adding resource:", 0x46, rsrc)
+		Util_Error("Error adding resource:", 0x46, state.Cmd)
 	VarSetCapacity(fData, 0)
 }
 
