@@ -346,6 +346,7 @@ BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
 
 	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent]`n`t [/verbose]")
+
 }
 
 CmdArg_Gui() {
