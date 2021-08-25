@@ -1,4 +1,4 @@
-﻿; 
+; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -319,7 +319,7 @@ while p.MaxIndex()
 	p1 := p.RemoveAt(1)
 	
 	if SubStr(p1,1,1) != "/" || !(p1fn := Func("CmdArg_" SubStr(p1,2)))
-		BadParams("Unrecognised parameter:`n" p1)
+		BadParams("Error: Unrecognised parameter:`n" p1)
 	
 	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
 	{
@@ -332,10 +332,10 @@ while p.MaxIndex()
 }
 
 if (AhkFile = "" && CLIMode)
-	BadParams("No input file specified.")
+	BadParams("Error: No input file specified.")
 
 if (SilentMode && !CLIMode){
-	BadParams("/silent requires CLI mode.")
+	BadParams("Error: /silent requires CLI mode.")
 }
 
 if BinFile =
@@ -386,7 +386,7 @@ CmdArg_MPRESS(p2) {
 CmdArg_Compress(p2) {
 	global
 	if !CompressCode[p2]                ; Invalid codes?
-		BadParams(p1 " parameter invalid:`n" p2)
+		BadParams("Error: " p1 " parameter invalid:`n" p2)
 	if CompressCode[p2] > 0             ; Convert any old codes
 		p2 := CompressCode[p2]
 	UseMPRESS := p2
@@ -421,11 +421,11 @@ CmdArg_Verbose(){
 }
 
 CmdArg_Pass() {
-	BadParams("Password protection is not supported.", 0x24)
+	BadParams("Error: Password protection is not supported.", 0x24)
 }
 
 CmdArg_NoDecompile() {
-	BadParams("/NoDecompile is not supported.", 0x23)
+	BadParams("Error: /NoDecompile is not supported.", 0x23)
 }
 
 BrowseAhk:

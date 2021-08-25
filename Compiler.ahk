@@ -1,4 +1,4 @@
-﻿;
+;
 ; File encoding:  UTF-8 with BOM
 ;
 #Include ScriptParser.ahk
@@ -136,7 +136,7 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 	
 	try FileEncoding, %fileCP%
 	catch e
-		Util_Error("Invalid codepage parameter """ fileCP """ was given.", 0x53)
+		Util_Error("Error: Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
 	PreprocessScript(ScriptBody, AhkFile, Directives := [], PriorLines := [])
 
@@ -180,7 +180,7 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 	{	Util_Status("Compressing final executable with " k " ...")
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
 			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
-		else Util_Error("""" wk """ not found.`n`n'Compress exe with " k
+		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
 			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
 			, UseMPRESS := 9
 	}
