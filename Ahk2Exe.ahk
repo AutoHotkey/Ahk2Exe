@@ -310,7 +310,6 @@ Error_ForceExit := true
 ; Set defaults - may be overridden.
 CLIMode := true
 SilentMode := false
-ForceReload := false
 Verbose := false
 p := A_Args.Clone()       ; Don't deplete A_Args here as needed in 'Restart:'
 
@@ -410,10 +409,6 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 
 CmdArg_Silent(){
 	global SilentMode:= true
-}
-
-CmdArg_ForceReload(){
-	global ForceReload:= true
 }
 
 CmdArg_Verbose(){
