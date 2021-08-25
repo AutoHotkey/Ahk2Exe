@@ -29,7 +29,7 @@ OnExit("Util_HideHourglass")             ; Reset cursor on exit
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
 global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
-	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode
+	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode, DirDoneG
 	, ExeFiles := [], BinFiles := [], BinNames, FileNameG
 
 ExeDfltMes := "(Default is script file, or any relevant compiler directive)"
@@ -50,18 +50,22 @@ if IcoFile =
 	IcoFile := LastIcon
 
 if CLIMode
-{
-	gosub ConvertCLI
+{	ConvertCLI()
 	ExitApp, 0 ; Success
 }
 
 BinFileId := FindBinFile(LastBinFile)
 
-Menu, FileMenu, Add, R&eset all fields`tF5, Restart
-Menu, FileMenu, Add, S&ave script settings As…`tCtrl+S, SaveAsMenu
+AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
+AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
+SaveMes   := "S&ave Script Settings As…`tCtrl+S"
+
+Menu, FileMenu, Add, %AllowMes0%, Shrink
+Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
+Menu, FileMenu, Add, %SaveMes%, SaveAsMenu
 if (!AhkFile)
-	Menu, FileMenu, Disable, S&ave script Settings As…`tCtrl+S
-Menu, FileMenu, Add, &Convert, Convert
+	Menu, FileMenu, Disable, %SaveMes%
+Menu, FileMenu, Add, &Convert`tAlt+C, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
 Menu, HelpMenu, Add, &Help`tF1, Help
@@ -71,9 +75,11 @@ Menu, MenuBar,  Add, &File, :FileMenu
 Menu, MenuBar,  Add, &Help, :HelpMenu
 Gui, Menu, MenuBar
 
-Gui, +LastFound +Resize +MinSize594x415
-GuiHwnd := WinExist("")
-Gui, Add, Link, x287 y15,
+GuiX := 580, GuiY := 355
+
+Gui, +LastFound +Resize +MinSize%GuiX%x%GuiY% ; +MaxSizex%GuiY%
+GuiHwnd := WinExist("")                       ;^ Fails on older Windows versions
+Gui, Add, Link, x275 y5 vHeading2,
 (
 ©2004-2009 Chris Mallet
 ©2008-2011 Steve Gray (Lexikos)
@@ -82,33 +88,35 @@ Gui, Add, Link, x287 y15,
 <a href="https://www.autohotkey.com">https://www.autohotkey.com</a>
 Note: Compiling does not guarantee source code protection.
 )
-Gui, Add, Text,     x11 y110 w570 h2 +0x1007 vTopLine
-Gui, Add, GroupBox, x11 yp15 w570 h95 cBlue vGroupA, Main Parameters
-Gui, Add, Text,     x17 yp30, &Source (script file)
-Gui, Add, Edit,   xp130 yp-4 w305 h23 +Disabled vAhkFile, %AhkFile%
-Gui, Add, Button, xp322 yp w53 h23 gBrowseAhk vBtnAhkFile, &Browse
+Gui, Add, Text,     x11 y90 w556 h2 +0x1007 vTopLine
+Gui, Add, GroupBox, x11 yp10 w556 h80 cGreen vGroupA, Main Parameters
+Gui, Add, Text,     x17 yp20, &Source (script file)
+Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vAhkFile, %AhkFile%
+Gui, Add, Button, xp296 yp w53 h23 gBrowseAhk vBtnAhkFile, &Browse
 Gui, Add, Text,     x17 yp34, &Destination (.exe file)
-Gui, Add, Edit,   xp130 yp-4 w305 h23 +Disabled vExeFile1
+Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vExeFile1
 		, % Exefile ? ExeFile : ExeDfltMes
-Gui, Add, Button, xp322 yp w53 h23 gBrowseExe vBtnExeFile, B&rowse
+Gui, Add, Button, xp296 yp w53 h23 gBrowseExe vBtnExeFile, B&rowse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultExe vBtnExeDefault, D&efault
-Gui, Add, GroupBox, x11 yp50 w570 h120 cBlue vGroupB, Options
-Gui, Add, Text,     x17 yp30, Custom &Icon (.ico file)
-Gui, Add, Edit,   xp130 yp-4 w305 h23 +Disabled vIcoFile, %IcoFile%
-Gui, Add, Button, xp322 yp w53 h23 gBrowseIco vBtnIcoFile, Br&owse
+Gui, Add, GroupBox, x11 yp45 w556 h105 cGreen vGroupB, Options
+Gui, Add, Text,     x17 yp20, Custom &Icon (.ico file)
+Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, Button, xp296 yp w53 h23 gBrowseIco vBtnIcoFile, Br&owse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultIco vBtnIcoDefault, Def&ault
 Gui, Add, Text,     x17 yp34, Base File (.bin, .exe)
-Gui, Add, DDL,    xp130 yp-2 w305 h23 R10 AltSubmit vBinFileId Choose%BinFileId%, %BinNames%
-Gui, Add, Button, xp322 yp w53 h23 gBrowseBin vBtnBinFile, Bro&wse
+Gui, Add, DDL,    xp130 yp-2 w291 h23 R10 AltSubmit gBinChanged vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, Button, xp296 yp w53 h23 gBrowseBin vBtnBinFile, Bro&wse
 Gui, Add, Text,     x17 yp32, Compress exe with
 Gui, Add, DDL, % "xp130 yp-2 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
-Gui, Add, Text,     x17 yp50, Convert to executable
+Gui, Add, Text,   xp150 yp2 vEmbRes, Embedded Resource ID
+gui, Add, ComboBox, x444 yp-2 w112 vResourceID, %LastResource%
+Gui, Add, Text,     x17 yp40, Convert to executable
 Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, > &Convert <
-Gui, Add, Text,   xp160 yp4 vSave, Save 'Options' as default
-Gui, Add, Button,  x456 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
+Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
+Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
-Gui, Add, Pic, x29 y16 w240 h78, %A_ScriptDir%\logo.png
+Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 ;@Ahk2Exe-IgnoreEnd
 /*@Ahk2Exe-Keep
 gosub AddPicture
@@ -116,6 +124,7 @@ gosub AddPicture
 Gui, Show, w594 h383, % "Ahk2Exe for AutoHotkey v" A_AhkVersion " -- Script to EXE Converter"
 GuiControl, Focus, vBtnConvert
 gosub compress
+gosub BinChanged
 return
 
 GuiClose:
@@ -132,12 +141,18 @@ if (UseMPRESS !=1
 else Util_Status("Ready")
 return
 
+BinChanged:
+Gui Submit, NoHide
+GuiControl % SubStr(BinFiles[BinFileId],-3)=".bin"?"Disable":"Enable",EmbRes
+GuiControl % SubStr(BinFiles[BinFileId],-3)=".bin"?"Disable":"Enable",ResourceID
+return
+
 GuiDropFiles:
 loop, parse, A_GuiEvent, `n
 {	SplitPath, A_LoopField,,, DropExt
 	if SubStr(DropExt,1,2) = "ah"          ; Allow for v2, e.g. ah2, ahk2, etc
 	{	GuiControl,, AhkFile, %A_LoopField%
-		Menu, FileMenu, Enable, S&ave script settings As…`tCtrl+S
+		Menu, FileMenu, Enable, %SaveMes%
 		Util_Status("""" A_LoopField """ added as 'Source'"), SetCDBin(A_LoopField)
 	} 
 	else if (DropExt = "ico")
@@ -145,7 +160,13 @@ loop, parse, A_GuiEvent, `n
 		Util_Status("""" A_LoopField """ added as 'Custom Icon'"), StopCDIco := 1
 	} 
 	else if DropExt in bin,exe
-	{	Count := FindBinsExes(A_LoopField, "\|", "")
+	{	MouseGetPos,,,,Control
+		if (DropExt = "exe" && Control ~= "^Edit2$|^Static3$")
+		{	GuiControl,, ExeFile1, %A_LoopField% ; Dropping onto Destination field
+			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
+			continue
+		}			
+		Count := FindBinsExes(A_LoopField, "\|", "")
 		if (DropExt = "exe" && Count = 0)
 		{	GuiControl,, ExeFile1, %A_LoopField%
 			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
@@ -160,9 +181,19 @@ loop, parse, A_GuiEvent, `n
 }
 return
 
+Shrink:
+Gui % (Flip := !Flip, Flip1 := !Flip) ? "-MinSize" : "+MinSize" GuiX "x" GuiY
+Menu FileMenu, Rename, % AllowMes%Flip1%, % AllowMes%Flip%
+Gui Show, w%GuiX% h%GuiY%
+return
+
 GuiSize:
 if (A_EventInfo = 1) ; The window has been minimized.
 	return
+
+; Headings
+GuiControl, Move,     Heading1,      % "x" A_GuiWidth-560 -(A_GuiWidth-GuiX)/2
+GuiControl, MoveDraw, Heading2,      % "x" A_GuiWidth-305 -(A_GuiWidth-GuiX)/2
 
 ; Top border / Separator
 GuiControl, Move,     TopLine,       % "w" A_GuiWidth-24
@@ -181,19 +212,20 @@ GuiControl, Move,     BtnIcoFile,    % "x" A_GuiWidth-135
 GuiControl, Move,     BtnIcoDefault, % "x" A_GuiWidth-77
 GuiControl, Move,     BtnBinFile,    % "x" A_GuiWidth-135
 GuiControl, Move,     BinFileId,     % "w" A_GuiWidth-289
-GuiControl, Move,     Save,          % "x" A_GuiWidth-280
-GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
+GuiControl, Move,     EmbRes,        % "x" A_GuiWidth-280
+GuiControl, MoveDraw, ResourceID,    % "x" A_GuiWidth-135
 GuiControl, MoveDraw, GroupB,        % "w" A_GuiWidth-24
 
-;GuiControl, Move, BtnSave   , % "x" (A_GuiWidth-75)/2
-;GuiControl, Move, BtnConvert, % "x" (A_GuiWidth-75)/2
+; Footer
+GuiControl, Move,     Save,          % "x" A_GuiWidth-280
+GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
 return
 
 /*@Ahk2Exe-Keep
 
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
-Gui, Add, Text, x29 y16 w240 h78 +0xE hwndhPicCtrl
+Gui, Add, Text, x20 y6 w240 h78 +0xE hwndhPicCtrl vHeading1
 
 ;@Ahk2Exe-AddResource logo.png
 hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.PNG", "ptr", 10, "ptr")
@@ -223,7 +255,7 @@ return
 */
 
 BuildBinFileList:
-FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","—") ; Any default is first
+FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","-") ; Any default is first
 FindBinsExes(A_ScriptDir "\*",, "")                      ; Rest of \Compiler
 if SubStr(A_LineFile,1,1) = "*"                          ; if I am worthy,
 	FindBinsExes(A_ScriptDir "\Ahk2Exe.exe", "\|", "","\") ;   add me to the lists
@@ -292,8 +324,8 @@ while p.MaxIndex()
 	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
 	{
 		p2 := p.RemoveAt(1)
-		if p2 =
-			BadParams("Blank or missing parameter for " p1 ".")
+		if (p2 = "" || SubStr(p2,1,1) = "/")
+			BadParams("Error: Blank or missing parameter for " p1 ".")
 	}
 	
 	%p1fn%(p2)
@@ -312,29 +344,12 @@ return
 
 BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
-	params = 
-	(LTrim
-	Command Line Parameters:
-	%A_ScriptName%
-	`t[/silent]
-	`t[/gui]
-	`t /in infile.ahk
-	`t[/out outfile.exe]
-	`t[/icon iconfile.ico]
-	`t[/base AutoHotkeySC.bin]
-	`t[/compress 0 (none), 1 (MPRESS), or 2 (UPX)]
-	`t[/cp codepage]
-	`t[/ahk path\name]
-	`t[/ForceReload]
-	`t[/verbose]
-	)
-	Util_Error(Message, ErrorCode,, params)
+
+	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent]`n`t [/verbose]")
 }
 
 CmdArg_Gui() {
-	global
-	CLIMode := false
-	Error_ForceExit := false
+	global CLIMode := false, Error_ForceExit := false
 }
 
 CmdArg_In(p2) {
@@ -357,6 +372,11 @@ CmdArg_Base(p2) {
 
 CmdArg_Bin(p2) {
 	CmdArg_Base(p2)
+}
+
+CmdArg_ResourceID(p2) {
+	global ResourceID := p2, LastResource := StrReplace(LastResource,"||","|")
+	LastResource:=p2 "||" Trim(StrReplace("|" LastResource "|","|"p2 "|","|"),"|")
 }
 
 CmdArg_MPRESS(p2) {
@@ -409,13 +429,13 @@ CmdArg_NoDecompile() {
 
 BrowseAhk:
 Gui, +OwnDialogs
-FileSelectFile, ov, 1, %LastAhkDir%, Open Script, AutoHotkey files (*.ahk)
+FileSelectFile, ov, 1, %LastAhkDir%, Open Script, AutoHotkey files (*.ah??)
 if ErrorLevel
 	return
 SplitPath ov,, LastAhkDir
 GuiControl,, AhkFile, %ov%
 SetCDBin(ov)
-menu, FileMenu, Enable, S&ave script settings As…`tCtrl+S
+menu, FileMenu, Enable, %SaveMes%
 return
 
 BrowseExe:
@@ -454,12 +474,12 @@ if FindBinsExes(ov, "\|", "") > 1
 return
 
 DefaultExe:
-ExeFile := "", StopCDExe := 0
+ExeFile := "", StopCDExe := 0, Util_Status("")
 GuiControl,, ExeFile1, %ExeDfltMes%
 return
 
 DefaultIco:
-StopCDIco := 0
+StopCDIco := 0, Util_Status("")
 GuiControl,, IcoFile
 return
 
@@ -487,13 +507,14 @@ if FileExist(SaveAs)
 {	Gui, +OwnDialogs
 	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites any existing file)
 	IfMsgBox Cancel, return
-	IfMsgBox, No,    FileDelete %SaveAs%
+	IfMsgBox No,     FileDelete %SaveAs%
 }
-FileAppend % "RunWait """ A_ScriptDir "\Ahk2Exe.exe""`n /in """ AhkFile """"
+FileAppend % "RunWait """ A_ScriptFullPath """`n /in """ AhkFile """"
 . (ExeFile ? "`n /out """ ExeFile """" : "")
-. (IcoFile ? "`n /icon """ IcoFile """": "") 
+. (IcoFile ? "`n /icon """ IcoFile """": "") (ResourceID 
+~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n /ResourceID """ ResourceID """")
 . "`n /base """ BinFile """`n /compress " UseMpress-1 "`n`n", %SaveAs%
-Util_Status("Saved script settings")
+Util_Status(ErrorLevel?"Save script settings failed!":"Saved script settings")
 Return
 
 SetCDBin(FileName)
@@ -524,6 +545,7 @@ SetCDBin(FileName)
 		Util_Status("""" SBDMes """ removed from 'Base File' list.")
 	}                             ; As can't change parameter of BoundFunc Object,
 	SetTimer MonitorFile, 400, -1 ;   we are using a global for FileName parameter
+	gosub BinChanged
 }
 
 MonitorFile()
@@ -542,74 +564,79 @@ BinFile := BinFiles[BinFileId]
 if (BinFile = SBDMes)
 	StopCDBin := 0
 else StopCDBin := 1
-
-ConvertCLI:
-AhkFile := Util_GetFullPath(AhkFile)
-if AhkFile =
-	Util_Error("Error: Source file not specified.", 0x33)
-SplitPath, AhkFile, ScriptName, ScriptDir
-DerefIncludeVars.A_ScriptFullPath := AhkFile
-DerefIncludeVars.A_ScriptName := ScriptName
-DerefIncludeVars.A_ScriptDir := ScriptDir
-SetWorkingDir %A_ScriptDir%
-
-global DirDone := []                   ; Process Bin directives
-DirBinsWk := [], DirBins := [], DirExe := [], DirCP := [], Cont := 0
-Loop Read, %AhkFile%                   ;v Handle 1-2 unknown comment characters
-{	if (Cont=1 && RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
-		DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
-		, DirDone[A_Index] := 1
-	else if (Cont!=2)
-	&& RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-(?:Bin|Base) (.*$)",o)
-		DirBinsWk.Push(RegExReplace(o1, "\s+;.*$")), Cont := 1, DirDone[A_Index]:= 1
-	else if SubStr(LTrim(A_LoopReadLine),1,2) = "/*"
-		Cont := 2
-	else if Cont != 2
-		Cont := 0
-	if (Cont = 2) && A_LoopReadLine~="^\s*\*/|\*/\s*$"  ;End block comment
-		Cont := 0
-}
-for k, v1 in StopCDBin ? [] : DirBinsWk
-{	Util_Status("Processing directive: " v1)
-	StringReplace, v, v1, ```,, `n, All
-	Loop Parse, v, `,, %A_Space%%A_Tab%
-	{	if A_LoopField =
-			continue
-		StringReplace, o1, A_LoopField, `n, `,, All
-		StringReplace, o,o1, ``n, `n, All
-		StringReplace, o, o, ``r, `r, All
-		StringReplace, o, o, ``t, `t, All
-		StringReplace, o, o,````, ``, All
-		o := DerefIncludePath(o, DerefIncludeVars, 1)
-		if A_Index = 1
-		{	o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
-			if !FileExist(o)
-			 Util_Error("Error: The selected Base file does not exist. (A1)"
-			 , 0x34, """" o1 """")
-			Loop Files, % o
-				DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont := A_Index
-		} else if A_Index = 2
-		{	SplitPath ExeFile    ,, edir,,ename
-			SplitPath A_LoopField,, idir,,iname
-			Loop % Cont
-				DirExe[DirExe.MaxIndex()-A_Index+1] 
-				:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
-		}	else if A_Index = 3
-		{	wk := A_LoopField~="^\d+$" ? "CP" A_LoopField : A_LoopField
-			Loop % Cont
-				DirCP[DirExe.MaxIndex()-A_Index+1] := wk
-		}	else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
-}	}
-if Util_ObjNotEmpty(DirBins)
-	for k in DirBins
-		 ExeFile:= AhkCompile(AhkFile, DirExe[k], IcoFile, DirBins[k],UseMpress
-		                                       , DirCP[k] ? DirCP[k] : ScriptFileCP)
-else ExeFile:= AhkCompile(AhkFile, ExeFile,   IcoFile, BinFile,   UseMpress, ScriptFileCP)
-
-Util_Info("Conversion complete.")
-if CLIMode
-	FileAppend, Successfully compiled: %ExeFile%`n, *
+ConvertCLI()
 return
+
+ConvertCLI()
+{	local TempWD
+	AhkFile := Util_GetFullPath(AhkFile)
+	if AhkFile =
+		Util_Error("Error: Source file not specified.", 0x33)
+	SplitPath, AhkFile, ScriptName, ScriptDir
+	DerefIncludeVars.A_ScriptFullPath := AhkFile
+	DerefIncludeVars.A_ScriptName := ScriptName
+	DerefIncludeVars.A_ScriptDir := ScriptDir
+	TempWD := new CTempWD(A_ScriptDir)
+	
+	DirDoneG := []                       ; Process Bin directives
+	DirBinsWk := [], DirBins := [], DirExe := [], DirCP := [], Cont := 0
+	Loop Read, %AhkFile%                 ;v Handle 1-2 unknown comment characters
+	{	if (Cont=1&&RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-Cont (.*$)",o))
+			DirBinsWk[DirBinsWk.MaxIndex()] .= RegExReplace(o1,"\s+;.*$")
+			, DirDoneG[A_Index] := 1
+		else if (Cont!=2)
+		&& RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-(?:Bin|Base) (.*$)",o)
+			DirBinsWk.Push(RegExReplace(o1,"\s+;.*$")), Cont := 1,DirDoneG[A_Index]:=1
+		else if SubStr(LTrim(A_LoopReadLine),1,2) = "/*"
+			Cont := 2
+		else if Cont != 2
+			Cont := 0
+		if (Cont = 2) && A_LoopReadLine~="^\s*\*/|\*/\s*$"  ;End block comment
+			Cont := 0
+	}
+	for k, v1 in StopCDBin ? [] : DirBinsWk
+	{	Util_Status("Processing directive: " v1)
+		StringReplace, v, v1, ```,, `n, All
+		Loop Parse, v, `,, %A_Space%%A_Tab%
+		{	if A_LoopField =
+				continue
+			StringReplace, o1, A_LoopField, `n, `,, All
+			StringReplace, o,o1, ``n, `n, All
+			StringReplace, o, o, ``r, `r, All
+			StringReplace, o, o, ``t, `t, All
+			StringReplace, o, o,````, ``, All
+			o := DerefIncludePath(o, DerefIncludeVars, 1)
+			if A_Index = 1
+			{	o .= RegExReplace(o, "\.[^\\]*$") = o ? ".bin" : "" ; Add extension?
+				if !FileExist(o)
+				Util_Error("Error: The selected Base file does not exist. (A1)"
+				, 0x34, """" o1 """")
+				Loop Files, % o
+					DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont:=A_Index
+			} else if A_Index = 2
+			{	SplitPath ExeFile    ,, edir,,ename
+				SplitPath A_LoopField,, idir,,iname
+				Loop % Cont
+					DirExe[DirExe.MaxIndex()-A_Index+1] 
+					:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
+			}	else if A_Index = 3
+			{	wk := A_LoopField~="^\d+$" ? "CP" A_LoopField : A_LoopField
+				Loop % Cont
+					DirCP[DirExe.MaxIndex()-A_Index+1] := wk
+			}	else Util_Error("Error: Wrongly formatted directive. (A1)", 0x64, v1)
+	}	}
+	if !Util_ObjNotEmpty(DirBins)
+		DirExe.1 := ExeFile, DirBins.1 := BinFile
+		
+	for k in DirBins
+		AhkCompile(AhkFile, DirExe[k], ResourceID, IcoFile, DirBins[k]
+		, UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP)
+	
+	if !CLIMode
+		Util_Info("Conversion complete.")
+	else
+		FileAppend, Successfully compiled: %ExeFile%`n, *
+}
 
 LoadSettings:
 RegRead, LastAhkDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir
@@ -618,11 +645,14 @@ RegRead, LastBinDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir
 RegRead, LastIcoDir,    HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir
 RegRead, LastIcon,      HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile,   HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
+RegRead, LastResource,  HKCU, Software\AutoHotkey\Ahk2Exe, LastResource
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
 if !FileExist(LastIcon)
 	LastIcon := ""
 if (LastBinFile = "") || !FileExist(LastBinFile)
 	LastBinFile := BinFiles.1
+if (LastResource = "")
+	LastResource := "(default)||#1|#2|(reset list)"
 if !CompressCode[LastUseMPRESS]                ; Invalid codes := 0
 	LastUseMPRESS := false
 if CompressCode[LastUseMPRESS] > 0             ; Convert any old codes
@@ -631,24 +661,35 @@ return
 
 SaveAsDefault:
 Gui, Submit, NoHide
+if (ResourceID = "(reset list)")
+	LastResource := "(default)||#1|#2|(reset list)"
+else
+	wk := ResourceID, LastResource := StrReplace(LastResource,"||","|")
+,	LastResource:=wk "||" Trim(StrReplace("|" LastResource "|","|"wk "|","|"),"|")
+GuiControl,,ResourceID, |%LastResource%
+
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir,    %LastIcoDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon,      %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS,% UseMPRESS-1
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastResource,%LastResource%
 if !(BinFile = SBDMes)
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 Util_Status("Options saved as default")
 return
 
 SaveSettings:
-RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir, %LastAhkDir%
-RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %LastExeDir%
-RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir, %LastBinDir%
+RegRead, wk, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS ; Test if present
+if !ErrorLevel      ; Only RegWrite if 'save' has occurred sometime in the past
+{	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir, %LastAhkDir%
+	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %LastExeDir%
+	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir, %LastBinDir%
+}
 return
 
 Help:
 helpfile = %A_ScriptDir%\..\AutoHotkey.chm
 IfNotExist, %helpfile%
-	Util_Error("Error: cannot find AutoHotkey help file!", 0x52)
+	Util_Error("Error: cannot find AutoHotkey help file!", 0x52, helpfile)
 
 VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
 NumPut(ak_size, ak, 0, "UInt")

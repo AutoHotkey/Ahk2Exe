@@ -5,7 +5,7 @@
 #Include IconChanger.ahk
 #Include Directives.ahk
 
-AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS="", fileCP="")
+AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 {
 	global ExeFileTmp, ExeFileG, SilentMode, ForceReload
 
@@ -62,12 +62,13 @@ AhkCompile(ByRef AhkFile, ExeFile="", ByRef CustomIcon="", BinFile="", UseMPRESS
 . "from Function Libraries and any 'Obey' directives will not be processed.",0)
 
 global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
-	
+
 	; v1.1.34 supports compiling with EXE, but in that case uses resource ID 1.
-	ResourceId := SubStr(BinFile, -3) = ".exe" ? "#1" : ">AUTOHOTKEY SCRIPT<"
+	ResourceID := SubStr(BinFile, -3)=".exe" ? ResourceID ? ResourceID : "#1" 
+	: ">AUTOHOTKEY SCRIPT<"
 
 	ExeFileG := ExeFile
-	BundleAhkScript(ExeFileTmp, ResourceId, AhkFile, UseMPRESS, CustomIcon, fileCP, BinFile)
+	BundleAhkScript(ExeFileTmp, ResourceID, AhkFile, UseMPRESS, CustomIcon, fileCP, BinFile)
 	
 	; the final step...
 	Util_Status("Moving .exe to destination")
@@ -126,7 +127,7 @@ Buttons()
 	ControlSetText Button2, && &Reload
 }
 
-BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
+BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 {
 	if fileCP is space
 		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
@@ -137,59 +138,32 @@ BundleAhkScript(ExeFile, ResourceId, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 	catch e
 		Util_Error("Invalid codepage parameter """ fileCP """ was given.", 0x53)
 	
-	SplitPath, AhkFile,, ScriptDir
+	PreprocessScript(ScriptBody, AhkFile, Directives := [], PriorLines := [])
 
-	ExtraFiles := []
-	Directives := PreprocessScript(ScriptBody, AhkFile, ExtraFiles)
-
-	VarSetCapacity(BinScriptBody, BinScriptBody_Len := StrPut(ScriptBody, "UTF-8") - 1)
+	VarSetCapacity(BinScriptBody, BinScriptBody_Len:=StrPut(ScriptBody,"UTF-8")-1)
 	StrPut(ScriptBody, &BinScriptBody, "UTF-8")
 	
-	module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
-	if !module
-		Util_Error("Error opening the destination file. (C1)", 0x31)
+	Module := DllCall("BeginUpdateResource", "str", ExeFile, "uint", 0, "ptr")
+	if !Module
+		Util_Error("Error: Error opening the destination file. (C1)", 0x31)
 
 	if BinFile ~= "i)\\Ahk2Exe.exe$" ;If base is self, oust Ahk2Exe logo from .exe
-		DllCall("UpdateResource", "ptr", module, "ptr", 10
+		DllCall("UpdateResource", "ptr", Module, "ptr", 10
 		, "str", "LOGO.PNG", "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
 
-	SetWorkingDir % ScriptDir
-
+	SetWorkingDir %AhkFile%\..
 	DerefIncludeVars.A_WorkFileName := ExeFile
-	dirState := ProcessDirectives(ExeFile, module, Directives, IcoFile)
-	IcoFile := dirState.IcoFile
-	
-	if outPreproc := dirState.OutPreproc
-	{
-		f := FileOpen(outPreproc, "w", "UTF-8-RAW")
-		f.RawWrite(BinScriptBody, BinScriptBody_Len)
-		f := ""
-	}
-	
+	dirState := ProcessDirectives(ExeFile, Module, Directives, PriorLines,IcoFile)
+
 	Util_Status("Adding: Master Script")
-	if !DllCall("UpdateResource", "ptr", module, "ptr", 10
-			, "ptr", ResourceId ~= "^#\d+$" ? SubStr(ResourceId, 2) : &ResourceId
-			, "ushort", 0x409, "ptr", &BinScriptBody, "uint", BinScriptBody_Len, "uint")
+	ResourceID := Format("{:U}", ResourceID ~= "i)^\(default\)$|^\(reset list\)$"
+		? dirState.ResourceID = "" ? "#1" : dirState.ResourceID : ResourceID)
+
+	if !DllCall("UpdateResource", "ptr", Module, "ptr", 10
+			, "ptr", ResourceID ~= "^#\d+$" ? SubStr(ResourceID, 2) : &ResourceID
+			, "ushort",0x409, "ptr",&BinScriptBody, "uint",BinScriptBody_Len, "uint")
 		goto _FailEnd
 		
-	for each,file in ExtraFiles
-	{
-		Util_Status("Adding: " file)
-		StringUpper, resname, file
-		
-		IfNotExist, %file%
-			goto _FailEnd2
-		
-		; This "old-school" method of reading binary files is way faster than using file objects.
-		FileGetSize, filesize, %file%
-		VarSetCapacity(filedata, filesize)
-		FileRead, filedata, *c %file%
-		if !DllCall("UpdateResource", "ptr", module, "ptr", 10, "str", resname
-				  , "ushort", 0x409, "ptr", &filedata, "uint", filesize, "uint")
-			goto _FailEnd2
-		VarSetCapacity(filedata, 0)
-	}
-	
 	gosub _EndUpdateResource
 	
 	if dirState.ConsoleApp
@@ -223,8 +197,8 @@ _FailEnd2:
 	Util_Error("Error adding FileInstall file:`n`n" file, 0x44)
 	
 _EndUpdateResource:
-	if !DllCall("EndUpdateResource", "ptr", module, "uint", 0)
-	{	Util_Error("Error opening the destination file. (C2)", 0
+	if !DllCall("EndUpdateResource", "ptr", Module, "uint", 0)
+	{	Util_Error("Error: Error opening the destination file. (C2)", 0
 		,,"This error may be caused by your anti-virus checker.`n"
 		. "Press 'OK' to try again, or 'Cancel' to abandon.")
 		goto _EndUpdateResource
@@ -234,17 +208,13 @@ _EndUpdateResource:
 ; -------------------------- End of BundleAhkScript ----------------------------
 
 class CTempWD
-{
-	__New(newWD)
-	{
-		this.oldWD := A_WorkingDir
+{	__New(newWD)
+	{	this.oldWD := A_WorkingDir
 		SetWorkingDir % newWD
 	}
 	__Delete()
-	{
-		SetWorkingDir % this.oldWD
-	}
-}
+	{	SetWorkingDir % this.oldWD
+}	}
 
 RunPostExec(dirState, UseMPRESS := "")
 {	for k, v in dirState["PostExec" UseMPRESS]

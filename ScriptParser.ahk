@@ -2,8 +2,9 @@
 ; File encoding:  UTF-8 with BOM
 ;
 
-PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
-{	global DirDone
+PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
+, FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
+{	global DirDoneG
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
@@ -11,19 +12,16 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
-		Options := { comm: ";", esc: "``", directives: [] }
+		Options := { comm: ";", esc: "``" }
 		
 		OldWorkingDir := A_WorkingDir
-		SetWorkingDir, %ScriptDir%
-				
-		global priorlines := []
+		TempWD := new CTempWD(ScriptDir)
 	}
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
 	
 	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
-	{
-		OldWorkingDirv2 := A_WorkingDir
+	{	OldWorkingDirv2 := A_WorkingDir
 		SetWorkingDir %ScriptDir%
 	}
 	
@@ -54,10 +52,10 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					StringTrimLeft, tline, tline, 9
 					if StrStartsWith(tline, "IgnoreBegin")
 						ignoreSection := true       ;v Skip 'Bin' & their 'Cont' directives
-					else if Trim(tline) != "" && !(DirDone[A_Index] && IsFirstScript)
-						Options.directives.Insert(RegExReplace(tline ; Save directive
+					else if Trim(tline) != "" && !(DirDoneG[A_Index] && IsFirstScript)
+						Directives.Insert(RegExReplace(tline ; Save directive
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
-						, priorlines.Push(priorline) ; Will be this directive's A_PriorLine
+						, PriorLines.Push(PriorLine) ; Will be this directive's A_PriorLine
 					continue
 				}
 				else if tline =
@@ -77,7 +75,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 			else if StrStartsWith(tline, ")")
 				contSection := false
 			
-			priorline := tline                   ; Save for a directive's A_PriorLine
+			PriorLine := tline                   ; Save for a directive's A_PriorLine
 			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 
@@ -128,7 +126,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				{
 					if !AlreadyIncluded
 						FileList.Insert(IncludeFile)
-					PreprocessScript(ScriptText, IncludeFile, ExtraFiles, FileList, FirstScriptDir, Options, IgnoreErrors)
+					PreprocessScript(ScriptText, IncludeFile, Directives
+					, PriorLines, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
 			}else if !contSection && tline ~= "i)^FileInstall[(, \t]"
 			{
@@ -151,13 +150,14 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 				StringReplace, o1, o1, %_%`,, `,, All
 				StringReplace, o1, o1, %_%%_%,, %_%,, All
 				
-				; workaround for `, detection [END]
-					StringReplace, o1, o1, %EscapeTmp%, `,, All
-					StringReplace, o1, o1, %EscapeTmpD%, %EscapeChar%, All
-					StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
-					StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
-				
-				ExtraFiles.Insert(Trim(o1, """'")) ; Drop any quotes (V2)
+			; workaround for `, detection [END]
+				StringReplace, o1, o1, %EscapeTmp%, `,, All
+				StringReplace, o1, o1, %EscapeTmpD%, %EscapeChar%, All
+				StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
+				StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
+
+				Directives.Push("AddResource *10 " Trim(o1, """'"))
+				PriorLines.Push(Chr(127) A_LoopReadLine)       ; Install flag & line
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
 				Options.comm := o1, ScriptText .= tline "`n"
@@ -217,8 +217,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 					}                         ; Don't execute Auto_Includes directly
 					ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
 				}
-				PreprocessScript(ScriptText, ilibfile, ExtraFiles, FileList
-				, FirstScriptDir, Options)
+				PreprocessScript(ScriptText, ilibfile, Directives
+				, PriorLines, FileList, FirstScriptDir, Options)
 		}	}
 		If (ilibfile)
 			FileDelete, %ilibfile%?
@@ -231,10 +231,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, ExtraFiles, FileList := "", FirstS
 	
 	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
 		SetWorkingDir %OldWorkingDirv2%
-
-	if IsFirstScript
-		return Options.directives
 }
+; --------------------------- End PreprocessScript -----------------------------
 
 IsFakeCSOpening(tline)
 {
