@@ -160,7 +160,13 @@ loop, parse, A_GuiEvent, `n
 		Util_Status("""" A_LoopField """ added as 'Custom Icon'"), StopCDIco := 1
 	} 
 	else if DropExt in bin,exe
-	{	Count := FindBinsExes(A_LoopField, "\|", "")
+	{	MouseGetPos,,,,Control
+		if (DropExt = "exe" && Control ~= "^Edit2$|^Static3$")
+		{	GuiControl,, ExeFile1, %A_LoopField% ; Dropping onto Destination field
+			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
+			continue
+		}			
+		Count := FindBinsExes(A_LoopField, "\|", "")
 		if (DropExt = "exe" && Count = 0)
 		{	GuiControl,, ExeFile1, %A_LoopField%
 			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
@@ -208,9 +214,11 @@ GuiControl, Move,     BtnBinFile,    % "x" A_GuiWidth-135
 GuiControl, Move,     BinFileId,     % "w" A_GuiWidth-289
 GuiControl, Move,     EmbRes,        % "x" A_GuiWidth-280
 GuiControl, MoveDraw, ResourceID,    % "x" A_GuiWidth-135
+GuiControl, MoveDraw, GroupB,        % "w" A_GuiWidth-24
+
+; Footer
 GuiControl, Move,     Save,          % "x" A_GuiWidth-280
 GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
-GuiControl, MoveDraw, GroupB,        % "w" A_GuiWidth-24
 return
 
 /*@Ahk2Exe-Keep
@@ -444,12 +452,12 @@ if FindBinsExes(ov, "\|", "") > 1
 return
 
 DefaultExe:
-ExeFile := "", StopCDExe := 0
+ExeFile := "", StopCDExe := 0, Util_Status("")
 GuiControl,, ExeFile1, %ExeDfltMes%
 return
 
 DefaultIco:
-StopCDIco := 0
+StopCDIco := 0, Util_Status("")
 GuiControl,, IcoFile
 return
 
