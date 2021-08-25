@@ -343,9 +343,7 @@ return
 
 BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
-
 	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent]`n`t [/verbose]")
-
 }
 
 CmdArg_Gui() {
@@ -737,8 +735,8 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
-	if CLIMode && SilentMode {
-		txt :=  "Ahk2Exe " (exitcode? "Error" : "Warning") ": " txt "`n"
+	if SilentMode {
+		txt := "Ahk2Exe " txt "`n"
 		try FileAppend, %txt%, **
 		catch
 			FileAppend, %txt%, *
@@ -766,9 +764,8 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	
 	if exitcode
 		if Error_ForceExit || SilentMode
-			ExitApp, %exitcode%
-		else
-			Exit, %exitcode% 
+			ExitApp, exitcode
+		else Exit, exitcode
 	Util_DisplayHourglass()
 }
 
