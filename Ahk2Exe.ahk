@@ -306,7 +306,10 @@ ParseCmdLine:
 if !A_Args.MaxIndex()
 	return
 Error_ForceExit := true
-CLIMode := true           ; Set default - may be overridden.
+
+; Set defaults - may be overridden.
+CLIMode := true
+SilentMode := 0	; 0=off, 1=on, 2=verbose
 p := A_Args.Clone()       ; Don't deplete A_Args here as needed in 'Restart:'
 
 while p.MaxIndex()
@@ -329,13 +332,17 @@ while p.MaxIndex()
 if (AhkFile = "" && CLIMode)
 	BadParams("Error: No input file specified.")
 
+if (SilentMode && !CLIMode){
+	BadParams("Error: /silent requires CLI mode.")
+}
+
 if BinFile =
 	BinFile := LastBinFile
 return
 
 BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
-	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]")
+	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent [verbose]]")
 }
 
 CmdArg_Gui() {
@@ -395,6 +402,14 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 		ScriptFileCP := "CP" p2
 	else
 		ScriptFileCP := p2
+}
+
+CmdArg_Silent(){
+	global 
+	if p[1] = "verbose"
+	{	SilentMode := 2
+		p.RemoveAt(1)
+	} else	SilentMode := 1
 }
 
 CmdArg_Pass() {
@@ -699,12 +714,17 @@ Special thanks:
 return
 
 Util_Status(s)
-{	SB_SetText(s)
+{
+	global SilentMode
+	if SilentMode = 2 ; verbose
+		if s not in ,Ready
+			FileAppend, Ahk2Exe Status: %s%`n, *
+	SB_SetText(s)
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
-	global CLIMode, Error_ForceExit, ExeFileTmp
+	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
@@ -713,32 +733,47 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
-	if exitcode
-		MsgBox, 16, Ahk2Exe Error, % txt
-	else {
-		MsgBox, 49, Ahk2Exe Warning, % txt
-	. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
-		IfMsgBox Cancel
-			exitcode := 2
+	if SilentMode {
+		txt := "Ahk2Exe " txt "`n"
+		try FileAppend, %txt%, **
+		catch
+			FileAppend, %txt%, *
+	} else {
+		if exitcode
+			MsgBox, 16, Ahk2Exe Error, % txt
+		else {
+			MsgBox, 49, Ahk2Exe Warning, % txt
+		. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
+			IfMsgBox Cancel
+				exitcode := 2
+		}
 	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{	FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
 
-	if CLIMode && exitcode
-		FileAppend, Failed to compile: %ExeFile%`n, *
+	if CLIMode && exitcode{
+		try FileAppend, Failed to compile: %ExeFile%`n, **
+		catch
+			FileAppend, Failed to compile: %ExeFile%`n, *
+	}
 	Util_Status("Ready")
 	
 	if exitcode
-		if !Error_ForceExit
-			Exit, exitcode
-		else ExitApp, exitcode
+		if Error_ForceExit || SilentMode
+			ExitApp, exitcode
+		else Exit, exitcode
 	Util_DisplayHourglass()
 }
 
 Util_Info(txt)
-{	MsgBox, 64, Ahk2Exe, % txt
+{	
+	global SilentMode
+	if SilentMode
+		FileAppend, Ahk2Exe Info: %txt%`n, *
+	else
+		MsgBox, 64, Ahk2Exe, % txt
 }
 
 Util_DisplayHourglass()    ; Change IDC_ARROW (32512) to IDC_APPSTARTING (32650)
