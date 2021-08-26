@@ -1,4 +1,4 @@
-; 
+﻿; 
 ; File encoding:  UTF-8 with BOM
 ;
 ; Script description:
@@ -309,8 +309,7 @@ Error_ForceExit := true
 
 ; Set defaults - may be overridden.
 CLIMode := true
-SilentMode := false
-Verbose := false
+SilentMode := 0	; 0=off, 1=on, 2=verbose
 p := A_Args.Clone()       ; Don't deplete A_Args here as needed in 'Restart:'
 
 while p.MaxIndex()
@@ -343,7 +342,7 @@ return
 
 BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
-	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent]`n`t [/verbose]")
+	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent [verbose]]")
 }
 
 CmdArg_Gui() {
@@ -406,11 +405,11 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 }
 
 CmdArg_Silent(){
-	global SilentMode:= true
-}
-
-CmdArg_Verbose(){
-	global Verbose:= true
+	global 
+	if p[1] = "verbose"
+	{	SilentMode := 2
+		p.RemoveAt(1)
+	} else	SilentMode := 1
 }
 
 CmdArg_Pass() {
@@ -716,11 +715,10 @@ return
 
 Util_Status(s)
 {
-	global Verbose
-	if Verbose{
+	global SilentMode
+	if SilentMode = 2 ; verbose
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
-	} 
 	SB_SetText(s)
 }
 
