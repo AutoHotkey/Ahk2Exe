@@ -121,7 +121,7 @@ Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show, w594 h383, % "Ahk2Exe for AutoHotkey v" A_AhkVersion " -- Script to EXE Converter"
+Gui, Show,, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
@@ -160,14 +160,14 @@ loop, parse, A_GuiEvent, `n
 		Util_Status("""" A_LoopField """ added as 'Custom Icon'"), StopCDIco := 1
 	} 
 	else if DropExt in bin,exe
-	{	MouseGetPos,,,,Control
-		if (DropExt = "exe" && Control ~= "^Edit2$|^Static3$")
-		{	GuiControl,, ExeFile1, %A_LoopField% ; Dropping onto Destination field
+	{	MouseGetPos,,,,Control ; .exe is 'Dest.' if dropped onto 'Main Parameters'
+		if (DropExt = "exe" && Control ~= "^(Edit[12]|Static[23]|Button[1-4])$")
+		{	GuiControl,, ExeFile1, %A_LoopField%
 			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
 			continue
 		}			
 		Count := FindBinsExes(A_LoopField, "\|", "")
-		if (DropExt = "exe" && Count = 0)
+		if (DropExt = "exe" && Count = 0) ; .exe could be 'Destination' or 'Base'
 		{	GuiControl,, ExeFile1, %A_LoopField%
 			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
 			continue
