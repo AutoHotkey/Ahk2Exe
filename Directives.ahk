@@ -71,7 +71,7 @@ Directive_Let(state, txt*)
 		DerefIncludeVars[(wk.1 ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
 Directive_Obey(state, name, txt, extra:=0)
-{	global AhkPath, AhkSw
+{	global AhkPath, AhkSw, SilentMode
 	IfExist %AhkPath%
 	{	if !(extra ~= "^[0-9]$")
 			Util_Error("Error: Wrongly formatted directive: (D3)", 0x64, state.Cmd)
@@ -81,7 +81,13 @@ Directive_Obey(state, name, txt, extra:=0)
 		Loop % extra
 			FileAppend % "`nFileOpen(""" wk A_Index
 			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
-		RunWait "%AhkPath%" %AhkSw% "%wk%",,Hide
+		if SilentMode
+		{ RunWait,"%comspec%" /c ""%AhkPath%" %AhkSw% /ErrorStdOut "%wk%" 2>"%wk%E"",, UseErrorLevel Hide ; Editor may flag, but it's valid syntax
+			if ErrorLevel
+			{	FileRead ErrorData, %wk%E
+				FileDelete %wk%?
+				Util_Error("Error: 'Obey' directive cannot be executed.",0x68,ErrorData)
+		}	} else RunWait "%AhkPath%" %AhkSw% "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % "*p65001 " wk (cnt := A_Index - 1)
 			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
@@ -231,23 +237,21 @@ Directive_AddResource(state, rsrc, resName := "")
 		if resName between 0 and 0xFFFF
 			nameType := "ptr"
 	
-	if resType in 4,5,6,9,23,24   ; Deref text-type resources
+	if resType in 4,5,6,9,23,24                       ; Deref text-type resources
 	{	FileRead fData, %resFile%
 		fData1 := DerefIncludePath(fData, DerefIncludeVars, 1)
 		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
 		StrPut(fData1, &fData, "utf-8")
 	} 
-	else if SubStr(resExt,1,2) = "ah" && resType = 10
+	else if SubStr(resExt,1,2) = "ah" && resType = 10 ; Process AutoHotkey scripts
 	{	OldA_s := [], OldA_s.Push(DerefIncludeVars.A_ScriptFullPath) 
 		OldA_s.Push(DerefIncludeVars.A_ScriptName)
 		OldA_s.Push(DerefIncludeVars.A_ScriptDir)
-		OldA_s.Push(DerefIncludeVars.A_LineFile)
 
 		SplitPath, resFile, ScriptName, ScriptDir
 		DerefIncludeVars.A_ScriptFullPath := resFile
 		DerefIncludeVars.A_ScriptName     := ScriptName
 		DerefIncludeVars.A_ScriptDir      := ScriptDir
-		DerefIncludeVars.A_LineFile       := resFile
 		tempWD := new CTempWD(ScriptDir)
 
 		PreprocessScript(fData1 := "", resFile, Directives := [], PriorLines := [])
@@ -259,7 +263,6 @@ Directive_AddResource(state, rsrc, resName := "")
 		for k, v in ["PostExec", "PostExec0", "PostExec1", "PostExec2"]
 			state[v].Push(dirState[v]*)              ; Pass any PostExec up chain
 
-		DerefIncludeVars.A_LineFile       := OldA_s.Pop()
 		DerefIncludeVars.A_ScriptDir      := OldA_s.Pop()
 		DerefIncludeVars.A_ScriptName     := OldA_s.Pop()
 		DerefIncludeVars.A_ScriptFullPath := OldA_s.Pop()

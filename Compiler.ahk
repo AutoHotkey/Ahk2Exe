@@ -107,6 +107,7 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 		run "%ExeFileG%", %ExeFileG%\..
 	Util_HideHourglass()
 	Util_Status("")
+	return ExeFileG
 }
 ; ---------------------------- End of AHKCompile -------------------------------
 

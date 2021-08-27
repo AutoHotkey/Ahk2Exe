@@ -109,7 +109,7 @@ Gui, Add, Button, xp296 yp w53 h23 gBrowseBin vBtnBinFile, Bro&wse
 Gui, Add, Text,     x17 yp32, Compress exe with
 Gui, Add, DDL, % "xp130 yp-2 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Text,   xp150 yp2 vEmbRes, Embedded Resource ID
-gui, Add, ComboBox, x444 yp-2 w112 vResourceID, %LastResource%
+gui, Add, ComboBox,x444 yp-2 w112 vResourceID, %LastResource%
 Gui, Add, Text,     x17 yp40, Convert to executable
 Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
@@ -406,7 +406,7 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 
 CmdArg_Silent(){
 	global 
-	if p[1] = "verbose"
+	if (p[1] = "verbose")
 	{	SilentMode := 2
 		p.RemoveAt(1)
 	} else	SilentMode := 1
@@ -561,7 +561,7 @@ ConvertCLI()
 return
 
 ConvertCLI()
-{	local TempWD
+{	local TempWD, ExeFileL
 	AhkFile := Util_GetFullPath(AhkFile)
 	if AhkFile =
 		Util_Error("Error: Source file not specified.", 0x33)
@@ -622,13 +622,13 @@ ConvertCLI()
 		DirExe.1 := ExeFile, DirBins.1 := BinFile
 		
 	for k in DirBins
-		AhkCompile(AhkFile, DirExe[k], ResourceID, IcoFile, DirBins[k]
-		, UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP)
+		ExeFileL .= AhkCompile(AhkFile, DirExe[k], ResourceID, IcoFile, DirBins[k]
+		, UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP) "`n"
 	
 	if !CLIMode
-		Util_Info("Conversion complete.")
+		Util_Info("Successfully compiled:`n" ExeFileL)
 	else
-		FileAppend, Successfully compiled: %ExeFile%`n, *
+		FileAppend,Successfully compiled:`n%ExeFileL%, *
 }
 
 LoadSettings:
@@ -724,7 +724,7 @@ Util_Status(s)
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
 {
-	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode
+	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode, AhkFile
 	
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
@@ -754,14 +754,14 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 	}
 
 	if CLIMode && exitcode{
-		try FileAppend, Failed to compile: %ExeFile%`n, **
+		try FileAppend, Failed to compile: %AhkFile%`n, **
 		catch
-			FileAppend, Failed to compile: %ExeFile%`n, *
+			FileAppend, Failed to compile: %AhkFile%`n, *
 	}
 	Util_Status("Ready")
 	
 	if exitcode
-		if Error_ForceExit || SilentMode
+		if (Error_ForceExit || SilentMode)
 			ExitApp, exitcode
 		else Exit, exitcode
 	Util_DisplayHourglass()

@@ -63,3 +63,4 @@ Possible Errors
 - `(0x5)` Error: Resource language must be an integer between 0 and 0xFFFF.
 - `(0x6)` Error: Impossible BMP file.
 - `(0x7)` Error changing the version information.
+- `(0x8)` Error: 'Obey' directive cannot be executed.
