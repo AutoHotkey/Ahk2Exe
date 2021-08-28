@@ -220,5 +220,6 @@ RunPostExec(dirState, UseMPRESS := "")
 Util_GetFullPath(path)
 {	Size := DllCall("GetFullPathName", "str", path, "uint", 0, "ptr", 0, "ptr", 0, "uint")
 	VarSetCapacity(fullpath, size << !!A_IsUnicode)
-	return DllCall("GetFullPathName", "str", path, "uint", size, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
+	fullpath := DllCall("GetFullPathName", "str", path, "uint", size, "str", fullpath, "ptr", 0, "uint") ? fullpath : ""
+	return fullpath
 }
