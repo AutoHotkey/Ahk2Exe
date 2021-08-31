@@ -272,12 +272,12 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 		ToolTip Ahk2Exe:`n%Phase% Working %Phase%
 	Count := 0
 	Loop Files, %File%, %Mode%
-	{	if !(A_LoopFileExt~="i)^(exe|bin)$") || A_LoopFileLongPath~="i)" Exclude "$"
+	{	if !(A_LoopFileExt="bin" || A_LoopFileName~="i)^AutoHotkey.+\.exe")
+		|| A_LoopFileLongPath~="i)(AutoHotkey.exe|" Exclude ")$"
 			continue
 		Type := AHKType(A_LoopFileLongPath,0) ; Get basic file stats
-		if (Type.era = "Modern")
-		&&  (A_LoopFileExt = "exe" && InStr(Type.Description,"AutoHotkey")
-			&& A_LoopFileName != "AutoHotkey.exe" || A_LoopFileExt = "bin")
+		if (Type.era = "Modern") && (A_LoopFileExt = "bin"
+		|| (A_LoopFileExt = "exe" && InStr(Type.Description,"AutoHotkey")))
 		{	Type := AHKType(A_LoopFileLongPath) ; Get Unicode data and other stats
 			if (A_LoopFileExt = "exe")
 			{	if !(ExeFiles[Type.Version Type.Summary]) ; Keep only first of a version
@@ -626,9 +626,9 @@ ConvertCLI()
 		, UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP) "`n"
 	
 	if !CLIMode
-		Util_Info("Successfully compiled:`n" ExeFileL)
+		Util_Info("Successfully compiled as:`n" ExeFileL)
 	else
-		FileAppend,Successfully compiled:`n%ExeFileL%, *
+		FileAppend,Successfully compiled as:`n%ExeFileL%, *
 }
 
 LoadSettings:
