@@ -187,6 +187,15 @@ Menu FileMenu, Rename, % AllowMes%Flip1%, % AllowMes%Flip%
 Gui Show, w%GuiX% h%GuiY%
 return
 
+Restart:
+For k, v in A_Args          ; Add quotes to parameters & escape any trailing \
+  wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
+if A_IsCompiled
+	Run "%A_ScriptFullPath%" /Restart %Par%
+else 
+	Run "%A_AhkPath%" /Restart "%A_ScriptFullPath%" %Par%
+ExitApp
+
 GuiSize:
 if (A_EventInfo = 1) ; The window has been minimized.
 	return
@@ -222,7 +231,6 @@ GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
 return
 
 /*@Ahk2Exe-Keep
-
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
 Gui, Add, Text, x20 y6 w240 h78 +0xE hwndhPicCtrl vHeading1
@@ -251,8 +259,15 @@ DllCall("gdiplus\GdiplusShutdown", "ptr", gdipToken)
 DllCall("FreeLibrary", "ptr", hGdip)
 ObjRelease(pStream)
 return
-
 */
+
+FindBinFile(name)
+{	global BinFiles
+	for k,v in BinFiles
+		if (v = name)
+			return k
+	return 1
+}
 
 BuildBinFileList:
 FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","-") ; Any default is first
@@ -292,14 +307,6 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 			. (A_LoopFileName = "AutoHotkeySC.bin" ? "(Default)" : A_LoopFileName)
 	}	}                        ; Count+=1 if file (could be) added to ExeFiles{}
 	return Count               ; Count+=2 if file added to BinFiles[]
-}
-
-FindBinFile(name)
-{	global BinFiles
-	for k,v in BinFiles
-		if (v = name)
-			return k
-	return 1
 }
 
 ParseCmdLine:
@@ -364,7 +371,8 @@ CmdArg_Icon(p2) {
 
 CmdArg_Base(p2) {
 	global StopCDBin := 1, BinFile := p2, LastBinFile := p2
-	FindBinsExes(p2, "\|", "")
+	if FindBinsExes(p2, "\|", "") < 2
+		BadParams("Error: Not a recognised Base/Bin file:`n" p2)
 }
 
 CmdArg_Bin(p2) {
@@ -475,15 +483,6 @@ DefaultIco:
 StopCDIco := 0, Util_Status("")
 GuiControl,, IcoFile
 return
-
-Restart:
-For k, v in A_Args          ; Add quotes to parameters & escape any trailing \
-  wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
-if A_IsCompiled
-	Run "%A_ScriptFullPath%" /Restart %Par%
-else 
-	Run "%A_AhkPath%" /Restart "%A_ScriptFullPath%" %Par%
-ExitApp
 
 SaveAsMenu:
 Gui, +OwnDialogs
