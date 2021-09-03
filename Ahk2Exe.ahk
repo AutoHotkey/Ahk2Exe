@@ -121,7 +121,7 @@ Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show,, % "Ahk2Exe for AutoHotkey v" SubStr(A_AhkVersion,1,7) "00 Beta_2 -- Script to EXE Converter"
+Gui, Show,, Ahk2Exe for AutoHotkey v %A_AhkVersion% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
@@ -349,7 +349,7 @@ return
 
 BadParams(Message, ErrorCode=0x3)
 { global Error_ForceExit := true
-	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/ResourceID #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent [verbose]]")
+	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent [verbose]]")
 }
 
 CmdArg_Gui() {
