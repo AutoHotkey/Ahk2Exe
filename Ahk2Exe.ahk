@@ -370,9 +370,9 @@ CmdArg_Icon(p2) {
 }
 
 CmdArg_Base(p2) {
-	global StopCDBin := 1, BinFile := p2, LastBinFile := p2
+	global StopCDBin := 1, BinFile := p2, LastBinFile := p2, p1
 	if FindBinsExes(p2, "\|", "") < 2
-		BadParams("Error: Not a recognised Base/Bin file:`n" p2)
+		BadParams("Error: Not a recognised " p1 " file:`n" p2)
 }
 
 CmdArg_Bin(p2) {
