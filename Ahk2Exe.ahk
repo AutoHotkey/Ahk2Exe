@@ -627,7 +627,7 @@ ConvertCLI()
 		, UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP) "`n"
 	
 	if !CLIMode
-		Util_Info("Successfully compiled as:`n" ExeFileL)
+		Util_Info("Successfully compiled as:`n""" RTrim(ExeFileL,"`n") """")
 	else
 		FileAppend,Successfully compiled as:`n%ExeFileL%, *
 }
@@ -734,28 +734,27 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		txt .= "`n`n" extra1
 	
 	Util_HideHourglass()
-	if SilentMode {
-		txt := "Ahk2Exe " txt "`n"
+	if SilentMode
+	{	txt := "Ahk2Exe " txt "`n"
 		try FileAppend, %txt%, **
 		catch
 			FileAppend, %txt%, *
-	} else {
-		if exitcode
+	}	else
+	{	if exitcode
 			MsgBox, 16, Ahk2Exe Error, % txt
-		else {
-			MsgBox, 49, Ahk2Exe Warning, % txt
-		. (extra||extra1 ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
+		else
+		{	MsgBox, 49, Ahk2Exe Warning, % txt (extra||extra1 ? ""
+			 : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
 			IfMsgBox Cancel
 				exitcode := 2
-		}
-	}
+	}	}
 	if (exitcode && ExeFileTmp && FileExist(ExeFileTmp))
 	{	FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
 
-	if CLIMode && exitcode{
-		try FileAppend, Failed to compile: %AhkFile%`n, **
+	if (CLIMode && exitcode)
+	{	try FileAppend, Failed to compile: %AhkFile%`n, **
 		catch
 			FileAppend, Failed to compile: %AhkFile%`n, *
 	}

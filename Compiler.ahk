@@ -85,14 +85,14 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 		else	
 		{	wk := """" RegExReplace(ExeFileG, "^.+\\") """"
 			if SilentMode
-				Util_Error(wk " is still running, "
-				.  "and needs to be unloaded to allow replacement with this new version.", 0x45)
+				Util_Error(wk " is still running, and needs "
+				.  "to be unloaded to allow replacement with this new version.", 0x45)
 			else
 			{	SetTimer Buttons, 50
-				MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, "
-				.  "and needs to be unloaded to allow replacement with this new version."
-				. "`n`n Press the appropriate button to continue."
-				. " ('Reload' unloads and reloads the new " wk " without any parameters.)"
+				MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, and needs "
+				.  "to be unloaded to allow replacement with this new version."
+				. "`n`n Press the appropriate button to continue. ('Reload' unloads "
+				. "and reloads the new " wk " without any parameters.)"
 				IfMsgBox Cancel
 					Util_Error("Error: Could not move final compiled binary file to "
 					. "destination. (C2)", 0x45, """" ExeFileG """")
@@ -100,9 +100,7 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 				WinWaitClose ahk_exe %ExeFileG%,,1
 				IfMsgBox No
 					Reload := 1
-			}
-		}	
-	}
+	}	}	}
 	if Reload
 		run "%ExeFileG%", %ExeFileG%\..
 	Util_HideHourglass()
