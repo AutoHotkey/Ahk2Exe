@@ -347,9 +347,9 @@ if BinFile =
 	BinFile := LastBinFile
 return
 
-BadParams(Message, ErrorCode=0x3)
+BadParams(Message, ErrorCode := 0x3, Specifically := "")
 { global Error_ForceExit := true
-	Util_Error(Message, ErrorCode,, "Command Line Parameters:`n`n" A_ScriptName "`n`t  /in infile.ahk`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/ahk path\name]`n`t [/gui]`n`t [/silent [verbose]]")
+	Util_Error(Message, ErrorCode,Specifically, "Command Line Parameters:`n`n" A_ScriptName "`n`t [/in infile.ahk]`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/silent [verbose]]`n`t [/gui]")
 }
 
 CmdArg_Gui() {
@@ -358,6 +358,8 @@ CmdArg_Gui() {
 
 CmdArg_In(p2) {
 	global AhkFile := p2
+	if !FileExist(p2)
+		BadParams("Error: Source file does not exist.",0x32,"""" p2 """")
 	SetCDBin(AhkFile)
 }
 
@@ -367,12 +369,14 @@ CmdArg_Out(p2) {
 
 CmdArg_Icon(p2) {
 	global StopCDIco := 1, IcoFile := p2
+	if !FileExist(p2)
+		BadParams("Error: Icon file does not exist.",0x35,"""" p2 """")
 }
 
 CmdArg_Base(p2) {
 	global StopCDBin := 1, BinFile := p2, LastBinFile := p2, p1
 	if !FileExist(p2)
-		Util_Error("Error: The selected Base file does not exist.",0x34,""""p2 """")
+		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
 	if FindBinsExes(p2, "\|", "") < 2
 		BadParams("Error: Not a recognised " p1 " file:`n""" p2 """")
 }
@@ -543,7 +547,7 @@ SetCDBin(FileName)
 }
 
 MonitorFile()
-{	static LastTime := LastSize := 0
+{	static LastTime := 0, LastSize := 0
 	FileGetTime ThisTime, %FileNameG%
 	FileGetSize ThisSize, %FileNameG%
 	if (LastTime != ThisTime || LastSize != ThisSize)
