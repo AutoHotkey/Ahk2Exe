@@ -199,7 +199,7 @@ Directive_AddResource(state, rsrc, resName := "")
 		, SubStr(state.PriorLine,1,1)=Chr(127)?SubStr(state.PriorLine,2):state.Cmd)
 	SplitPath, resFile, resFileName,, resExt
 	if !resName
-		resName := resFileName, defResName := true
+		resName:=rsrc, defResName:=1 ; Default resource name includes any named path
 	StringUpper, resName, resName
 	if resType =
 	{
