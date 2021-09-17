@@ -287,14 +287,13 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 		ToolTip Ahk2Exe:`n%Phase% Working %Phase%
 	Count := 0
 	Loop Files, %File%, %Mode%
-	{	if !(A_LoopFileExt="bin" || A_LoopFileName~="i)^AutoHotkey.+\.exe")
-		|| A_LoopFileLongPath~="i)(AutoHotkey.exe|" Exclude ")$"
+	{	if !(A_LoopFileName~="i)\.bin$|^AutoHotkey.+\.exe$|^Ahk2Exe.exe$")
+		|| A_LoopFileName~="i)^(" Exclude ")$"
 			continue
-		Type := AHKType(A_LoopFileLongPath,0) ; Get basic file stats
+		Type := AHKType(A_LoopFileLongPath)   ; Get Unicode data and stats
 		if (Type.era = "Modern") && (A_LoopFileExt = "bin"
 		|| (A_LoopFileExt = "exe" && InStr(Type.Description,"AutoHotkey")))
-		{	Type := AHKType(A_LoopFileLongPath) ; Get Unicode data and other stats
-			if (A_LoopFileExt = "exe")
+		{	if (A_LoopFileExt = "exe")
 			{	if !(ExeFiles[Type.Version Type.Summary]) ; Keep only first of a version
 					ExeFiles[Type.Version Type.Summary] := A_LoopFileLongPath
 				wk := StrSplit(Type.Version,[".","-"]), Count++
