@@ -627,10 +627,10 @@ ConvertCLI()
 		
 	for k in DirBins
 		ExeFileL .= """" AhkCompile(AhkFile, DirExe[k], ResourceID, IcoFile
-		, DirBins[k], UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP) """`n"
+		, DirBins[k], UseMpress, DirCP[k] ? DirCP[k] : ScriptFileCP) """,`n"
 	
 	if !CLIMode
-		Util_Info("Successfully compiled as:`n" RTrim(ExeFileL,"`n"))
+		Util_Info("Successfully compiled as:`n" RTrim(ExeFileL,",`n"))
 	else
 		FileAppend,Successfully compiled as:`n%ExeFileL%, *
 }
