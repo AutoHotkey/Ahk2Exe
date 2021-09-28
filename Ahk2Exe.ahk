@@ -163,13 +163,15 @@ loop, parse, A_GuiEvent, `n
 	{	MouseGetPos,,,,Control ; .exe is 'Dest.' if dropped onto 'Main Parameters'
 		if (DropExt = "exe" && Control ~= "^(Edit[12]|Static[23]|Button[1-4])$")
 		{	GuiControl,, ExeFile1, %A_LoopField%
-			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
+			ExeFile := A_LoopField, StopCDExe := 1
+			Util_Status("""" A_LoopField """ added as 'Destination'")
 			continue
 		}			
 		Count := FindBinsExes(A_LoopField, "\|", "")
 		if (DropExt = "exe" && Count = 0) ; .exe could be 'Destination' or 'Base'
 		{	GuiControl,, ExeFile1, %A_LoopField%
-			Util_Status("""" A_LoopField """ added as 'Destination'"), StopCDExe := 1
+			ExeFile := A_LoopField, StopCDExe := 1
+			Util_Status("""" A_LoopField """ added as 'Destination'")
 			continue
 		}
 		if (Count > 1)
