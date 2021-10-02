@@ -9,7 +9,7 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 {
 	global ExeFileTmp, ExeFileG, SilentMode
 
-	SetWorkingDir %AhkWorkingDir%
+	tempWD := new CTempWD(AhkWorkingDir)   ; Original Ahk2Exe starting directory
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
 	SplitPath ExeFile,, Edir,,    Ename
 	ExeFile := (Edir ? Edir : Ahk_Dir) "\" (xe:= Ename ? Ename : Ahk_Name ) ".exe"
@@ -140,7 +140,7 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 		DllCall("UpdateResource", "ptr", Module, "ptr", 10
 		, "str", "LOGO.PNG", "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
 
-	SetWorkingDir %AhkFile%\..
+	SetWorkingDir %AhkFile%\..       ; For FileInstall, etc
 	DerefIncludeVars.A_WorkFileName := ExeFile
 	dirState := ProcessDirectives(ExeFile, Module, Directives, PriorLines,IcoFile)
 
@@ -161,7 +161,7 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 		if !SetExeSubsystem(ExeFile, 3)
 			Util_Error("Could not change executable subsystem!", 0x61)
 	}
-	SetWorkingDir %A_ScriptDir%
+	SetWorkingDir %A_ScriptDir%      ; For BinMod, etc
 	
 	RunPostExec(dirState)
 	
