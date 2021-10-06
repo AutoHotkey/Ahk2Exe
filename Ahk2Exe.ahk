@@ -634,7 +634,7 @@ ConvertCLI()
 	if !CLIMode
 		Util_Info("Successfully compiled as:`n" RTrim(ExeFileL,",`n"))
 	else
-		FileAppend,Successfully compiled as:`n%ExeFileL%, *
+		FileAppend,% "Successfully compiled as:`n" RTrim(ExeFileL,",`n") "`n", *
 }
 
 LoadSettings:
