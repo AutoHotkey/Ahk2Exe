@@ -525,7 +525,7 @@ SetCDBin(FileName)
 		&& Comment = 0
 		{	IsBase := 1
 			if (BinFiles.1 != SBDMes)
-			{	BinFiles.InsertAt(1,SBDMes), BinNames := SBDMes "|" BinNames
+			{	BinFiles.InsertAt(1,SBDMes), BinNames := RTrim(SBDMes "|" BinNames, "|")
 				GuiControlGet LastId,, BinFileId
 				GuiControl,,           BinFileId, |%BinNames% 
 				GuiControl Choose,     BinFileId, 1
