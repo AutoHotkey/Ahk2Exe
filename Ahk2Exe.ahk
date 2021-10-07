@@ -538,7 +538,7 @@ SetCDBin(FileName)
 			Comment := 0
 	}
 	if (!IsBase && BinFiles.1 = SBDMes)
-	{	BinFiles.RemoveAt(1), BinNames := SubStr(BinNames,InStr(BinNames,"|")+1)
+	{	BinFiles.RemoveAt(1), BinNames := SubStr(BinNames,InStr(BinNames "|","|")+1)
 		GuiControl,,       BinFileId, |%BinNames% 
 		GuiControl Choose, BinFileId,  %LastId%
 		Util_Status("""" SBDMes """ removed from 'Base File' list.")
