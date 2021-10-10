@@ -30,7 +30,7 @@ CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
 global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
 	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode, DirDoneG
-	, ExeFiles := [], BinFiles := [], BinNames, FileNameG
+	, ExeFiles := [], BinFiles := [], BinNames, FileNameG, LastIdG := 1
 
 ExeDfltMes := "(Default is script file, or any relevant compiler directive)"
 
@@ -44,17 +44,16 @@ gosub LoadSettings
 gosub ParseCmdLine
 gosub BuildBinFileList
 
-if UseMPRESS =
-	UseMPRESS := LastUseMPRESS
-if IcoFile =
-	IcoFile := LastIcon
+UseMPRESS := UseMPRESS = "" ? LastUseMPRESS : UseMPRESS
+IcoFile   := IcoFile   = "" ? LastIcon      : IcoFile
 
 if CLIMode
 {	ConvertCLI()
 	ExitApp, 0 ; Success
 }
-
-BinFileId := FindBinFile(LastBinFile)
+if (BinFiles.1 = SBDMes && !StopCDBin)
+	BinFileId := 1, LastIdG := FindBinFile(LastBinFile) - 1
+else BinFileId := FindBinFile(LastBinFile)
 
 AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
 AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
@@ -264,8 +263,7 @@ return
 */
 
 FindBinFile(name)
-{	global BinFiles
-	for k,v in BinFiles
+{	for k,v in BinFiles
 		if (v = name)
 			return k
 	return 1
@@ -375,7 +373,7 @@ CmdArg_Icon(p2) {
 }
 
 CmdArg_Base(p2) {
-	global StopCDBin := 1, BinFile := p2, LastBinFile := p2, p1
+	global StopCDBin := 1, BinFile := p2, LastBinFile := Util_GetFullPath(p2), p1
 	if !FileExist(p2)
 		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
 	if FindBinsExes(p2, "\|", "") < 2
@@ -503,8 +501,7 @@ If (SaveAs = "") or ErrorLevel
 If !RegExMatch(SaveAs,"\.ahk$")
 	SaveAs .= ".ahk"
 if FileExist(SaveAs)
-{	Gui, +OwnDialogs
-	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites any existing file)
+{	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites any existing file)
 	IfMsgBox Cancel, return
 	IfMsgBox No,     FileDelete %SaveAs%
 }
@@ -517,8 +514,7 @@ Util_Status(ErrorLevel?"Save script settings failed!":"Saved script settings")
 Return
 
 SetCDBin(FileName)
-{	static LastId := 1
-	SetTimer MonitorFile, Off
+{	SetTimer MonitorFile, Off
 	FileNameG := FileName, IsBase := Comment := 0
 	Loop Read, %FileName%
 	{	if RegExMatch(A_LoopReadLine,"i)^\s*\S{1,2}@Ahk2Exe-(?:Bin|Base) (.*$)")
@@ -526,9 +522,9 @@ SetCDBin(FileName)
 		{	IsBase := 1
 			if (BinFiles.1 != SBDMes)
 			{	BinFiles.InsertAt(1,SBDMes), BinNames := RTrim(SBDMes "|" BinNames, "|")
-				GuiControlGet LastId,, BinFileId
-				GuiControl,,           BinFileId, |%BinNames% 
-				GuiControl Choose,     BinFileId, 1
+				GuiControlGet LastIdG,, BinFileId
+				GuiControl,,            BinFileId, |%BinNames% 
+				GuiControl Choose,      BinFileId, 1
 				Util_Status("""" SBDMes """ added to 'Base File' list.")
 			}
 			break
@@ -540,7 +536,7 @@ SetCDBin(FileName)
 	if (!IsBase && BinFiles.1 = SBDMes)
 	{	BinFiles.RemoveAt(1), BinNames := SubStr(BinNames,InStr(BinNames "|","|")+1)
 		GuiControl,,       BinFileId, |%BinNames% 
-		GuiControl Choose, BinFileId,  %LastId%
+		GuiControl Choose, BinFileId,  %LastIdG%
 		Util_Status("""" SBDMes """ removed from 'Base File' list.")
 	}                             ; As can't change parameter of BoundFunc Object,
 	SetTimer MonitorFile, 400, -1 ;   we are using a global for FileName parameter
