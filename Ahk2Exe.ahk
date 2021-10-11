@@ -113,7 +113,7 @@ Gui, Add, Text,     x17 yp40, Convert to executable
 Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
 Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
-Gui, Add, StatusBar,, Ready
+Gui, Add, StatusBar,, % StatusG ? StatusG : "Ready"
 ;@Ahk2Exe-IgnoreBegin
 Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 ;@Ahk2Exe-IgnoreEnd
@@ -137,7 +137,7 @@ gui, Submit, NoHide
 if (UseMPRESS !=1
  && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
 	Util_Status("Warning: """ wk """ not found.")
-else Util_Status("Ready")
+else (StatusG) ? (StatusG := 0) : Util_Status("Ready.")
 return
 
 BinChanged:
@@ -378,6 +378,7 @@ CmdArg_Base(p2) {
 		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
 	if FindBinsExes(p2, "\|", "") < 2
 		BadParams("Error: Not a recognised " p1 " file:`n""" p2 """")
+	Util_Status("""" p2 """ added to 'Base file' list.")
 }
 
 CmdArg_Bin(p2) {
@@ -435,7 +436,7 @@ CmdArg_NoDecompile() {
 
 BrowseAhk:
 Gui, +OwnDialogs
-FileSelectFile, ov, 1, %LastAhkDir%, Open Script, AutoHotkey files (*.ah??)
+FileSelectFile, ov, 1, %LastAhkDir%, Open Script, AutoHotkey files (*.ah*)
 if ErrorLevel
 	return
 SplitPath ov,, LastAhkDir
@@ -492,16 +493,14 @@ return
 SaveAsMenu:
 Gui, +OwnDialogs
 Gui, Submit, NoHide
-BinFile := BinFiles[BinFileId]
-SaveAs := ""
+BinFile := BinFiles[BinFileId], SaveAs := "", Util_Status("")
 FileSelectFile, SaveAs, S,% RegExReplace(AhkFile,"\.[^.]+$") "_Compile"
  , Save script settings As, *.ahk            ;^ Removes extension
 If (SaveAs = "") or ErrorLevel
 	Return
-If !RegExMatch(SaveAs,"\.ahk$")
-	SaveAs .= ".ahk"
+SaveAs .= SaveAs ~= "\.ahk$" ? "" : ".ahk"
 if FileExist(SaveAs)
-{	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites any existing file)
+{	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites file)
 	IfMsgBox Cancel, return
 	IfMsgBox No,     FileDelete %SaveAs%
 }
@@ -716,8 +715,8 @@ Special thanks:
 return
 
 Util_Status(s)
-{
-	global SilentMode
+{                    ;v Keep early status for GUI
+	global SilentMode, StatusG .= StatusG = 0 ? "" : s "  "
 	if SilentMode = 2 ; verbose
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
