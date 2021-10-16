@@ -113,7 +113,7 @@ Gui, Add, Text,     x17 yp40, Convert to executable
 Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, > &Convert <
 Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
 Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
-Gui, Add, StatusBar,, % StatusG ? StatusG : "Ready"
+Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
 Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 ;@Ahk2Exe-IgnoreEnd
@@ -137,7 +137,7 @@ gui, Submit, NoHide
 if (UseMPRESS !=1
  && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
 	Util_Status("Warning: """ wk """ not found.")
-else (StatusG) ? (StatusG := 0) : Util_Status("Ready.")
+else Util_Status("Ready")
 return
 
 BinChanged:
@@ -714,13 +714,14 @@ Special thanks:
 )
 return
 
-Util_Status(s)
-{                    ;v Keep early status for GUI
-	global SilentMode, StatusG .= StatusG = 0 ? "" : s "  "
+Util_Status(s)       ;v Keep early status for GUI
+{ global SilentMode, StaR .= StaR = 0 || s ~= "^Ready|^Warn" ? "" : s "  "
+	, StaW := s~="^Warn" ? 1 : StaW
 	if SilentMode = 2 ; verbose
 		if s not in ,Ready
 			FileAppend, Ahk2Exe Status: %s%`n, *
-	SB_SetText(s)
+	StaR := s ~= "^Ready|^Warn" || !StaW ? StaR : 0 
+	SB_SetText(s = "Ready" && StaR ? StaR : s), StaR := s = "Ready" ? 0 : StaR
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "")
