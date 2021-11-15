@@ -303,7 +303,7 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 			}
 			BinFiles.Push(A_LoopFileLongPath), Count+=2
 			BinNames .= "|v" Type.Version " " Type.Summary " " 
-			. (A_LoopFileName = "AutoHotkeySC.bin" ? "(Default)" : A_LoopFileName)
+			. (A_LoopFileName = "AutoHotkeySC.bin" ? "(Default) bin" : A_LoopFileName)
 	}	}                        ; Count+=1 if file (could be) added to ExeFiles{}
 	return Count               ; Count+=2 if file added to BinFiles[]
 }

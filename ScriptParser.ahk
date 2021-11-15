@@ -186,7 +186,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		if (AhkTypeRet.Era = "Legacy")
 			Util_Error("Error: Legacy AutoHotkey versions (prior to v1.1) can not be used to do auto-inclusion of library functions.", 0x26, AhkPath)
 		
-		if !((Modl:=DllCall("LoadLibraryEx","Str",AhkPath,"Ptr",0,"Int",0x22,"Ptr"))
+		if !((Modl:=DllCall("LoadLibraryEx","Str",AhkPath, "Ptr",0, "Int",2, "Ptr"))
 		&& ((wk:=DllCall("FindResource","Ptr",Modl,"Str","#1","Ptr",10,"Ptr")) || 1)
 		&& DllCall("FreeLibrary", "ptr", Modl)) ;^ ResourceID = 1?
 			Util_Error("Error: Cannot determine AutoHotkey vintage.", 0x54, AhkPath)
