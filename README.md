@@ -13,7 +13,7 @@ The compilation will also need to use files from a recent AutoHotkey v1.1 self-c
 
 After unpacking all the source files, run Ahk2Exe.ahk, and drag and drop Ahk2Exe.ahk onto the converter window.
 
-Select a suitable Base file from the recent AutoHotkey download (see above), then press the 'Convert' button.
+Select a suitable Base file (usually a 32-bit Unicode file) from the recent AutoHotkey download (see above), then press the 'Convert' button.
 
 The resulting Ahk2Exe.exe file should be copied to the Compiler sub-folder under the folder containing AutoHotkey.exe for proper operation.
 
