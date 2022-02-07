@@ -7,9 +7,13 @@ https://www.autohotkey.com/
 
 ## How to Compile ##
 
-Ahk2Exe must be compiled with itself as it uses compiler directives. (Make sure to use a recent AutoHotkey self-contained binary, version 1.1.)
+Ahk2Exe must be compiled with itself as it uses compiler directives. 
 
-After unpacking all the source files, run Ahk2Exe.ahk, and drag and drop Ahk2Exe.ahk onto the converter window, then press the 'convert' button.
+The compilation will also need to use files from a recent AutoHotkey v1.1 self-contained binary, such as an installed version of AutoHotkey.
+
+After unpacking all the source files, run Ahk2Exe.ahk, and drag and drop Ahk2Exe.ahk onto the converter window.
+
+Select a suitable Base file from the recent AutoHotkey download (see above), then press the 'Convert' button.
 
 The resulting Ahk2Exe.exe file should be copied to the Compiler sub-folder under the folder containing AutoHotkey.exe for proper operation.
 
