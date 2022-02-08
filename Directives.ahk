@@ -10,7 +10,8 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile)
 	for k, Cmd in Directives
 	{	while SubStr(Directives[k+A_Index], 1, 4) = "Cont"
 			Cmd .= SubStr(Directives[k+A_Index], 6)
-		Util_Status("Processing directive: " Cmd)
+		Util_Status("Processing directive: " (SubStr(Cmd,1,11) = "AddResource"
+			&& SubStr(PriorLines[k],1,1) = Chr(127) ? SubStr(PriorLines[k],2) : Cmd))
 		state.Cmd := Cmd
 		DerefIncludeVars.A_PriorLine := state.PriorLine := PriorLines[k] 
 		if !RegExMatch(Cmd, "^(\w+)(?:\s+(.+))?$", o)
