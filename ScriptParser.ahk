@@ -200,11 +200,11 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		}
 		if (ErrorLevel = 2)
 		{	FileRead tmpErrorData,%ilibfile%E
-			FileDelete %ilibfile%?
+			FileDelete %ilibfile%*
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
-		{	FileDelete %ilibfile%?
+		{	FileDelete %ilibfile%*
 			Util_Error("Error: Call to """ AhkPath """ has failed.`nError code is "ErrLev, 0x51)
 		}
 		IfExist, %ilibfile%
@@ -221,7 +221,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				, PriorLines, FileList, FirstScriptDir, Options)
 		}	}
 		If (ilibfile)
-			FileDelete, %ilibfile%?
+			FileDelete, %ilibfile%*
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
 

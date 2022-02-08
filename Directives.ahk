@@ -86,14 +86,14 @@ Directive_Obey(state, name, txt, extra:=0)
 		{ RunWait,"%comspec%" /c ""%AhkPath%" %AhkSw% /ErrorStdOut "%wk%" 2>"%wk%E"",, UseErrorLevel Hide ; Editor may flag, but it's valid syntax
 			if ErrorLevel
 			{	FileRead ErrorData, %wk%E
-				FileDelete %wk%?
+				FileDelete %wk%*
 				Util_Error("Error: 'Obey' directive cannot be executed.",0x68,ErrorData)
 		}	} else RunWait "%AhkPath%" %AhkSw% "%wk%",,Hide
 		Loop % extra + 1
 		{	FileRead result, % "*p65001 " wk (cnt := A_Index - 1)
 			DerefIncludeVars[(name~="i)^U_"?"":"U_") name (cnt ? cnt : "")] := result
 		}
-		FileDelete %wk%?
+		FileDelete %wk%*
 }	}
 Directive_PostExec(state, txt, when="", WorkingDir="", Hidden=0, IgnoreErrors=0)
 {	if !({"":1,0:1,1:1,2:1}[when] && {"":1,0:1,1:1}[Hidden] 
