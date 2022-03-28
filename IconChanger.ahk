@@ -20,7 +20,17 @@ AddOrReplaceIcon(re, IcoFile, ExeFile, iconID := 0)
 	if !IsObject(ids)
 		return false
 	
-	f := FileOpen(IcoFile, "r")
+	if (InStr(IcoFile, "http") == 1) {															; if the icon path begins with "http"
+		UrlDownloadToFile, % IcoFile, % A_Temp . "\ahk2exeicon.ico" 	; try to download the file to the temp folder
+		if ErrorLevel {
+			Util_Error("Error changing icon: File could not be downloaded.", 0x35, IcoFile)
+		}
+		f := FileOpen(A_Temp . "\ahk2exeicon.ico", "r") 							; and use this instead
+	} else {
+		if !FileExist(IcoFile)
+			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
+		f := FileOpen(IcoFile, "r")
+	}
 	if !IsObject(f)
 		return false
 	
