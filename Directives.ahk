@@ -40,8 +40,6 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile)
 	}
 	if IcoFile := state.IcoFile
 	{	Util_Status("Changing the main icon...")
-		if !FileExist(IcoFile)
-			Util_Error("Error changing icon: File does not exist.", 0x35, IcoFile)
 		if !AddOrReplaceIcon(Module, IcoFile, ExeFile, 159)
 			Util_Error("Error changing icon: Unable to read icon or icon was of the wrong format.", 0x42, IcoFile)
 	}
