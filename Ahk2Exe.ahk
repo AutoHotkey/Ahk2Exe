@@ -288,7 +288,7 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 	Count := 0
 	Loop Files, %File%, %Mode%
 	{	if !(A_LoopFileName~="i)\.bin$|^AutoHotkey.+\.exe$|^Ahk2Exe.exe$")
-		|| A_LoopFileName~="i)^(" Exclude ")$"
+		|| A_LoopFileName~="i)^(" Exclude ")$|_UIA.exe$"
 			continue
 		Type := AHKType(A_LoopFileLongPath)   ; Get Unicode data and stats
 		if (Type.era = "Modern") && (A_LoopFileExt = "bin"
