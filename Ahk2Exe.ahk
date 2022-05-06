@@ -90,16 +90,16 @@ Note: Compiling does not guarantee source code protection.
 Gui, Add, Text,     x11 y90 w556 h2 +0x1007 vTopLine
 Gui, Add, GroupBox, x11 yp10 w556 h80 cGreen vGroupA, Main Parameters
 Gui, Add, Text,     x17 yp20, &Source (script file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vAhkFile, %AhkFile%
+Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vAhkFile, %AhkFile%
 Gui, Add, Button, xp296 yp w53 h23 gBrowseAhk vBtnAhkFile, &Browse
 Gui, Add, Text,     x17 yp34, &Destination (.exe file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vExeFile1
+Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vExeFile1
 		, % Exefile ? ExeFile : ExeDfltMes
 Gui, Add, Button, xp296 yp w53 h23 gBrowseExe vBtnExeFile, B&rowse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultExe vBtnExeDefault, D&efault
 Gui, Add, GroupBox, x11 yp45 w556 h105 cGreen vGroupB, Options
 Gui, Add, Text,     x17 yp20, Custom &Icon (.ico file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 +Disabled vIcoFile, %IcoFile%
+Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vIcoFile, %IcoFile%
 Gui, Add, Button, xp296 yp w53 h23 gBrowseIco vBtnIcoFile, Br&owse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultIco vBtnIcoDefault, Def&ault
 Gui, Add, Text,     x17 yp34, Base File (.bin, .exe)
