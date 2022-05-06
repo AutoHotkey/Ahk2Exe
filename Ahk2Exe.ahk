@@ -120,7 +120,7 @@ Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v %A_AhkVersion% -- Script to EXE Converter
+Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
@@ -680,6 +680,7 @@ if !ErrorLevel      ; Only RegWrite if 'save' has occurred sometime in the past
 {	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastAhkDir, %LastAhkDir%
 	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastExeDir, %LastExeDir%
 	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinDir, %LastBinDir%
+	RegWrite REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir, %LastIcoDir%
 }
 return
 
