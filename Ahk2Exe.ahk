@@ -120,7 +120,7 @@ Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show,, Ahk2Exe for AutoHotkey v %A_AhkVersion% -- Script to EXE Converter
+Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v %A_AhkVersion% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
@@ -229,6 +229,7 @@ GuiControl, MoveDraw, GroupB,        % "w" A_GuiWidth-24
 ; Footer
 GuiControl, Move,     Save,          % "x" A_GuiWidth-280
 GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
+LastWidth := "W" A_GuiWidth
 return
 
 /*@Ahk2Exe-Keep
@@ -641,6 +642,7 @@ RegRead, LastIcon,      HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon
 RegRead, LastBinFile,   HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile
 RegRead, LastResource,  HKCU, Software\AutoHotkey\Ahk2Exe, LastResource
 RegRead, LastUseMPRESS, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS
+RegRead, LastWidth,     HKCU, Software\AutoHotkey\Ahk2Exe, LastWidth
 if !FileExist(LastIcon)
 	LastIcon := ""
 if (LastBinFile = "") || !FileExist(LastBinFile)
@@ -666,6 +668,7 @@ RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcoDir,    %LastIcoDir%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastIcon,      %IcoFile%
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastUseMPRESS,% UseMPRESS-1
 RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastResource,%LastResource%
+RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastWidth,   %LastWidth%
 if !(BinFile = SBDMes)
 	RegWrite, REG_SZ, HKCU, Software\AutoHotkey\Ahk2Exe, LastBinFile, % BinFiles[BinFileId]
 Util_Status("Options saved as default")
