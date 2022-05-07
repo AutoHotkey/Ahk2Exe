@@ -110,7 +110,9 @@ Gui, Add, DDL, % "xp130 yp-2 w75 AltSubmit gCompress vUseMPress Choose" UseMPRES
 Gui, Add, Text,   xp150 yp2 vEmbRes, Embedded Resource ID
 gui, Add, ComboBox,x444 yp-2 w112 vResourceID, %LastResource%
 Gui, Add, Text,     x17 yp40, Convert to executable
+Gui, Font, bold
 Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, > &Convert <
+Gui, Font, norm 
 Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
 Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
 Gui, Add, StatusBar,, Ready
