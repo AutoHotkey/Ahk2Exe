@@ -507,11 +507,19 @@ if FileExist(SaveAs)
 	IfMsgBox Cancel, return
 	IfMsgBox No,     FileDelete %SaveAs%
 }
-FileAppend % "RunWait """ A_ScriptFullPath """`n /in """ AhkFile """"
-. (ExeFile ? "`n /out """ ExeFile """" : "")
-. (IcoFile ? "`n /icon """ IcoFile """": "") (ResourceID 
-~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n /ResourceID """ ResourceID """")
-. "`n /base """ BinFile """`n /compress " UseMpress-1 "`n`n", %SaveAs%
+if (SubStr(AHKType(BinFile,0).Version,1,1) = 2) ; If v2 Base file, write v2 code
+	FileAppend % "RunWait """ A_ScriptFullPath """`n . ' /in ' """ AhkFile """"
+	. (ExeFile ? "`n . ' /out ' """ ExeFile """" : "")
+	. (IcoFile ? "`n . ' /icon ' """ IcoFile """": "") (ResourceID 
+	~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n "
+	. ". ' /ResourceID ' """ ResourceID """")
+	. "`n . ' /base ' """ BinFile """`n "
+	. ". ' /compress " UseMpress-1 "'`n`n", %SaveAs%
+else FileAppend % "RunWait """ A_ScriptFullPath """`n /in """ AhkFile """"
+	. (ExeFile ? "`n /out """ ExeFile """" : "")
+	. (IcoFile ? "`n /icon """ IcoFile """": "") (ResourceID 
+	~="i)^\(default\)$|^\(reset list\)$" ? "":"`n /ResourceID """ ResourceID """")
+	. "`n /base """ BinFile """`n /compress " UseMpress-1 "`n`n", %SaveAs%
 Util_Status(ErrorLevel?"Save script settings failed!":"Saved script settings")
 Return
 
