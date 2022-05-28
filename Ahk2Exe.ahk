@@ -72,6 +72,7 @@ Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
 Menu, MenuBar,  Add, &File, :FileMenu
 Menu, MenuBar,  Add, &Help, :HelpMenu
+;Gui, Font, s9, simsun                        ; To test overlapping GUI fields
 Gui, Menu, MenuBar
 
 GuiX := 580, GuiY := 355
@@ -90,28 +91,28 @@ Note: Compiling does not guarantee source code protection.
 Gui, Add, Text,     x11 y90 w556 h2 +0x1007 vTopLine
 Gui, Add, GroupBox, x11 yp10 w556 h80 cGreen vGroupA, Main Parameters
 Gui, Add, Text,     x17 yp20, &Source (script file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vAhkFile, %AhkFile%
+Gui, Add, Edit,   xp140 yp-4 w291 h23 ReadOnly vAhkFile, %AhkFile%
 Gui, Add, Button, xp296 yp w53 h23 gBrowseAhk vBtnAhkFile, &Browse
 Gui, Add, Text,     x17 yp34, &Destination (.exe file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vExeFile1
+Gui, Add, Edit,   xp140 yp-4 w291 h23 ReadOnly vExeFile1
 		, % Exefile ? ExeFile : ExeDfltMes
 Gui, Add, Button, xp296 yp w53 h23 gBrowseExe vBtnExeFile, B&rowse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultExe vBtnExeDefault, D&efault
 Gui, Add, GroupBox, x11 yp45 w556 h105 cGreen vGroupB, Options
 Gui, Add, Text,     x17 yp20, Custom &Icon (.ico file)
-Gui, Add, Edit,   xp130 yp-4 w291 h23 ReadOnly vIcoFile, %IcoFile%
+Gui, Add, Edit,   xp140 yp-4 w291 h23 ReadOnly vIcoFile, %IcoFile%
 Gui, Add, Button, xp296 yp w53 h23 gBrowseIco vBtnIcoFile, Br&owse
 Gui, Add, Button,  xp58 yp w53 h23 gDefaultIco vBtnIcoDefault, Def&ault
 Gui, Add, Text,     x17 yp34, Base File (.bin, .exe)
-Gui, Add, DDL,    xp130 yp-2 w291 h23 R10 AltSubmit gBinChanged vBinFileId Choose%BinFileId%, %BinNames%
+Gui, Add, DDL,    xp140 yp-2 w291 h23 R10 AltSubmit gBinChanged vBinFileId Choose%BinFileId%, %BinNames%
 Gui, Add, Button, xp296 yp w53 h23 gBrowseBin vBtnBinFile, Bro&wse
 Gui, Add, Text,     x17 yp32, Compress exe with
-Gui, Add, DDL, % "xp130 yp-2 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
+Gui, Add, DDL, % "xp140 yp-2 w75 AltSubmit gCompress vUseMPress Choose" UseMPRESS+1, (none)|MPRESS|UPX
 Gui, Add, Text,   xp150 yp2 vEmbRes, Embedded Resource ID
 gui, Add, ComboBox,x444 yp-2 w112 vResourceID, %LastResource%
 Gui, Add, Text,     x17 yp40, Convert to executable
 Gui, Font, bold
-Gui, Add, Button, xp130 yp-4 w75 h23 Default gConvert vBtnConvert, &Convert
+Gui, Add, Button, xp140 yp-4 w75 h23 Default gConvert vBtnConvert, &Convert
 Gui, Font, norm 
 Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
 Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
@@ -211,25 +212,25 @@ GuiControl, MoveDraw, Heading2,      % "x" A_GuiWidth-305 -(A_GuiWidth-GuiX)/2
 GuiControl, Move,     TopLine,       % "w" A_GuiWidth-24
 
 ; GroupBox - Main Parameters
-GuiControl, Move,     AhkFile,       % "w" A_GuiWidth-289
+GuiControl, Move,     AhkFile,       % "w" A_GuiWidth-299
 GuiControl, Move,     BtnAhkFile,    % "x" A_GuiWidth-135
-GuiControl, Move,     ExeFile1,      % "w" A_GuiWidth-289
+GuiControl, Move,     ExeFile1,      % "w" A_GuiWidth-299
 GuiControl, Move,     BtnExeFile,    % "x" A_GuiWidth-135
 GuiControl, Move,     BtnExeDefault, % "x" A_GuiWidth-77
 GuiControl, MoveDraw, GroupA,        % "w" A_GuiWidth-24
 
 ; GroupBox - Options
-GuiControl, Move,     IcoFile,       % "w" A_GuiWidth-289
+GuiControl, Move,     IcoFile,       % "w" A_GuiWidth-299
 GuiControl, Move,     BtnIcoFile,    % "x" A_GuiWidth-135
 GuiControl, Move,     BtnIcoDefault, % "x" A_GuiWidth-77
 GuiControl, Move,     BtnBinFile,    % "x" A_GuiWidth-135
-GuiControl, Move,     BinFileId,     % "w" A_GuiWidth-289
-GuiControl, Move,     EmbRes,        % "x" A_GuiWidth-280
+GuiControl, Move,     BinFileId,     % "w" A_GuiWidth-299
+GuiControl, Move,     EmbRes,        % "x" A_GuiWidth-290
 GuiControl, MoveDraw, ResourceID,    % "x" A_GuiWidth-135
 GuiControl, MoveDraw, GroupB,        % "w" A_GuiWidth-24
 
 ; Footer
-GuiControl, Move,     Save,          % "x" A_GuiWidth-280
+GuiControl, MoveDraw, Save,          % "x" A_GuiWidth-290
 GuiControl, MoveDraw, BtnSave,       % "x" A_GuiWidth-135
 LastWidth := "W" A_GuiWidth
 return
