@@ -55,6 +55,9 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 					if SubStr(k, 1, 1) = 1
 						AhkPath := v
 
+	IfExist % wk := RegExReplace(AhkPath,"i)64.exe$", "32.exe") ; Prefer 32bit AHK
+		AhkPath := wk               ; Allows 32-bit Windows to compile 64-bit .exe's
+	
 	IfNotExist, %AhkPath%
 		Util_Error("Warning: AutoHotkey could not be located!`n`nAuto-includes "
 . "from Function Libraries and any 'Obey' directives will not be processed.",0)
