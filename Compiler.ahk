@@ -142,6 +142,8 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 	if BinFile ~= "i)\\Ahk2Exe.exe$" ;If base is self, oust Ahk2Exe logo from .exe
 		DllCall("UpdateResource", "ptr", Module, "ptr", 10
 		, "str", "LOGO.PNG", "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
+	,	DllCall("UpdateResource", "ptr", Module, "ptr", 10 ; Also remove code
+		, "ptr", 1, "ushort", 0x409, "ptr", 0, "uint", 0, "uint")
 
 	SetWorkingDir %AhkFile%\..       ; For FileInstall, etc
 	DerefIncludeVars.A_WorkFileName := ExeFile
