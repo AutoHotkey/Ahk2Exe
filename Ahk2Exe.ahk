@@ -10,7 +10,6 @@
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
-;@Ahk2Exe-SetCompanyName  AutoHotkey
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
@@ -73,6 +72,7 @@ Menu, HelpMenu, Add, &About, About
 Menu, MenuBar,  Add, &File, :FileMenu
 Menu, MenuBar,  Add, &Help, :HelpMenu
 ;Gui, Font, s9, simsun                        ; To test overlapping GUI fields
+;Gui, Font, , Segoe UI Variable               ; English default
 Gui, Menu, MenuBar
 
 GuiX := 580, GuiY := 355
@@ -167,20 +167,8 @@ loop, parse, A_GuiEvent, `n
 		{	GuiControl,, ExeFile1, %A_LoopField%
 			ExeFile := A_LoopField, StopCDExe := 1
 			Util_Status("""" A_LoopField """ added as 'Destination'")
-			continue
-		}			
-		Count := FindBinsExes(A_LoopField, "\|", "")
-		if (DropExt = "exe" && Count = 0) ; .exe could be 'Destination' or 'Base'
-		{	GuiControl,, ExeFile1, %A_LoopField%
-			ExeFile := A_LoopField, StopCDExe := 1
-			Util_Status("""" A_LoopField """ added as 'Destination'")
-			continue
-		}
-		if (Count > 1)
-		{	GuiControl,,       BinFileId, |%BinNames% 
-			GuiControl Choose, BinFileId, % BinFiles.MaxIndex()
-			Util_Status("""" A_LoopField """ temporarily added to 'Base file' list.")
-	}	}	
+		}	else AddBin(A_LoopField)		
+	}
 	else Util_Status("""" A_LoopField """ invalid - ignored!")
 }
 return
@@ -312,6 +300,18 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 	return Count               ; Count+=2 if file added to BinFiles[]
 }
 
+AddBin(File)
+{	if FindBinsExes(File, "\|", "") < 2
+	{	Util_Error("Warning: Base file appears to be invalid.",0 ,"""" File """"
+		, "Press 'OK' to accept anyway, or 'Cancel' to ignore.", 0)
+		Type := AHKType(File), BinFiles.Push(File), BinNames .= "|v"
+		. Type.Version " " Type.Summary " " RegExReplace(File, "^.+\\")
+	}
+	GuiControl,,       BinFileId, |%BinNames% 
+	GuiControl Choose, BinFileId, % BinFiles.MaxIndex()
+	Util_Status("""" File """ added to 'Base file' list.")
+}		
+
 ParseCmdLine:
 if !A_Args.MaxIndex()
 	return
@@ -380,9 +380,7 @@ CmdArg_Base(p2) {
 	global StopCDBin := 1, BinFile := p2, LastBinFile := Util_GetFullPath(p2), p1
 	if !FileExist(p2)
 		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
-	if FindBinsExes(p2, "\|", "") < 2
-		BadParams("Error: Not a recognised " p1 " file:`n""" p2 """")
-	Util_Status("""" p2 """ added to 'Base file' list.")
+	AddBin(p2)
 }
 
 CmdArg_Bin(p2) {
@@ -477,11 +475,7 @@ FileSelectFile, ov, 1, %LastBinDir%, Open Base File, Base files (*.bin;*.exe)
 if ErrorLevel
 	return
 SplitPath ov,, LastBinDir
-if FindBinsExes(ov, "\|", "") > 1
-{	GuiControl,,       BinFileId, |%BinNames% 
-	GuiControl Choose, BinFileId, % BinFiles.MaxIndex()
-	Util_Status("""" ov """ temporarily added to 'Base file' list.")
-} else Util_Status("""" ov """ invalid!")
+AddBin(ov)
 return
 
 DefaultExe:
@@ -739,7 +733,7 @@ Util_Status(s)       ;v Keep early status for GUI
 	SB_SetText(s = "Ready" && StaR ? StaR : s), StaR := s = "Ready" ? 0 : StaR
 }
 
-Util_Error(txt, exitcode, extra := "", extra1 := "")
+Util_Error(txt, exitcode, extra := "", extra1 := "", HourGlass := 1)
 {
 	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode, AhkFile
 	
@@ -780,7 +774,8 @@ Util_Error(txt, exitcode, extra := "", extra1 := "")
 		if (Error_ForceExit || SilentMode)
 			ExitApp, exitcode
 		else Exit, exitcode
-	Util_DisplayHourglass()
+	If HourGlass
+		Util_DisplayHourglass()
 }
 
 Util_Info(txt)

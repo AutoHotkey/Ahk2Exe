@@ -44,6 +44,13 @@ class VersionRes
 		this.Children.Insert(node)
 	}
 	
+	DeleteChild(node)
+	{
+		for c in this.children
+			if this.children[c].name = node
+				this.children.RemoveAt(c)
+	}
+	
 	GetChild(name)
 	{
 		for k,v in this

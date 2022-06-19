@@ -42,18 +42,17 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 
 	BinType := AHKType(ExeFileTmp)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
-	DerefIncludeVars.A_PtrSize := BinType.PtrSize
-	DerefIncludeVars.A_IsUnicode := BinType.IsUnicode
+	DerefIncludeVars.A_PtrSize    := BinType.PtrSize
+	DerefIncludeVars.A_IsUnicode  := BinType.IsUnicode
 
 	global AhkPath := UseAhkPath         ; = any /ahk parameter
 	
 	; V2 alphas and betas expected to match as breaking changes between versions
-	if (AhkPath="") ; Later v2 versions will have base as .exe, and so must match
-		if !(AhkPath:=ExeFiles[BinType.Version BinType.Summary]) ;Match .exe to base
-			if SubStr(BinType.Version, 1, 1) = 1
-				for k, v in ExeFiles ; If not exact v1 match, use highest v1 AHK version
-					if SubStr(k, 1, 1) = 1
-						AhkPath := v
+	if (AhkPath = "") ; Later v2 versions will have base as .exe, so should match
+		if !(AhkPath := ExeFiles[BinType.Version BinType.Summary]) ; .exe vs base?
+			for k, v in ExeFiles         ; If not exact match, use highest AHK version
+				if SubStr(k, 1, 1) = SubStr(BinType.Version, 1, 1)
+					AhkPath := v
 
 	IfExist % wk := RegExReplace(AhkPath,"i)64.exe$", "32.exe") ; Prefer 32bit AHK
 		AhkPath := wk               ; Allows 32-bit Windows to compile 64-bit .exe's
@@ -62,14 +61,21 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 		Util_Error("Warning: AutoHotkey could not be located!`n`nAuto-includes "
 . "from Function Libraries and any 'Obey' directives will not be processed.",0)
 
-global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
+	global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 
 	; v1.1.34 supports compiling with EXE, but in that case uses resource ID 1.
 	ResourceID := SubStr(BinFile, -3)=".exe" ? ResourceID ? ResourceID : "#1" 
 	: ">AUTOHOTKEY SCRIPT<"
 
+	if (BinType.Description ~= "^AutoHotkey"  ; If an AutoHotkey .exe Base used,
+	&& ResourceID ~= "i)^(#1|\(default\)|\(reset list\))$") ; with these IDs
+		VerInfo := {FileDescription:0           ; Version items to optionally remove
+		, ProductName:0, InternalName:0, LegalCopyright:0, OriginalFilename:0}
+	else VerInfo := {}
+
 	ExeFileG := ExeFile
-	BundleAhkScript(ExeFileTmp, ResourceID, AhkFile, UseMPRESS, CustomIcon, fileCP, BinFile)
+	BundleAhkScript(ExeFileTmp, ResourceID, AhkFile, UseMPRESS, CustomIcon
+		, fileCP, BinFile, VerInfo)
 	
 	; the final step...
 	Util_Status("Moving .exe to destination")
@@ -110,16 +116,8 @@ global StdLibDir := Util_GetFullPath(AhkPath "\..\Lib")
 }
 ; ---------------------------- End of AHKCompile -------------------------------
 
-Buttons()
-{	IfWinNotExist Ahk2Exe Query
-		return
-	SetTimer,, Off
-	WinActivate
-	ControlSetText Button1, &Unload
-	ControlSetText Button2, && &Reload
-}
-
-BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
+BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile
+	, fileCP, BinFile, VerInfo)
 {
 	if fileCP is space
 		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
@@ -147,7 +145,14 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile,fileCP,BinFile)
 
 	SetWorkingDir %AhkFile%\..       ; For FileInstall, etc
 	DerefIncludeVars.A_WorkFileName := ExeFile
-	dirState := ProcessDirectives(ExeFile, Module, Directives, PriorLines,IcoFile)
+	dirState := ProcessDirectives(ExeFile, Module, Directives, PriorLines
+		, IcoFile, VerInfo)
+
+	if Util_ObjNotEmpty(VerInfo)
+	{	Util_Status("Changing version information...")
+		ChangeVersionInfo(ExeFile, Module, VerInfo)
+	}
+
 
 	Util_Status("Adding: Master Script")
 	ResourceID := Format("{:U}", ResourceID ~= "i)^\(default\)$|^\(reset list\)$"
@@ -209,6 +214,15 @@ class CTempWD
 	__Delete()
 	{	SetWorkingDir % this.oldWD
 }	}
+
+Buttons()
+{	IfWinNotExist Ahk2Exe Query
+		return
+	SetTimer,, Off
+	WinActivate
+	ControlSetText Button1, &Unload
+	ControlSetText Button2, && &Reload
+}
 
 RunPostExec(dirState, UseMPRESS := "")
 {	for k, v in dirState["PostExec" UseMPRESS]

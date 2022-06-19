@@ -3,9 +3,10 @@
 ;
 #Include <VersionRes>
 
-ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile)
-{	state := { ExeFile: ExeFile, Module: Module, resLang: 0x409, verInfo: {}
+ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile, VerInfo)
+{	state := { ExeFile: ExeFile, Module: Module, resLang: 0x409, VerInfo: {}
 	, IcoFile: IcoFile, PostExec:[], PostExec0:[], PostExec1:[], PostExec2:[] }
+	state.VerInfo := VerInfo
 
 	for k, Cmd in Directives
 	{	while SubStr(Directives[k+A_Index], 1, 4) = "Cont"
@@ -33,10 +34,6 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile)
 		if (!fn.IsVariadic && (fn.MinParams-1 > nargs || nargs > fn.MaxParams-1))
 			Util_Error("Error: Wrongly formatted directive: (D1)", 0x64, Cmd)
 		fn.(state, args*)
-	}
-	if Util_ObjNotEmpty(state.verInfo)
-	{	Util_Status("Changing version information...")
-		ChangeVersionInfo(ExeFile, Module, state.verInfo)
 	}
 	if IcoFile := state.IcoFile
 	{	Util_Status("Changing the main icon...")
@@ -105,28 +102,28 @@ Directive_ResourceID(state, txt)
 {	state.ResourceID := txt
 }
 Directive_Set(state, name, txt)
-{	state.verInfo[name] := txt
+{	state.VerInfo[name] := txt
 }
 Directive_SetCompanyName(state, txt)
-{	state.verInfo.CompanyName := txt
+{	state.VerInfo.CompanyName := txt
 }
 Directive_SetCopyright(state, txt)
-{	state.verInfo.LegalCopyright := txt
+{	state.VerInfo.LegalCopyright := txt
 }
 Directive_SetDescription(state, txt)
-{	state.verInfo.FileDescription := txt
+{	state.VerInfo.FileDescription := txt
 }
 Directive_SetFileVersion(state, txt)
-{	state.verInfo.FileVersion := txt
+{	state.VerInfo.FileVersion := txt
 }
 Directive_SetInternalName(state, txt)
-{	state.verInfo.InternalName := txt
+{	state.VerInfo.InternalName := txt
 }
 Directive_SetLanguage(state, txt)
-{	state.verInfo.Language := txt
+{	state.VerInfo.Language := txt
 }
 Directive_SetLegalTrademarks(state, txt)
-{	state.verInfo.LegalTrademarks := txt
+{	state.VerInfo.LegalTrademarks := txt
 }
 Directive_SetMainIcon(state, txt := "")
 {	global StopCDIco
@@ -134,19 +131,19 @@ Directive_SetMainIcon(state, txt := "")
 		state.IcoFile := txt
 }
 Directive_SetName(state, txt)
-{	state.verInfo.InternalName := state.verInfo.ProductName := txt
+{	state.VerInfo.InternalName := state.VerInfo.ProductName := txt
 }
 Directive_SetOrigFilename(state, txt)
-{	state.verInfo.OriginalFilename := txt
+{	state.VerInfo.OriginalFilename := txt
 }
 Directive_SetProductName(state, txt)
-{	state.verInfo.ProductName := txt
+{	state.VerInfo.ProductName := txt
 }
 Directive_SetProductVersion(state, txt)
-{	state.verInfo.ProductVersion := txt
+{	state.VerInfo.ProductVersion := txt
 }
 Directive_SetVersion(state, txt)
-{	state.verInfo.FileVersion := state.verInfo.ProductVersion := txt
+{	state.VerInfo.FileVersion := state.VerInfo.ProductVersion := txt
 }
 
 Directive_UpdateManifest(state, admin, name = "", version = "", uiaccess = "")
@@ -259,7 +256,7 @@ Directive_AddResource(state, rsrc, resName := "")
 
 		PreprocessScript(fData1 := "", resFile, Directives := [], PriorLines := [])
 		dirState := ProcessDirectives(state.ExeFile, state.Module
-		, Directives, PriorLines, "")
+		, Directives, PriorLines, "", state.VerInfo)
 
 		if dirState.ConsoleApp                     ; Pass any ConsoleApp up chain
 			state.ConsoleApp := dirState.ConsoleApp
@@ -291,7 +288,7 @@ Directive_AddResource(state, rsrc, resName := "")
 	VarSetCapacity(fData, 0)
 }
 
-ChangeVersionInfo(ExeFile, hUpdate, verInfo)
+ChangeVersionInfo(ExeFile, hUpdate, VerInfo)
 {
 	hModule := DllCall("LoadLibraryEx", "str", ExeFile, "ptr", 0, "ptr", 2, "ptr")
 	if !hModule
@@ -304,22 +301,24 @@ ChangeVersionInfo(ExeFile, hUpdate, verInfo)
 	
 	ffi := vi.GetDataAddr()
 	props := SafeGetViChild(SafeGetViChild(vi, "StringFileInfo"), "040904b0")
-	for k,v in verInfo
-	{
-		if !(k = "Language")
-			SafeGetViChild(props, k).SetText(v)  ; All properties
-		if k in FileVersion,ProductVersion
-		{	ver := VersionTextToNumber(v)
-			hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
-			if (k = "FileVersion")
-					 NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
-			else NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
-	}	}
+	for k,v in VerInfo
+	{	if (!v)
+			props.DeleteChild(k)                   ; Remove any unwanted version info
+		else
+		{	if !(k = "Language")
+				SafeGetViChild(props, k).SetText(v)  ; All properties, but not language
+			if k in FileVersion,ProductVersion
+			{	ver := VersionTextToNumber(v)
+				hiPart := (ver >> 32)&0xFFFFFFFF, loPart := ver & 0xFFFFFFFF
+				if (k = "FileVersion")
+						NumPut(hiPart, ffi+8,  "UInt"), NumPut(loPart, ffi+12, "UInt")
+				else NumPut(hiPart, ffi+16, "UInt"), NumPut(loPart, ffi+20, "UInt")
+	}	}	}
 	VarSetCapacity(newVI, 16384) ; Should be enough
 	viSize := vi.Save(&newVI)
 	
-	if (wk := verInfo.Language)                               ; Change language?
-	{	NumPut(verInfo.Language, newVI, viSize-4, "UShort")
+	if (wk := VerInfo.Language)                               ; Change language?
+	{	NumPut(VerInfo.Language, newVI, viSize-4, "UShort")
 	}
 	DllCall("UpdateResource", "ptr", hUpdate, "ptr", 16, "ptr", 1
 		, "ushort", 0x409, "ptr", 0, "uint", 0, "uint")         ; Delete lang 0x409
