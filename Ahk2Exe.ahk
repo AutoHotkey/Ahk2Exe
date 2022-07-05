@@ -274,13 +274,13 @@ ToolTip
 BinNames := LTrim(BinNames, "|")
 return
 
-FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
+FindBinsExes(File, Excl="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R",Phase="",Dup=0)
 {	if (Phase && !CLIMode)
 		ToolTip Ahk2Exe:`n%Phase% Working %Phase%
 	Count := 0
 	Loop Files, %File%, %Mode%
 	{	if !(A_LoopFileName~="i)\.bin$|^AutoHotkey.+\.exe$|^Ahk2Exe.exe$")
-		|| A_LoopFileName~="i)^(" Exclude ")$|_UIA.exe$"
+		|| A_LoopFileName~="i)^(" Excl ")$|_UIA.exe$"
 			continue
 		Type := AHKType(A_LoopFileLongPath)   ; Get Unicode data and stats
 		if (Type.era = "Modern") && (A_LoopFileExt = "bin"
@@ -292,16 +292,19 @@ FindBinsExes(File, Exclude="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R", Phase="")
 				if !(wk.1 = 1 &&  wk.3 >= 34 
 				||   wk.1 = 2 && (wk.3 = wk.3+0 || wk.3 >= "a135"))
 					continue
-			}
-			BinFiles.Push(A_LoopFileLongPath), Count+=2
+			} Count+=2
+			if (!Dup        ; Skip duplicate Base files by default
+			&& BinNames ~= "\|v" Type.Version " " Type.Summary " " A_LoopFileName)
+				continue 
+			BinFiles.Push(A_LoopFileLongPath)
 			BinNames .= "|v" Type.Version " " Type.Summary " " 
 			. (A_LoopFileName = "AutoHotkeySC.bin" ? "(Default) bin" : A_LoopFileName)
 	}	}                        ; Count+=1 if file (could be) added to ExeFiles{}
-	return Count               ; Count+=2 if file added to BinFiles[]
+	return Count               ; Count+=2 if file (could be) added to BinFiles[]
 }
 
 AddBin(File)
-{	if FindBinsExes(File, "\|", "") < 2
+{	if FindBinsExes(File, "\|", "",, 1) < 2
 	{	Util_Error("Warning: Base file appears to be invalid.",0 ,"""" File """"
 		, "Press 'OK' to accept anyway, or 'Cancel' to ignore.", 0)
 		Type := AHKType(File), BinFiles.Push(File), BinNames .= "|v"
