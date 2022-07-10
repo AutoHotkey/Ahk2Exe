@@ -12,6 +12,8 @@
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
+Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion ""
+; @Ahk2Exe-SetVersion      %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
 
 SendMode Input
 SetBatchLines -1
@@ -123,7 +125,7 @@ Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v%A_AhkVersion% -- Script to EXE Converter
+Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v%Ver% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
