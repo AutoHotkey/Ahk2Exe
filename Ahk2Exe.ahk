@@ -15,7 +15,7 @@
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico ;v Needs Ahk2Exe v1.1.34.03c+
 Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion ""
-;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "Nop" : "SetVersion"
+;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
 ;@Ahk2Exe-%U_V%         %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
 
 SendMode Input

@@ -40,7 +40,9 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	DerefIncludeVars.Delete("A_WorkFileName")
 	DerefIncludeVars.Delete("A_PriorLine")
 
-	BinType := AHKType(ExeFileTmp)
+	BinType := AHKType(ExeFileTmp) ; Check that U32 Base file is used for Ahk2Exe
+	if (BinType.Summary != "U32" && AhkFile ~= "i)\\Ahk2Exe.ahk$")
+		Util_Error("Ahk2Exe must be compiled with a Unicode 32-bit Base file.", 0x2)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize    := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode  := BinType.IsUnicode
