@@ -13,8 +13,8 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile, VerInfo)
 			Cmd .= SubStr(Directives[k+A_Index], 6)
 		Util_Status("Processing directive: " (SubStr(Cmd,1,11) = "AddResource"
 			&& SubStr(PriorLines[k],1,1) = Chr(127) ? SubStr(PriorLines[k],2) : Cmd))
-		state.Cmd := Cmd
 		DerefIncludeVars.A_PriorLine := state.PriorLine := PriorLines[k] 
+		state.Cmd := Cmd := DerefIncludePath(Cmd, DerefIncludeVars, 1)
 		if !RegExMatch(Cmd, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive: (D1)", 0x63, Cmd)
 		args := [], nargs := 0
@@ -26,7 +26,7 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile, VerInfo)
 			StringReplace, ov, ov, ``r, `r, All
 			StringReplace, ov, ov, ``t, `t, All
 			StringReplace, ov, ov,````, ``, All
-			args.Insert(DerefIncludePath(ov, DerefIncludeVars, 1)), nargs++
+			args.Insert(ov), nargs++
 		}
 		fn := Func("Directive_" o1)
 		if !fn
@@ -68,6 +68,9 @@ Directive_Let(state, txt*)
 			Util_Error("Error: Wrongly formatted directive: (D2)", 0x64, state.Cmd)
 		DerefIncludeVars[(wk.1 ~= "i)^U_" ? "" : "U_") wk.1] := wk.2
 }	}
+Directive_Nop(state, txt*)
+{                                         ; Do nothing
+}
 Directive_Obey(state, name, txt, extra:=0)
 {	global AhkPath, AhkSw, SilentMode
 	IfExist %AhkPath%

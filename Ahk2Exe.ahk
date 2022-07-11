@@ -6,14 +6,17 @@
 ;	Written by fincs - Interface based on the original Ahk2Exe
 ;	Updated by TAC109 since 2019
 ;
+; Must be compiled with itself (same version)
+;
 ; @Ahk2Exe-Bin             Unicode 32*            ; Commented out
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
-;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
+;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico ;v Needs Ahk2Exe v1.1.34.03c+
 Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion ""
-; @Ahk2Exe-SetVersion      %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
+;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "Nop" : "SetVersion"
+;@Ahk2Exe-%U_V%         %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
 
 SendMode Input
 SetBatchLines -1
