@@ -8,14 +8,14 @@
 ;
 ; Must be compiled with itself (same version)
 ;
-; @Ahk2Exe-Bin             Unicode 32*            ; Commented out
+; @Ahk2Exe-Bin            Unicode 32*            ; Commented out; advisory
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
-;v Quoted literal at end needs to be empty on GitHub. Needs Ahk2Exe v1.1.34.03c+
+;v Quoted literal at end must be empty on GitHub. Needs Ahk2Exe v1.1.34.03c+
 Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion ""
 ;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
 ;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
@@ -65,6 +65,12 @@ AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
 AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
 SaveMes   := "S&ave Script Settings As…`tCtrl+S"
 
+Help1 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
+Help2 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
+Help3 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
+Help4 := Func("Help").Bind(0,"PostExec directive (Ahk2Exe)"
+	,"misc/Ahk2ExeDirectives.htm#PostExec")
+
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
 Menu, FileMenu, Add, %SaveMes%, SaveAsMenu
@@ -73,7 +79,7 @@ if (!AhkFile)
 Menu, FileMenu, Add, &Convert`tAlt+C, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
-Menu, HelpMenu, Add, &Help`tF1, Help
+Menu, HelpMenu, Add, &Help`tF1, % Help1
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
 Menu, MenuBar,  Add, &File, :FileMenu
@@ -699,17 +705,37 @@ if !ErrorLevel      ; Only RegWrite if 'save' has occurred sometime in the past
 }
 return
 
-Help:
-helpfile = %A_ScriptDir%\..\AutoHotkey.chm
-IfNotExist, %helpfile%
-	Util_Error("Error: cannot find AutoHotkey help file!", 0x52, helpfile)
-
-VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
-NumPut(ak_size, ak, 0, "UInt")
-name = Ahk2Exe
-NumPut(&name, ak, 8)
-DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", helpfile, "uint", 0x000D, "ptr", &ak) ; 0x000D: HH_KEYWORD_LOOKUP
-return
+Help(a, b, c, d := 0, e := 0, f := 0, g := 0)
+{	static Name, Online
+	global BinFileId
+	if !a
+	{	Name := b, Online := c
+		Menu mHelp, Add, Local help,  Help
+		Menu mHelp, Add, Online help, Help
+		Menu mHelp, Show
+	}	else               ;v Try to use latest help version according to version of
+	{	v := SubStr(AHKType(BinFiles[BinFileId],0).Version,1,1) ; Base file selected
+		if b=1                                ; 'Local help'
+		{	HelpFile := A_ScriptDir "\..\AutoHotkey.chm", HelpTime := 0
+			if FileExist( HelpFile) && v=1
+				FileGetTime HelpTime, %HelpFile%
+			Loop Files, %A_ScriptDir%\..\v%v%*, D
+			{	if FileExist(A_LoopFileLongPath "\AutoHotkey.chm") 
+				{	FileGetTime wk, %A_LoopFileLongPath%\AutoHotkey.chm
+					if (wk > HelpTime)
+						HelpTime := wk, HelpFile := A_LoopFileLongPath "\AutoHotkey.chm"
+			}	}
+			IfNotExist %helpfile%
+				Util_Error("Error: cannot find AutoHotkey help file!", 0x52, HelpFile)
+			VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
+			NumPut(ak_size, ak, 0, "UInt")
+			NumPut(&Name, ak, 8)
+			DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", HelpFile, "uint"
+			, 0x000D, "ptr", &ak) ; 0x000D: HH_KEYWORD_LOOKUP
+	}	else if v=1                             ; 'Online help'
+		Run "https://autohotkey.com/docs/%Online%"
+	else Run "https://lexikos.github.io/v2/docs/%Online%"
+}	}
 
 About:
 Gui, +OwnDialogs
