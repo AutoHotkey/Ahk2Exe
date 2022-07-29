@@ -184,7 +184,8 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
 			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
 		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
-			. "' specified, but freeware " k ".EXE is not in compiler directory.",0)
+			. "' specified, but freeware " k ".EXE is not in compiler directory. "
+			. "See 'Help' -> 'Check for updates' to install.",0)
 			, UseMPRESS := 9
 	}
 	RunPostExec(dirState, UseMPRESS)

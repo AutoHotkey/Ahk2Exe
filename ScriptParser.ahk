@@ -180,7 +180,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		IfNotExist, %AhkPath%
 			break ; Don't bother with auto-includes because the file does not exist
 		Util_Status("Auto-including any functions called from a library...")
-		AhkTypeRet := AHKType(AhkPath)
+		AhkTypeRet := AHKType(AhkPath,0)
 		if !AhkTypeRet
 			Util_Error("Error: The AutoHotkey build used for auto-inclusion of library functions is not recognized.", 0x25, AhkPath)
 		if (AhkTypeRet.Era = "Legacy")
