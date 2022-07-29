@@ -31,6 +31,7 @@ SetBatchLines -1
 #include *i __debug.ahk
 
 OnExit("Util_HideHourglass")             ; Reset cursor on exit
+OnExit("UpdDirRem")                      ; Remove any temp directory
 
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
@@ -823,7 +824,7 @@ A2D := A_ScriptDir "\", Priv := ""
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
 	RunWait "%A_AhkPath%" "%A_ScriptFullPath%"
 		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
-UpdDir := Util_TempFile(,"Update", "Update")
+UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
 FileCreateDir %UpdDir%
 Gui Upd:Destroy
 ;Gui Upd:Font, s9, simsun                      ; To test overlapping GUI fields
@@ -851,7 +852,7 @@ for k, v in Reqs
 	VnN := AHKType(RegExReplace(UpdDir "\" Reqa.4,"i)ahk$","exe"),0).Version
 	VnN := RegExReplace(VnN, "\(.+$")            ; Get new version
 	if VnN
-		Text := VnO ? VnN=VnO ? "  Up-to-date" : "  Update to" : "  Install"
+		Text := VnO ? VnN<=VnO ? "  Up-to-date" : "  Update to" : "  Install"
 	else Text := "  Offline   "
 	Gui Upd:Add, Button,   x17 yp25 h15 vHlp%k%, ?
 	GuiControl Upd:+g,   Hlp%k%, % Help%k% 
@@ -891,7 +892,14 @@ return
 UpdGuiClose:
 UpdGuiEscape:
 Gui Upd:Destroy
+UpdDirRem()
 return
+
+UpdDirRem()
+{	global
+	If InStr(FileExist(UpdDir), "D")
+		FileRemoveDir %UpdDir%, 1
+}
 
 UpdTimer:
 IfWinNotExist Ahk2Exe Updater
