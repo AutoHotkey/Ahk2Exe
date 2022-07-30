@@ -31,7 +31,6 @@ SetBatchLines -1
 #include *i __debug.ahk
 
 OnExit("Util_HideHourglass")             ; Reset cursor on exit
-OnExit("UpdDirRem")                      ; Remove any temp directory
 
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
