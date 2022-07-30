@@ -913,44 +913,51 @@ UpdButtonUpdate?:
 Gui Submit, NoHide
 FileDelete %UpdDir%\Script*.ahk
 DOS = "%A2D%Ahk2Exe.exe" /Script "%UpdDir%\Script1.ahk" &
+txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
 		DOS = %DOS% Move "%UpdDir%\%Req%" "%A2D%%Req%" &
 	else if (Text%k% = -1)
-	{	Util_Error("Are you sure you want to delete " Req "?", 0,,, 0)
+	{	txt .= "`n`t" Req
 		DOS = %DOS% Del "%A2D%%Req%" && Del "%UpdDir%\%Req%" &
 	} else DOS = %DOS% Del "%UpdDir%\%Req%" &
 }
+if txt
+	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
 DOS = %DOS% "%UpdDir%\A\Ahk2Exe.exe" /Script "%UpdDir%\Script2.ahk" & 
 DOS = %DOS% rmdir /s /q %UpdDir%
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
+
 FileAppend,
 (
 DetectHiddenWindows on
 WinKill      ahk_id %A_ScriptHwnd%
 WinWaitClose ahk_id %A_ScriptHwnd%,,10
 ), %UpdDir%\Script1.ahk
+
 FileAppend,
 (
 Par = %Par%
 Loop Files, %UpdDir%\*.exe
-txt .= "``n``t" A_LoopFileName
+	txt .= "``n``t" A_LoopFileName
 IfNotExist %A2D%Ahk2Exe.exe
-	Mess := "``n``nAhk2Exe deleted. To reinstall use the Dash(board)."
+	Mess := "``n``nAhk2Exe deleted. To reinstall, 'Start' button -> 'AutoHotkey'."
 if txt
 	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 IfExist %A2D%Ahk2Exe.exe
 	RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
+
 RunAsUser(target, args:="", workdir:="") {
 	try ShellRun(target, args, workdir)
 	catch e
 		Run `% args="" ? target : target " " args, `% workdir
 }
+
 ShellRun(prms*)
 {	shellWindows := ComObjCreate("Shell.Application").Windows
 	VarSetCapacity(_hwnd, 4, 0)
@@ -971,6 +978,7 @@ ShellRun(prms*)
 		ObjRelease(ptlb)
 }	}
 ), %UpdDir%\Script2.ahk
+
 if Priv
 	RunWait *RunAs %ComSpec% /c "%DOS%",,Hide
 else RunWait %ComSpec% /c "%DOS%",,Hide
@@ -983,8 +991,6 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 	try Req.send()
 	if (Req.status = 200)
 	{	Res := Req.responseText, Type1 := "browser_download", Type2 := "zipball"
-;		FileDelete GH.txt
-;		FileAppend % Res, GH.txt
 		while RegExMatch(Res,"i)""" Type%Typ% "_url"":""")
 		{	Res := RegExReplace(Res,"iU)^.+""" Type%Typ% "_url"":""")
 			Url := RegExReplace(Res,""".+$")
