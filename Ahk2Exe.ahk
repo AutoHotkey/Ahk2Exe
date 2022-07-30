@@ -30,7 +30,7 @@ SetBatchLines -1
 #Include Compiler.ahk
 #include *i __debug.ahk
 
-OnExit("Util_HideHourglass")             ; Reset cursor on exit
+OnExit("Util_HideHourglass"), OnExit("UpdDirRem")
 
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 
@@ -928,6 +928,7 @@ DOS = %DOS% "%UpdDir%\A\Ahk2Exe.exe" /Script "%UpdDir%\Script2.ahk" &
 DOS = %DOS% rmdir /s /q %UpdDir%
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
+OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
 
