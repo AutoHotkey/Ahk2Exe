@@ -1,3 +1,4 @@
+﻿goto UpdateEnd                                ; If fall-into, skip
 Update:
 Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"https://www.autohotkey.com/mpress/mpress.219.zip,,,Mpress.exe"
@@ -93,7 +94,7 @@ return
 
 UpdButtonUpdate?:
 Gui Submit, NoHide
-FileDelete %UpdDir%\Script*.ahk
+FileDelete %UpdDir%\Script*.*
 DOS = "%A2D%Ahk2Exe.exe" /Script "%UpdDir%\Script1.ahk" &
 txt := ""
 for k, v in Reqs
@@ -128,7 +129,8 @@ Par = %Par%
 Loop Files, %UpdDir%\*.exe
 	txt .= "``n``t" A_LoopFileName
 IfNotExist %A2D%Ahk2Exe.exe
-	Mess := "``n``nAhk2Exe deleted. To reinstall, 'Start' button -> 'AutoHotkey'."
+	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the installer
+  ,``n v2 - press 'Windows/Start', look for 'AutoHotkey', select 'Compile'."
 if txt
 	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
@@ -180,3 +182,4 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 			if (!Ext || SubStr(url, 1-StrLen(Ext)) = Ext)
 				return Url
 }	}	}
+UpdateEnd:

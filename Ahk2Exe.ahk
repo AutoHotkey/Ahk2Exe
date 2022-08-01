@@ -28,6 +28,7 @@ SetBatchLines -1
 
 #Include %A_ScriptDir%
 #Include Compiler.ahk
+#Include Update.ahk
 #include *i __debug.ahk
 
 OnExit("Util_HideHourglass"), OnExit("UpdDirRem")
@@ -837,4 +838,3 @@ Util_ObjNotEmpty(obj)
 {	for _,__ in obj
 		return true
 }
-#Include Update.ahk
