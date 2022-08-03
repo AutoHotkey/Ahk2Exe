@@ -33,7 +33,7 @@ for k, v in Reqs
 	VnO := AHKType(RegExReplace(A2D Reqa.4,"i)ahk$","exe"),0).Version
 	Text%k%V := VnO := RegExReplace(VnO,"\(.+$") ; Get old version
 	VnN := AHKType(RegExReplace(UpdDir "\" Reqa.4,"i)ahk$","exe"),0).Version
-	VnN := RegExReplace(VnN, "\(.+$")            ; Get new version
+	Text%k%N := VnN := RegExReplace(VnN,"\(.+$") ; Get new version
 	if VnN
 		Text := VnO ? VnN<=VnO ? "  Up-to-date" : "  Update to" : "  Install"
 	else Text := "  Offline   "
@@ -54,6 +54,20 @@ IfNotExist %A2D%Test.txt
 FileDelete %A2D%Test.txt
 return
 
+UpdGuiClose:
+UpdGuiEscape:
+Gui Upd:Destroy
+UpdDirRem()
+return
+
+UpdTimer:
+IfWinNotExist Ahk2Exe Updater
+	return
+SetTimer,, Off
+Priv := "*RunAs"
+SendMessage 0x160c,, 1, Button9, Ahk2Exe Updater  ; BCM_SETSHIELD := 0x160c
+return
+
 UpdChk:
 if !(%A_GuiControl%T)
 	GuiControlGet %A_GuiControl%T, Upd:,%A_GuiControl%, Text
@@ -72,25 +86,31 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
-UpdGuiClose:
-UpdGuiEscape:
-Gui Upd:Destroy
-UpdDirRem()
-return
-
 UpdDirRem()
 {	global
 	If InStr(FileExist(UpdDir), "D")
 		FileRemoveDir %UpdDir%, 1
 }
 
-UpdTimer:
-IfWinNotExist Ahk2Exe Updater
-	return
-SetTimer,, Off
-Priv := "*RunAs"
-SendMessage 0x160c,, 1, Button9, Ahk2Exe Updater  ; BCM_SETSHIELD := 0x160c
-return
+UpdCsv(A2D, Req, UpdDir, Version)
+{ IfExist %A2D%..\UX\installed-files.csv
+	{ path := """Compiler\" Req """"
+		if (Version != "Delete")
+		{	FileReadLine wk, %A2D%\..\UX\installed-files.csv, 1
+			wk := StrSplit(wk, ",")
+			FileDelete %UpdDir%\Script3.*
+			FileAppend,                                        ; V2 code
+			(
+			#NoTrayIcon`n#Include "%A2D%..\UX\inc\hashfile.ahk"
+			FileAppend hashfile("%UpdDir%\%Req%"), "%UpdDir%\Script3.hsh"
+			), %UpdDir%\Script3.ahk
+			RunWait "%A2D%..\UX\AutoHotkeyUX.exe" "%UpdDir%\Script3.ahk"
+			FileRead hash, %UpdDir%\Script3.hsh
+			for k, v in wk
+				txt .= txt ? "," %v% : %v%
+			FileAppend      %path%|%txt%`n,  %UpdDir%\Script3c.csv
+		} else FileAppend	%path%|Delete`n, %UpdDir%\Script3c.csv
+}	}
 
 UpdButtonUpdate?:
 Gui Submit, NoHide
@@ -100,9 +120,10 @@ txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
-		DOS = %DOS% Move "%UpdDir%\%Req%" "%A2D%%Req%" &
-	else if (Text%k% = -1)
-	{	txt .= "`n`t" Req
+	{	DOS = %DOS% Move "%UpdDir%\%Req%" "%A2D%%Req%" &
+		UpdCsv(A2D, Req, UpdDir, Text%k%N)
+	} else if (Text%k% = -1)
+	{	txt .= "`n`t" Req, UpdCsv(A2D, Req, UpdDir, "Delete")
 		DOS = %DOS% Del "%A2D%%Req%" && Del "%UpdDir%\%Req%" &
 	} else DOS = %DOS% Del "%UpdDir%\%Req%" &
 }
@@ -118,19 +139,37 @@ For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 
 FileAppend,
 (
-DetectHiddenWindows on
-WinKill      ahk_id %A_ScriptHwnd%
-WinWaitClose ahk_id %A_ScriptHwnd%,,10
+#NoTrayIcon`nDetectHiddenWindows on
+WinKill      ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%,,10
 ), %UpdDir%\Script1.ahk
 
 FileAppend,
 (
-Par = %Par%
+#NoTrayIcon`nPar = %Par%`nwk := []
 Loop Files, %UpdDir%\*.exe
-	txt .= "``n``t" A_LoopFileName
+	txt .= "``n``t" A_LoopFileName, fail := (fail ? "|" : "") A_LoopFileName
 IfNotExist %A2D%Ahk2Exe.exe
-	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the installer
-  ,``n v2 - press 'Windows/Start', look for 'AutoHotkey', select 'Compile'."
+	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the AHK installer
+	,``n v2 - press 'Windows/Start', find & run 'AutoHotkey', select 'Compile'."
+IfExist %UpdDir%\Script3c.csv
+{	Loop Read, %A2D%..\UX\installed-files.csv
+	{	if (A_Index = 1)
+		{	hdr := A_LoopReadLine
+			for k, v in StrSplit(Hdr,",")
+				if (v = "path")
+					break
+		}	else wk[StrSplit(A_LoopReadLine,",")[k]] := A_LoopReadLine
+	}
+	Loop Read, %UpdDir%\Script3c.csv
+		if !(fail && LoopReadLine ~= "i)(" fail ")$")
+			if StrSplit(A_LoopReadLine,"|").2 = "Delete"
+				wk.Delete(StrSplit(A_LoopReadLine,"|").1)
+			else wk[StrSplit(A_LoopReadLine,"|").1] := StrSplit(A_LoopReadLine,"|").2
+	FileDelete             %A2D%..\UX\installed-files.csv
+	FileAppend `%hdr`%``n, %A2D%..\UX\installed-files.csv
+	for k, v in wk
+		FileAppend `%v`%``n, %A2D%..\UX\installed-files.csv
+}
 if txt
 	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
@@ -142,7 +181,6 @@ RunAsUser(target, args:="", workdir:="") {
 	catch e
 		Run `% args="" ? target : target " " args, `% workdir
 }
-
 ShellRun(prms*)
 {	shellWindows := ComObjCreate("Shell.Application").Windows
 	VarSetCapacity(_hwnd, 4, 0)
@@ -150,8 +188,7 @@ ShellRun(prms*)
 	if ptlb := ComObjQuery(desktop
 		, "{4C96BE40-915C-11CF-99D3-00AA004AE837}"  ; SID_STopLevelBrowser
 		, "{000214E2-0000-0000-C000-000000000046}") ; IID_IShellBrowser
-	{
-		if DllCall(NumGet(NumGet(ptlb+0)+15*A_PtrSize),"ptr",ptlb,"ptr*", psv:=0) =0
+	{	if DllCall(NumGet(NumGet(ptlb+0)+15*A_PtrSize),"ptr",ptlb,"ptr*", psv:=0) =0
 		{	VarSetCapacity(IID_IDispatch, 16)
 			NumPut(0x46000000000000C0, NumPut(0x20400,IID_IDispatch,"int64"), "int64")
 			DllCall(NumGet(NumGet(psv+0)+15*A_PtrSize), "ptr", psv
