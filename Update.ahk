@@ -147,10 +147,7 @@ FileAppend,
 (
 #NoTrayIcon`nPar = %Par%`nwk := []
 Loop Files, %UpdDir%\*.exe
-	txt .= "``n``t" A_LoopFileName, fail := (fail ? "|" : "") A_LoopFileName
-IfNotExist %A2D%Ahk2Exe.exe
-	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the AHK installer
-	,``n v2 - press 'Windows/Start', find & run 'AutoHotkey', select 'Compile'."
+	txt .= "``n``t" A_LoopFileName, fail .= (fail ? "|" : "") A_LoopFileName
 IfExist %UpdDir%\Script3c.csv
 {	Loop Read, %A2D%..\UX\installed-files.csv
 	{	if (A_Index = 1)
@@ -161,7 +158,7 @@ IfExist %UpdDir%\Script3c.csv
 		}	else wk[StrSplit(A_LoopReadLine,",")[k]] := A_LoopReadLine
 	}
 	Loop Read, %UpdDir%\Script3c.csv
-		if !(fail && LoopReadLine ~= "i)(" fail ")$")
+		if !(fail && A_LoopReadLine ~= "i)(" StrReplace(fail,".","\.") ")""")
 			if StrSplit(A_LoopReadLine,"|").2 = "Delete"
 				wk.Delete(StrSplit(A_LoopReadLine,"|").1)
 			else wk[StrSplit(A_LoopReadLine,"|").1] := StrSplit(A_LoopReadLine,"|").2
@@ -170,6 +167,9 @@ IfExist %UpdDir%\Script3c.csv
 	for k, v in wk
 		FileAppend `%v`%``n, %A2D%..\UX\installed-files.csv
 }
+IfNotExist %A2D%Ahk2Exe.exe
+	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the AHK installer
+	,``n v2 - press 'Windows/Start', find & run 'AutoHotkey', select 'Compile'."
 if txt
 	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
