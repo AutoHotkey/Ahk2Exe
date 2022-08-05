@@ -171,7 +171,7 @@ IfNotExist %A2D%Ahk2Exe.exe
 	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the AHK installer
 	,``n v2 - press 'Windows/Start', find & run 'AutoHotkey', select 'Compile'."
 if txt
-	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%
+	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 IfExist %A2D%Ahk2Exe.exe
 	RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
