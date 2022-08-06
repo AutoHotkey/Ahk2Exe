@@ -727,13 +727,9 @@ Help(a, b, c, d := 0, e := 0, f := 0, g := 0)
 					if (wk > HelpTime)
 						HelpTime := wk, HelpFile := A_LoopFileLongPath "\AutoHotkey.chm"
 			}	}
-			IfNotExist %helpfile%
+			IfNotExist %HelpFile%
 				Util_Error("Error: cannot find AutoHotkey help file!", 0x52, HelpFile)
-			VarSetCapacity(ak, ak_size := 8+5*A_PtrSize+4, 0) ; HH_AKLINK struct
-			NumPut(ak_size, ak, 0, "UInt")
-			NumPut(&Name, ak, 8)
-			DllCall("hhctrl.ocx\HtmlHelp", "ptr", GuiHwnd, "str", HelpFile, "uint"
-			, 0x000D, "ptr", &ak) ; 0x000D: HH_KEYWORD_LOOKUP
+			Run hh.exe "ms-its:%HelpFile%::/docs/search.htm#q=%Name%"
 	}	else if v=1                                         ; 'Online help'
 		Run "https://autohotkey.com/docs/%Online%"
 	else Run "https://lexikos.github.io/v2/docs/%Online%"
