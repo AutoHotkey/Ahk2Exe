@@ -318,10 +318,11 @@ FindBinsExes(File, Excl="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R",Phase="",Dup=0)
 	return Count               ; Count+=2 if file (could be) added to BinFiles[]
 }
 
-AddBin(File)
+AddBin(File, Force := 0)
 {	if FindBinsExes(File, "\|", "",, 1) < 2
-	{	Util_Error("Warning: Base file appears to be invalid.",0 ,"""" File """"
-		, "Press 'OK' to accept anyway, or 'Cancel' to ignore.", 0)
+	{	if !(Force && File ~= "AutoHotkey\.exe$")
+			Util_Error("Warning: Base file appears to be invalid.",0 ,"""" File """"
+			, "Press 'OK' to accept anyway, or 'Cancel' to ignore.", 0)
 		Type := AHKType(File), BinFiles.Push(File), BinNames .= "|v"
 		. Type.Version " " Type.Summary " " RegExReplace(File, "^.+\\")
 	}
@@ -398,7 +399,7 @@ CmdArg_Base(p2) {
 	global StopCDBin := 1, BinFile := p2, LastBinFile := Util_GetFullPath(p2), p1
 	if !FileExist(p2)
 		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
-	AddBin(p2)
+	AddBin(p2, 1)
 }
 
 CmdArg_Bin(p2) {
