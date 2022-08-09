@@ -334,83 +334,63 @@ AddBin(File, Force := 0)
 ParseCmdLine:
 if !A_Args.MaxIndex()
 	return
-Error_ForceExit := true
-
-; Set defaults - may be overridden.
-CLIMode := true
-SilentMode := 0	; 0=off, 1=on, 2=verbose
+CLIMode := true           ; Set defaults - may be overridden.
+SilentMode := 0           ; 0=off, 1=on, 2=verbose
 p := A_Args.Clone()       ; Don't deplete A_Args here as needed in 'Restart:'
-
 while p.MaxIndex()
-{
-	p1 := p.RemoveAt(1)
-	
+{	p1 := p.RemoveAt(1)
 	if SubStr(p1,1,1) != "/" || !(p1fn := Func("CmdArg_" SubStr(p1,2)))
 		BadParams("Error: Unrecognised parameter:`n" p1)
-	
-	if p1fn.MaxParams  ; Currently assumes 0 or 1 params.
-	{
-		p2 := p.RemoveAt(1)
+	if p1fn.MaxParams       ; Currently assumes 0 or 1 params.
+	{	p2 := p.RemoveAt(1)
 		if (p2 = "" || SubStr(p2,1,1) = "/")
 			BadParams("Error: Blank or missing parameter for " p1 ".")
 	}
-	
 	%p1fn%(p2)
 }
-
+CLIMode := !GuiParam
 if (AhkFile = "" && CLIMode)
 	BadParams("Error: No input file specified.")
-
-if (SilentMode && !CLIMode){
+if (SilentMode && !CLIMode)
 	BadParams("Error: /silent requires CLI mode.")
-}
-
 if BinFile =
 	BinFile := LastBinFile
 return
 
 BadParams(Message, ErrorCode := 0x3, Specifically := "")
-{ global Error_ForceExit := true
-	Util_Error(Message, ErrorCode,Specifically, "Command Line Parameters:`n`n" A_ScriptName "`n`t [/in infile.ahk]`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/silent [verbose]]`n`t [/gui]")
+{ Util_Error(Message, ErrorCode,Specifically, "Command Line Parameters:`n`n" A_ScriptName "`n`t [/in infile.ahk]`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/silent [verbose]]`n`t [/gui]")
 }
 
 CmdArg_Gui() {
-	global CLIMode := false, Error_ForceExit := false
+	global GuiParam := true
 }
-
 CmdArg_In(p2) {
 	global AhkFile := p2
 	if !FileExist(p2)
 		BadParams("Error: Source file does not exist.",0x32,"""" p2 """")
 	SetCDBin(AhkFile)
 }
-
 CmdArg_Out(p2) {
 	global StopCDExe := 1, ExeFile := p2
 }
-
 CmdArg_Icon(p2) {
 	global StopCDIco := 1, IcoFile := p2
 	if !FileExist(p2)
 		BadParams("Error: Icon file does not exist.",0x35,"""" p2 """")
 }
-
 CmdArg_Base(p2) {
 	global StopCDBin := 1, BinFile := p2, LastBinFile := Util_GetFullPath(p2), p1
 	if !FileExist(p2)
 		BadParams("Error: Base file does not exist.",0x34,"""" p2 """")
 	AddBin(p2, 1)
 }
-
 CmdArg_Bin(p2) {
 	CmdArg_Base(p2)
 }
-
 CmdArg_ResourceID(p2) {
 	global ResourceID := p2, LastResource := StrReplace(LastResource,"||","|")
 	LastResource:=p2 "||" Trim(StrReplace("|" LastResource "|","|"p2 "|","|"),"|")
 }
-
 CmdArg_MPRESS(p2) {
 	CmdArg_Compress(p2)
 }
@@ -422,7 +402,6 @@ CmdArg_Compress(p2) {
 		p2 := CompressCode[p2]
 	UseMPRESS := p2
 }
-
 CmdArg_Ahk(p2) {
 	global
 	if !FileExist(p2)
@@ -430,7 +409,6 @@ CmdArg_Ahk(p2) {
 		, "Command line parameter /ahk`n""" p2 """")
 	UseAhkPath := Util_GetFullPath(p2)
 }
-
 CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 	global
 	if p2 is number
@@ -438,7 +416,6 @@ CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
 	else
 		ScriptFileCP := p2
 }
-
 CmdArg_Silent(){
 	global 
 	if (p[1] = "verbose")
@@ -446,11 +423,9 @@ CmdArg_Silent(){
 		p.RemoveAt(1)
 	} else	SilentMode := 1
 }
-
 CmdArg_Pass() {
 	BadParams("Error: Password protection is not supported.", 0x24)
 }
-
 CmdArg_NoDecompile() {
 	BadParams("Error: /NoDecompile is not supported.", 0x23)
 }
@@ -718,7 +693,7 @@ Help(a, b, c, d := 0, e := 0, f := 0, g := 0)
 		Menu mHelp, Show
 	}	else               ;v Try to use latest help version according to version of
 	{	v := SubStr(AHKType(BinFiles[BinFileId],0).Version,1,1) ; Base file selected
-		if b=1                                              ; 'Local help'
+		if b=1                                                  ; 'Local help'
 		{	HelpFile := A_ScriptDir "\..\AutoHotkey.chm", HelpTime := 0
 			if FileExist( HelpFile) && v=1
 				FileGetTime HelpTime, %HelpFile%
@@ -731,7 +706,7 @@ Help(a, b, c, d := 0, e := 0, f := 0, g := 0)
 			IfNotExist %HelpFile%
 				Util_Error("Error: cannot find AutoHotkey help file!", 0x52, HelpFile)
 			Run hh.exe "ms-its:%HelpFile%::/docs/search.htm#q=%Name%"
-	}	else if v=1                                         ; 'Online help'
+	}	else if v=1                                             ; 'Online help'
 		Run "https://autohotkey.com/docs/%Online%"
 	else Run "https://lexikos.github.io/v2/docs/%Online%"
 }	}
@@ -769,15 +744,11 @@ Util_Status(s)       ;v Keep early status for GUI
 }
 
 Util_Error(txt, exitcode, extra := "", extra1 := "", HourGlass := 1)
-{
-	global CLIMode, Error_ForceExit, ExeFileTmp, SilentMode, AhkFile
-	
+{	global CLIMode, ExeFileTmp, SilentMode, AhkFile
 	if extra
 		txt .= "`n`nSpecifically:`n" extra
-	
 	if extra1
 		txt .= "`n`n" extra1
-	
 	Util_HideHourglass()
 	if SilentMode
 	{	txt := "Ahk2Exe " txt "`n"
@@ -797,16 +768,14 @@ Util_Error(txt, exitcode, extra := "", extra1 := "", HourGlass := 1)
 	{	FileDelete, %ExeFileTmp%
 		ExeFileTmp =
 	}
-
 	if (CLIMode && exitcode)
 	{	try FileAppend, Failed to compile: %AhkFile%`n, **
 		catch
 			FileAppend, Failed to compile: %AhkFile%`n, *
 	}
 	Util_Status("Ready")
-	
 	if exitcode
-		if (Error_ForceExit || SilentMode)
+		if (CLIMode || SilentMode)
 			ExitApp, exitcode
 		else Exit, exitcode
 	If HourGlass
@@ -814,8 +783,7 @@ Util_Error(txt, exitcode, extra := "", extra1 := "", HourGlass := 1)
 }
 
 Util_Info(txt)
-{	
-	global SilentMode
+{	global SilentMode
 	if SilentMode
 		FileAppend, Ahk2Exe Info: %txt%`n, *
 	else
