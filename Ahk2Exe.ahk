@@ -352,7 +352,7 @@ CLIMode := !GuiParam
 if (AhkFile = "" && CLIMode)
 	BadParams("Error: No input file specified.")
 if (SilentMode && !CLIMode)
-	BadParams("Error: /silent requires CLI mode.")
+	SilentMode := 0
 if BinFile =
 	BinFile := LastBinFile
 return
