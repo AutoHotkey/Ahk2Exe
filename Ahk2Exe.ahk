@@ -348,17 +348,18 @@ while p.MaxIndex()
 	}
 	%p1fn%(p2)
 }
+if (SilentMode && (!CLIMode || GuiParam))
+	BadParams("Error: /Silent parameter requires CLI mode.")
 CLIMode := !GuiParam
 if (AhkFile = "" && CLIMode)
 	BadParams("Error: No input file specified.")
-if (SilentMode && !CLIMode)
-	SilentMode := 0
 if BinFile =
 	BinFile := LastBinFile
 return
 
 BadParams(Message, ErrorCode := 0x3, Specifically := "")
-{ Util_Error(Message, ErrorCode,Specifically, "Command Line Parameters:`n`n" A_ScriptName "`n`t [/in infile.ahk]`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/silent [verbose]]`n`t [/gui]")
+{ global SilentMode := 0  ; Errors should go to screen
+	Util_Error(Message, ErrorCode,Specifically, "Command Line Parameters:`n`n" A_ScriptName "`n`t [/in infile.ahk]`n`t [/out outfile.exe]`n`t [/icon iconfile.ico]`n`t [/base AutoHotkeySC.bin]`n`t [/resourceid #1]`n`t [/compress 0 (none), 1 (MPRESS), or 2 (UPX)]`n`t [/cp codepage]`n`t [/silent [verbose]]`n`t [/gui]")
 }
 
 CmdArg_Gui() {
