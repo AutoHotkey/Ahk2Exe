@@ -74,6 +74,7 @@ Help4 := Func("Help").Bind(0,"PostExec directive (Ahk2Exe)"
 
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
+Menu, FileMenu, Add, Refresh Windows &Icons`tCtrl+F5, RefreshIcons
 Menu, FileMenu, Add, %SaveMes%, SaveAsMenu
 if (!AhkFile)
 	Menu, FileMenu, Disable, %SaveMes%
@@ -202,6 +203,10 @@ if A_IsCompiled
 else 
 	Run "%A_AhkPath%" /Restart "%A_ScriptFullPath%" %Par%
 ExitApp
+
+RefreshIcons:
+DllCall("shell32\SHChangeNotify", "uint", 0x08000000, "uint", 0, "int", 0, "int", 0) ; SHCNE_ASSOCCHANGED
+return
 
 GuiSize:
 if (A_EventInfo = 1) ; The window has been minimized.
