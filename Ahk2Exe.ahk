@@ -74,7 +74,7 @@ Help4 := Func("Help").Bind(0,"PostExec directive (Ahk2Exe)"
 
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
-Menu, FileMenu, Add, Refresh Windows &Icons`tCtrl+F5, RefreshIcons
+Menu, FileMenu, Add, Refresh Windows &Icons`tAlt+I, RefreshIcons
 Menu, FileMenu, Add, %SaveMes%, SaveAsMenu
 if (!AhkFile)
 	Menu, FileMenu, Disable, %SaveMes%
