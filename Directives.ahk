@@ -245,8 +245,8 @@ Directive_AddResource(state, rsrc, resName := "")
 		VarSetCapacity(fData, fSize := StrPut(fData1, "utf-8") - 1)
 		StrPut(fData1, &fData, "utf-8")
 	} 
-	else if SubStr(resExt,1,2) = "ah" && resType = 10 ; Process AutoHotkey scripts
-	&& SubStr(state.PriorLine,1,1) != Chr(127)        ; But not from FileInstall
+	else if (resExt = "ahk" && resType = 10           ; Process AutoHotkey scripts
+	&& SubStr(state.PriorLine,1,1) != Chr(127))       ; But not from FileInstall
 	{	OldA_s := [], OldA_s.Push(DerefIncludeVars.A_ScriptFullPath) 
 		OldA_s.Push(DerefIncludeVars.A_ScriptName)
 		OldA_s.Push(DerefIncludeVars.A_ScriptDir)
