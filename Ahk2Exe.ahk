@@ -284,12 +284,12 @@ FindBinFile(name)
 BuildBinFileList:
 FindBinsExes(A_ScriptDir "\AutoHotkeySC.bin","\|","","-") ; Any default is first
 FindBinsExes(A_ScriptDir "\*",, "")                      ; Rest of \Compiler
-FindBinsExes(A_ScriptDir "\..\*",, "", "|")              ; Parent dir files only
-if SubStr(A_LineFile,1,1) = "*"                          ; if I am worthy,
-	FindBinsExes(A_ScriptDir "\Ahk2Exe.exe", "\|", "","\") ;   add me to the lists
+FindBinsExes(A_ScriptDir "\..\*",, "", "\")              ; Parent dir files only
 Loop Files,% A_ScriptDir "\..\*", D                      ; Parent dir dirs
 	if !(A_LoopFileName~="i)^AutoHotkey_H") && A_LoopFileName~="i)^AutoHotkey|^v"
-		FindBinsExes(A_LoopFileLongPath "\*",,, "/")
+		FindBinsExes(A_LoopFileLongPath "\*",,, "|")
+if SubStr(A_LineFile,1,1) = "*"                          ; if I am worthy,
+	FindBinsExes(A_ScriptDir "\Ahk2Exe.exe", "\|", "")     ;   add me to the lists
 ToolTip
 BinNames := LTrim(BinNames, "|")
 return
