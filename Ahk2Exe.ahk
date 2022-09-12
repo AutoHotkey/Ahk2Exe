@@ -134,7 +134,7 @@ Gui, Add, Text,   xp150 yp4 vSave, Save 'Options' as default
 Gui, Add, Button,  x444 yp-4 w53 h23 gSaveAsDefault vBtnSave, S&ave
 Gui, Add, StatusBar,, Ready
 ;@Ahk2Exe-IgnoreBegin
-Gui, Add, Pic, x20 y6 w240 h78 vHeading1, %A_ScriptDir%\logo.png
+Gui, Add, Pic, x20 y4 w240 h77 vHeading1, %A_ScriptDir%\logo.png
 ;@Ahk2Exe-IgnoreEnd
 /*@Ahk2Exe-Keep
 gosub AddPicture
@@ -246,7 +246,7 @@ return
 /*@Ahk2Exe-Keep
 AddPicture:
 ; Code based on http://www.autohotkey.com/forum/viewtopic.php?p=147052
-Gui, Add, Text, x20 y6 w240 h78 +0xE hwndhPicCtrl vHeading1
+Gui, Add, Text, x20 y4 w240 h77 +0xE hwndhPicCtrl vHeading1
 
 ;@Ahk2Exe-AddResource logo.png
 hRSrc := DllCall("FindResource", "ptr", 0, "str", "LOGO.PNG", "ptr", 10, "ptr")
@@ -265,7 +265,7 @@ DllCall("gdiplus\GdiplusStartup", "ptr*", gdipToken, "ptr", &si, "ptr", 0)
 DllCall("gdiplus\GdipCreateBitmapFromStream", "ptr", pStream, "ptr*", pBitmap)
 DllCall("gdiplus\GdipCreateHBITMAPFromBitmap", "ptr", pBitmap, "ptr*", hBitmap, "uint", 0)
 SendMessage, 0x172, 0, hBitmap,, ahk_id %hPicCtrl% ; 0x172=STM_SETIMAGE, 0=IMAGE_BITMAP
-GuiControl, Move, %hPicCtrl%, w240 h78
+GuiControl, Move, %hPicCtrl%, w240 h77
 
 DllCall("gdiplus\GdipDisposeImage", "ptr", pBitmap)
 DllCall("gdiplus\GdiplusShutdown", "ptr", gdipToken)
