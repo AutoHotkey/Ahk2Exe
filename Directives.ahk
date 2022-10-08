@@ -9,11 +9,12 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile, VerInfo)
 	state.VerInfo := VerInfo
 
 	for k, Cmd in Directives
-	{	while SubStr(Directives[k+A_Index], 1, 4) = "Cont"
-			Cmd .= SubStr(Directives[k+A_Index], 6)
+	{	DerefIncludeVars.A_PriorLine := state.PriorLine := PriorLines[k] 
+		while SubStr(wk := DerefIncludePath(Directives[k+A_Index]
+		, DerefIncludeVars, 1), 1, 4) ~= "i)^Cont$|^Nop $"
+			Cmd .= SubStr(wk, 1, 4) = "Cont" ? SubStr(wk, 6) : ""
 		Util_Status("Processing directive: " (SubStr(Cmd,1,11) = "AddResource"
 			&& SubStr(PriorLines[k],1,1) = Chr(127) ? SubStr(PriorLines[k],2) : Cmd))
-		DerefIncludeVars.A_PriorLine := state.PriorLine := PriorLines[k] 
 		state.Cmd := Cmd := DerefIncludePath(Cmd, DerefIncludeVars, 1)
 		if !RegExMatch(Cmd, "^(\w+)(?:\s+(.+))?$", o)
 			Util_Error("Error: Invalid directive: (D1)", 0x63, Cmd)
@@ -51,8 +52,10 @@ Directive_ConsoleApp(state)
 Directive_Cont(state, txt*)
 {                                          ; Handled above
 }
-Directive_Debug(state, txt)
-{	Util_Error( "Debug: " txt, 0)
+Directive_Debug(state, txt*)
+{	for k, v in txt
+		wk .= wk ? ", " v : v
+	Util_Error( "Debug: " wk, 0)
 }
 Directive_ExeName(state, txt)
 {	global ExeFileG, StopCDExe
