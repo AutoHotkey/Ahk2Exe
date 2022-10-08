@@ -23,7 +23,11 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	ExeFileTmp := Util_TempFile(, "exe~", RegExReplace(xe,"^.*/"))
 	
 	if BinFile =
-		BinFile = %A_ScriptDir%\AutoHotkeySC.bin
+	{	BinFile = %A_ScriptDir%\AutoHotkeySC.bin
+		IfNotExist %BinFile%
+			Util_Error("Error: No default Base file specified.`n`nIn the Ahk2Exe "
+			. "GUI, select the default Base file to be used and press 'Save'.",0x34)
+	}
 	
 	Util_DisplayHourglass()
 	
@@ -48,6 +52,7 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize    := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode  := BinType.IsUnicode
+	DerefIncludeVars.A_BasePath   := BinFile
 
 	global AhkPath := UseAhkPath         ; = any /ahk parameter
 	
