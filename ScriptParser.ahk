@@ -4,7 +4,7 @@
 
 PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 , FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
-{	global DirDoneG
+{	global DirDoneG, PriorLine
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
