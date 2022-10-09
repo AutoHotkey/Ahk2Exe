@@ -54,7 +54,7 @@ Directive_Cont(state, txt*)
 }
 Directive_Debug(state, txt*)
 {	for k, v in txt
-		wk .= wk ? ", " v : v
+		wk .= k=1 ? v : ", " v
 	Util_Error( "Debug: " wk, 0)
 }
 Directive_ExeName(state, txt)
