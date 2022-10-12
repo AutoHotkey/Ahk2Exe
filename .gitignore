@@ -7,4 +7,5 @@
 *.chm
 *.reg
 *.session
+/SubVer.ahk
 /__debug.ahk
