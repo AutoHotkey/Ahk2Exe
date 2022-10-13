@@ -8,17 +8,18 @@
 ;
 ; Must be compiled with itself (same version)
 ;
-; @Ahk2Exe-Base           AutoHotkeyU32.exe           ; Commented out; advisory
+; @Ahk2Exe-Base           AutoHotkeyU32.exe      ; Commented out; advisory only
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
-;v Quoted literal at end must be empty on GitHub. Needs Ahk2Exe v1.1.34.03c+
-Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion ""
+; Put 'SubVer:= "a"' line (without ') into local 'SubVer.ahk' to set sub-version
+#Include *i SubVer.ahk ; 'SubVer.ahk' must NOT be on GitHub. (Leave these -> "")
 ;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
 ;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
+Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion SubVer
 
 SendMode Input
 SetBatchLines -1
