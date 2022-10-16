@@ -15,12 +15,6 @@
 ;@Ahk2Exe-SetOrigFilename Ahk2Exe.ahk
 ;@Ahk2Exe-SetMainIcon     Ahk2Exe.ico
 
-; Put 'SubVer:= "a"' line (without ') into local 'SubVer.ahk' to set sub-version
-#Include *i SubVer.ahk ; 'SubVer.ahk' must NOT be on GitHub. (Leave these -> "")
-;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
-;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
-Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion SubVer
-
 SendMode Input
 SetBatchLines -1
 #NoEnv
@@ -31,6 +25,12 @@ SetBatchLines -1
 #Include Compiler.ahk
 #Include Update.ahk
 #include *i __debug.ahk
+
+; Put 'SubVer:= "a"' line (without ') into local 'SubVer.ahk' to set sub-version
+#Include *i SubVer.ahk ; 'SubVer.ahk' must NOT be on GitHub. (Keep these -> "")
+;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
+;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
+Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion SubVer
 
 OnExit("Util_HideHourglass"), OnExit("UpdDirRem")
 
