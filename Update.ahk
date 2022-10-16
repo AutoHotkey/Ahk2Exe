@@ -54,12 +54,6 @@ IfNotExist %A2D%Test.txt
 FileDelete %A2D%Test.txt
 return
 
-UpdGuiClose:
-UpdGuiEscape:
-Gui Upd:Destroy
-UpdDirRem()
-return
-
 UpdTimer:
 IfWinNotExist Ahk2Exe Updater
 	return
@@ -92,7 +86,7 @@ UpdDirRem()
 		FileRemoveDir %UpdDir%, 1
 }
 
-UpdCsv(A2D, Req, UpdDir, Version)
+GetCsv(A2D, Req, UpdDir, Version)
 { IfExist %A2D%..\UX\installed-files.csv
 	{ path := """Compiler\" Req """"
 		if (Version != "Delete")
@@ -115,27 +109,32 @@ UpdCsv(A2D, Req, UpdDir, Version)
 UpdButtonUpdate?:
 Gui Submit, NoHide
 FileDelete %UpdDir%\Script*.*
-DOS = "%A2D%Ahk2Exe.exe" /Script "%UpdDir%\Script1.ahk" &
+DOS = Set "Tgt=%A2D%" & Set "Src=%UpdDir%" &
+DOS = %DOS% "!Tgt!Ahk2Exe.exe" /Script "!Src!\Script1.ahk" &
 txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
-	{	DOS = %DOS% Move "%UpdDir%\%Req%" "%A2D%%Req%" &
-		UpdCsv(A2D, Req, UpdDir, Text%k%N)
+	{	DOS = %DOS% Del "!Tgt!%Req%" & Copy /b "!Src!\%Req%" "!Tgt!%Req%" &&
+		DOS = %DOS% Del "!Src!\%Req%" &
+		GetCsv(A2D, Req, UpdDir, Text%k%N)
 	} else if (Text%k% = -1)
-	{	txt .= "`n`t" Req, UpdCsv(A2D, Req, UpdDir, "Delete")
-		DOS = %DOS% Del "%A2D%%Req%" && Del "%UpdDir%\%Req%" &
-	} else DOS = %DOS% Del "%UpdDir%\%Req%" &
+	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
+		DOS = %DOS% Del "!Tgt!%Req%" && Del "!Src!\%Req%" &
+	} else DOS = %DOS% Del "!Src!\%Req%" &
 }
 if txt
 	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
-DOS = %DOS% "%UpdDir%\A\Ahk2Exe.exe" /Script "%UpdDir%\Script2.ahk" & 
-DOS = %DOS% rmdir /s /q %UpdDir%
+DOS = %DOS% "!Src!\A\Ahk2Exe.exe" /Script "!Src!\Script2.ahk" & 
+DOS = %DOS% rmdir /s /q "!Src!"
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
 OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
+
+
+
 
 FileAppend,
 (
@@ -202,8 +201,8 @@ ShellRun(prms*)
 ), %UpdDir%\Script2.ahk
 
 if Priv
-	RunWait *RunAs "%ComSpec%" /c "%DOS%",, Hide UseErrorLevel
-else RunWait     "%ComSpec%" /c "%DOS%",, Hide UseErrorLevel
+	RunWait *RunAs "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
+else RunWait     "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
 MsgBox 48, Ahk2Exe Updater, Update abandoned.
 return
 
@@ -220,4 +219,11 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 			if (!Ext || SubStr(url, 1-StrLen(Ext)) = Ext)
 				return Url
 }	}	}
+
+UpdGuiClose:
+UpdGuiEscape:
+Gui Upd:Destroy
+UpdDirRem()
+return
+
 UpdateEnd:
