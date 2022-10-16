@@ -67,11 +67,7 @@ AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
 AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
 SaveMes   := "S&ave Script Settings As…`tCtrl+S"
 
-Help1 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
-Help2 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
-Help3 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
-Help4 := Func("Help").Bind(0,"PostExec directive (Ahk2Exe)"
-	,"misc/Ahk2ExeDirectives.htm#PostExec")
+Help0 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
 
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
@@ -82,7 +78,7 @@ if (!AhkFile)
 Menu, FileMenu, Add, &Convert`tAlt+C, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
-Menu, HelpMenu, Add, &Help`tF1, % Help1
+Menu, HelpMenu, Add, &Help`tF1, % Help0
 Menu, HelpMenu, Add, Check for Updates...`tAlt+K, Update
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About

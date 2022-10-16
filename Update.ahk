@@ -220,6 +220,10 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 				return Url
 }	}	}
 
+HelpU(a)
+{	Run "https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095"
+}
+
 UpdGuiClose:
 UpdGuiEscape:
 Gui Upd:Destroy
@@ -227,3 +231,8 @@ UpdDirRem()
 return
 
 UpdateEnd:
+Help1 := Func("HelpU").Bind(0)            ; All initialised at beginning
+Help2 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
+Help3 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
+Help4 := Func("Help").Bind(0,"PostExec directive (Ahk2Exe)"
+	,"misc/Ahk2ExeDirectives.htm#PostExec")
