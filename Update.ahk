@@ -202,8 +202,9 @@ ShellRun(prms*)
 ), %UpdDir%\Script2.ahk
 
 if Priv
-	RunWait *RunAs "%ComSpec%" /c "%DOS%",,Hide
-else RunWait "%ComSpec%" /c "%DOS%",,Hide
+	RunWait *RunAs "%ComSpec%" /c "%DOS%",, Hide UseErrorLevel
+else RunWait     "%ComSpec%" /c "%DOS%",, Hide UseErrorLevel
+MsgBox 48, Ahk2Exe Updater, Update abandoned.
 return
 
 GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
