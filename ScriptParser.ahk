@@ -80,12 +80,9 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 
 			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
-			{
-				IncludeFile := Trim(IncludeFile,"""'") ; Drop any quotes (V2)
-				
-				IsIncludeAgain := (o1 = "Again")
+			{	IsIncludeAgain := (o1 = "Again")
 				IgnoreErrors := false
-				IncludeFile := o2
+				IncludeFile := Trim(o2,"""'")      ; Drop any quotes (V2)
 				if RegExMatch(IncludeFile, "\*[iI]\s+?(.*)", o)
 					IgnoreErrors := true, IncludeFile := Trim(o1)
 
