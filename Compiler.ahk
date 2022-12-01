@@ -78,9 +78,9 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 
 	if (BinType.Description ~= "^AutoHotkey"  ; If an AutoHotkey .exe Base used,
 	&& ResourceID ~= "i)^(#1|\(default\)|\(reset list\))$") ; with these IDs
-		VerInfo := {FileDescription:0           ; Version items to optionally remove
+		VerInfo := {FileDescription:0, CompanyName:0
 		, ProductName:0, InternalName:0, LegalCopyright:0, OriginalFilename:0}
-	else VerInfo := {}
+	else VerInfo := {}                        ; Version items to optionally remove
 
 	ExeFileG := ExeFile
 	BundleAhkScript(ExeFileTmp, ResourceID, AhkFile, UseMPRESS, CustomIcon
