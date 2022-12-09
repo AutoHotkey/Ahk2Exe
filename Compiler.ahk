@@ -239,7 +239,9 @@ RunPostExec(dirState, UseMPRESS := "")
 	{	Util_Status("PostExec" UseMPRESS ": " v.1)
 		RunWait % v.1, % v.2 ? v.2 : A_ScriptDir, % "UseErrorLevel " (v.3?"Hide":"")
 		if (ErrorLevel != 0 && !v.4)
-			Util_Error("Command failed with RC=" ErrorLevel ":`n" v.1, 0x62)
+			if (ErrorLevel = "ERROR") 
+				Util_Error("Program not found:`n" v.1, 0x62)
+			else Util_Error("Command failed with RC=" ErrorLevel ":`n" v.1, 0x62)
 }	}
 
 Util_GetFullPath(path)
