@@ -187,8 +187,10 @@ BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile
 	for k,v in [{MPRESS:"-x"},{UPX:"--all-methods --compress-icons=0"}][UseMPRESS]
 	{	Util_Status("Compressing final executable with " k " ...")
 		if FileExist(wk := A_ScriptDir "\" k ".exe")
-			RunWait % """" wk """ -q " v " """ ExeFile """",, Hide
-		else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
+		{	RunWait % """" wk """ -q " v " """ ExeFile """",, Hide UseErrorLevel
+			if ErrorLevel
+				Util_Error("Warning: " k " failed with error " ErrorLevel,0)
+		} else Util_Error("Warning: """ wk """ not found.`n`n'Compress exe with " k
 			. "' specified, but freeware " k ".EXE is not in compiler directory. "
 			. "See 'Help' -> 'Check for updates' to install.",0)
 			, UseMPRESS := 9
