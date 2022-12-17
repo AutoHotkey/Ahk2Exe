@@ -243,7 +243,7 @@ RunPostExec(dirState, UseMPRESS := "")
 		if (ErrorLevel != 0 && !v.4)
 			if (ErrorLevel = "ERROR") 
 				Util_Error("Program not found:`n" v.1, 0x62)
-			else Util_Error("Command failed with RC=" ErrorLevel ":`n" v.1, 0x62)
+			else Util_Error("Command failed with error " ErrorLevel ":`n" v.1, 0x62)
 }	}
 
 Util_GetFullPath(path)
