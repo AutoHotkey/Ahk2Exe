@@ -152,8 +152,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				StringReplace, o1, o1, %EscapeTmpD%, %EscapeChar%, All
 				StringReplace, tline, tline, %EscapeTmp%, %EscapeComma%, All
 				StringReplace, tline, tline, %EscapeTmpD%, %EscapeCharChar%, All
-
-				Directives.Push("AddResource *10 " Trim(o1,"""'")) ;Drop any quotes (V2)
+                                                       ;v Drop any quotes (V2)
+				Directives.Push("AddResource *10 " Trim(StrReplace(o1,",","``,"),"""'"))
 				PriorLines.Push(Chr(127) Trim(A_LoopReadLine)) ; 'Install' flag & line
 				ScriptText .= tline "`n"
 			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
