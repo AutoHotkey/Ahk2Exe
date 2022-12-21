@@ -67,8 +67,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 							cmtBlock := true
 					continue
 				}
-				else if StrStartsWith(tline, "*/")
-					continue ; Will only happen in a 'Keep' section
+				else if (cmtBlock = true && StrStartsWith(tline, "*/"))
+					continue
 			}
 			if StrStartsWith(tline, "(") && !IsFakeCSOpening(SubStr(tline,2))
 				contSection := true
