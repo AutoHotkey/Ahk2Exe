@@ -1,7 +1,6 @@
 ﻿;
 ; File encoding:  UTF-8 with BOM
 ;
-
 PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 , FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
 {	global DirDoneG, PriorLine
@@ -13,7 +12,6 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
 		Options := { comm: ";", esc: "``" }
-		
 		OldWorkingDir := A_WorkingDir
 		TempWD := new CTempWD(ScriptDir)
 	}
@@ -24,29 +22,23 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 	{	OldWorkingDirv2 := A_WorkingDir
 		SetWorkingDir %ScriptDir%
 	}
-	
 	IfNotExist, %AhkScript%
 		if !iOption
 			Util_Error((IsFirstScript ? "Script" : "#include") " file cannot be opened.", 0x32, """" AhkScript """")
 		else return
 	
-	cmtBlock := false, contSection := false, ignoreSection := false
+	cmtBlock := 0, contSection := false, ignoreSection := false
 	Loop, Read, %AhkScript%
-	{
-		tline := Trim(A_LoopReadLine)
-		if !cmtBlock
-		{
-			if ignoreSection
-			{
-				if StrStartsWith(tline, Options.comm "@Ahk2Exe-IgnoreEnd")
+	{	tline := Trim(A_LoopReadLine)
+		if cmtBlock != 1
+		{	if ignoreSection
+			{	if StrStartsWith(tline, Options.comm "@Ahk2Exe-IgnoreEnd")
 					ignoreSection := false
 				continue
 			}
 			if !contSection
-			{
-				if StrStartsWith(tline, Options.comm)
-				{
-					StringTrimLeft, tline, tline, % StrLen(Options.comm)
+			{	if StrStartsWith(tline, Options.comm)
+				{	StringTrimLeft, tline, tline, % StrLen(Options.comm)
 					if !StrStartsWith(tline, "@Ahk2Exe-")
 						continue
 					StringTrimLeft, tline, tline, 9
@@ -57,17 +49,15 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 						, "\s+" RegExEscape(Options.comm) ".*$")) ;Strip any actual comments
 						, PriorLines.Push(PriorLine) ; Will be this directive's A_PriorLine
 					continue
-				}
-				else if tline =
+				} else if tline =
 					continue
 				else if StrStartsWith(tline, "/*")
-				{
-					if !StrStartsWith(tline, "/*@Ahk2Exe-Keep")
-						if !(SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
-							cmtBlock := true
+				{	if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
+						cmtBlock := 2
+					else if !(SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 &&tline~="\*/$")
+							cmtBlock := 1
 					continue
-				}
-				else if (cmtBlock = true && StrStartsWith(tline, "*/"))
+				} else if (cmtBlock = 2 && StrStartsWith(tline, "*/"))
 					continue
 			}
 			if StrStartsWith(tline, "(") && !IsFakeCSOpening(SubStr(tline,2))
@@ -76,7 +66,6 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				contSection := false
 			
 			PriorLine := tline                   ; Save for a directive's A_PriorLine
-			
 			tline := RegExReplace(tline, "\s+" RegExEscape(Options.comm) ".*$", "")
 			if !contSection 
 			&& RegExMatch(tline, "i)^#Include(Again)?[ \t]*[, \t]\s*(.*)$", o)
@@ -90,45 +79,34 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				{	ScriptText .= tline "`n"         ; a filename which starts with * and
 					continue                         ; will be handled by the interpreter
 				}
-				
 				if RegExMatch(IncludeFile, "^<(.+)>$", o)
-				{
-					if IncFile2 := FindLibraryFile(o1, FirstScriptDir)
-					{
-						IncludeFile := IncFile2
+				{	if IncFile2 := FindLibraryFile(o1, FirstScriptDir)
+					{	IncludeFile := IncFile2
 						goto _skip_findfile
-					}
-				}
-				
+				}	}
 				IncludeFile := DerefIncludePath(IncludeFile, DerefIncludeVars)
-				
 				if InStr(FileExist(IncludeFile), "D")
-				{
-					SetWorkingDir, %IncludeFile%
+				{	SetWorkingDir, %IncludeFile%
 					continue
 				}
 				
 				_skip_findfile:
 				
 				IncludeFile := Util_GetFullPath(IncludeFile)
-				
 				AlreadyIncluded := false
 				for k,v in FileList
 				if (v = IncludeFile)
-				{
-					AlreadyIncluded := true
+				{	AlreadyIncluded := true
 					break
 				}
 				if(IsIncludeAgain || !AlreadyIncluded)
-				{
-					if !AlreadyIncluded
+				{	if !AlreadyIncluded
 						FileList.Insert(IncludeFile)
 					PreprocessScript(ScriptText, IncludeFile, Directives
 					, PriorLines, FileList, FirstScriptDir, Options, IgnoreErrors)
 				}
-			}else if !contSection && tline ~= "i)^FileInstall[(, \t]"
-			{
-				if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
+			} else if !contSection && tline ~= "i)^FileInstall[(, \t]"
+			{	if tline ~= "^\w+\s+(:=|\+=|-=|\*=|/=|//=|\.=|\|=|&=|\^=|>>=|<<=)"
 					continue ; This is an assignment!
 				
 				; workaround for `, detection
@@ -156,7 +134,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				Directives.Push("AddResource *10 " Trim(StrReplace(o1,",","``,"),"""'"))
 				PriorLines.Push(Chr(127) Trim(A_LoopReadLine)) ; 'Install' flag & line
 				ScriptText .= tline "`n"
-			}else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
+			} else if !contSection && RegExMatch(tline, "i)^#CommentFlag\s+(.+)$", o)
 				Options.comm := o1, ScriptText .= tline "`n"
 			else if !contSection && RegExMatch(tline, "i)^#EscapeChar\s+(.+)$", o)
 				Options.esc := o1, ScriptText .= tline "`n"
@@ -168,12 +146,10 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
 		}	else if (tline~="^\*/" 
 		|| SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
-			cmtBlock := false           ; End block comment
-	}
-	
+			cmtBlock := 0                                    ; End block comment
+	}                                                    ; End file-read loop
 	Loop, % !!IsFirstScript ; Like "if IsFirstScript" but can "break" from block
-	{
-		global AhkPath, AhkSw
+	{	global AhkPath, AhkSw
 		IfNotExist, %AhkPath%
 			break ; Don't bother with auto-includes because the file does not exist
 		Util_Status("Auto-including any functions called from a library...")
@@ -232,24 +208,21 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 ; --------------------------- End PreprocessScript -----------------------------
 
 IsFakeCSOpening(tline)
-{
-	Loop, Parse, tline, %A_Space%%A_Tab%
+{	Loop, Parse, tline, %A_Space%%A_Tab%
 		if !StrStartsWith(A_LoopField, "Join") && InStr(A_LoopField, ")")
 			return true
 	return false
 }
 
 FindLibraryFile(name, ScriptDir)
-{
-	global StdLibDir
+{	global StdLibDir
 	libs := [ScriptDir "\Lib", A_MyDocuments "\AutoHotkey\Lib", StdLibDir]
 	p := InStr(name, "_")
 	if p
 		name_lib := SubStr(name, 1, p-1)
 	
 	for each,lib in libs
-	{
-		file := lib "\" name ".ahk"
+	{	file := lib "\" name ".ahk"
 		IfExist, %file%
 			return file
 		
@@ -259,17 +232,15 @@ FindLibraryFile(name, ScriptDir)
 		file := lib "\" name_lib ".ahk"
 		IfExist, %file%
 			return file
-	}
-}
+}	}
+
 
 StrStartsWith(ByRef v, ByRef w)
-{
-	return SubStr(v, 1, StrLen(w)) = w
+{	return SubStr(v, 1, StrLen(w)) = w
 }
 
 RegExEscape(t)
-{
-	static _ := "\.*?+[{|()^$"
+{	static _ := "\.*?+[{|()^$"
 	Loop, Parse, _
 		StringReplace, t, t, %A_LoopField%, \%A_LoopField%, All
 	return t
@@ -289,19 +260,16 @@ Util_TempFile(d := "", f := "", xep := "")
 }
 
 class DerefIncludeVars
-{
-	static A_IsCompiled := true
+{	static A_IsCompiled := true
 }
 
 DerefIncludePath(path, vars, dosubset := 0)
-{
-	static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
+{	static SharedVars := {A_AhkPath:1, A_AppData:1, A_AppDataCommon:1, A_ComputerName:1, A_ComSpec:1, A_Desktop:1, A_DesktopCommon:1, A_MyDocuments:1, A_ProgramFiles:1, A_Programs:1, A_ProgramsCommon:1, A_Space:1, A_StartMenu:1, A_StartMenuCommon:1, A_Startup:1, A_StartupCommon:1, A_Tab:1, A_Temp:1, A_UserName:1, A_WinDir:1}
 	p := StrSplit(path, "%")
 	path := p[1]
 	n := 2
 	while n < p.Length()
-	{
-		vn := p[n]
+	{	vn := p[n]
 		subs := StrReplace(StrReplace(vn, "````", "chr(2)"), "``~", "chr(3)")
 		subs := dosubset ? StrSplit(subs, "~",, 3) : [vn]
 		subs.2 := StrReplace(StrReplace(subs.2, "chr(2)", "``"), "chr(3)", "~")
