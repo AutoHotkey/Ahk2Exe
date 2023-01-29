@@ -144,7 +144,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
-		}	else if (tline~="^\*/" 
+		} else if (tline~="^\*/" 
 		|| SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
 			cmtBlock := 0                                    ; End block comment
 	}                                                    ; End file-read loop
