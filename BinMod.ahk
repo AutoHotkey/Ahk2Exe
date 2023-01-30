@@ -124,10 +124,10 @@ FileRead Bin, *c %FileName%
 (ErrorLevel) ? ErrMes("File cannot be opened! (B1)`n`n""" FileName """") : 0
 hFile:=DllCall("_lopen", "AStr",FileName, "Int",0x2) ; Open file for alteration
 Loop % %false%                              ; Number of parameters
-{	IfEqual A_Index, 1, continue              ; Skip filename
+{ IfEqual A_Index, 1, continue              ; Skip filename
   Par := %A_Index%                          ; Get parameter
   if par in /SetDateTime,/SetUTC            ; Set current date & time into .exe
-  {	Date := par="/SetUTC" ? A_NowUTC : A_Now, GetA1()
+  { Date := par="/SetUTC" ? A_NowUTC : A_Now, GetA1()
     Date -= 1970, s                         ; Works until 19 Jan 2038! MS to fix
     VarSetCapacity(Rplc1,4), NumPut(Date,Rplc1,0,B.4)
     DllCall("_llseek", "UPtr",hFile, "UInt",A1+8,   "Int",0)
@@ -136,7 +136,7 @@ Loop % %false%                              ; Number of parameters
   else if (Par = "/ScriptGuard2")           ; Remember ScriptGuard2 for later
     SG2 := 1
   else                                      ; Process text replacements
-  {	while [1,1][Sep:=SubStr(Par,A_Index,1)] ; Get separator after '1's and '2's
+  { while [1,1][Sep:=SubStr(Par,A_Index,1)] ; Get separator after '1's and '2's
       continue
     Pfld := StrSplit(Par, Sep)              ; Split parameter into fields
     if (Wk := (Pfld.3~="RANDOM"))
@@ -160,9 +160,9 @@ Loop % %false%                              ; Number of parameters
         NumPut(NumGet(Rplc%Type%, A_Index-1, B.1), Bin, Off+A_Index-1, B.1)
       DllCall("_llseek", "UPtr",hFile, "UInt",Off, "Int",0)
       DllCall("_lwrite", "UPtr",hFile, "UInt",&Rplc%Type%, "UInt",Slen*Type)
-}	}	}
+} } }
 if (SG2)                                    ; Process /ScriptGuard2
-{	DllCall("_lclose", "UPtr",hFile), hFile := 0, VarSetCapacity(BinM,4096,254)
+{ DllCall("_lclose", "UPtr",hFile), hFile := 0, VarSetCapacity(BinM,4096,254)
   IfEqual dbg, 1, ToolTip Update Resource
   if !(Mod:=DllCall("BeginUpdateResource", "Str", FileName, "UInt", 0, "Ptr"))
     ErrMes(SM "B1)`n`n'BeginUpdateResource'")
@@ -182,10 +182,10 @@ if (SG2)                                    ; Process /ScriptGuard2
   hMod      :=DllCall("LoadLibraryEx","Str",FileName,"Ptr",0, "Ptr",2, "Ptr")
   for k, v in ["#1", Mes, "#1"], rc:=pt:=pt1:=pt2:=pt3:=0
   { if (rc  :=DllCall("FindResource", "Ptr",hMod, v ~= "^#\d$" ? "Ptr" : "Str"
-			  , v ~= "^#\d$" ? SubStr(v,2) : v, "Ptr",k=1 ? 3 : 10,"Ptr"))
+        , v ~= "^#\d$" ? SubStr(v,2) : v, "Ptr",k=1 ? 3 : 10,"Ptr"))
       (Sa   :=DllCall("SizeofResource","Ptr",hMod, "Ptr",rc, "UInt")) && k1:=k
     , (pt   :=DllCall("LoadResource",  "Ptr",hMod, "Ptr",rc, "Ptr"))
-		, (pt%k%:=DllCall("LockResource",  "Ptr",pt,   "Ptr"))
+    , (pt%k%:=DllCall("LockResource",  "Ptr",pt,   "Ptr"))
   }           DllCall("FreeLibrary",   "Ptr",hMod)
   (Sa = 0) ? ErrMes(SM "B4-" A_LastError ")`n`nScript not found.") : 0
   par := "/ScriptGuard2", GetA1(), VarSetCapacity(L,0x50,0)
@@ -250,14 +250,14 @@ GetA2(ByRef Mes, Slen, Type=1, Stop=1, Binary=0, A2=0)
     { if (A2 := A1+PEz+(A_Index-1)*0x28) && (ng(A2+0x10)+ng(A2+0x14) > Offset)
       { (ng(A2,8) = 0x637273722e) ? NumPut(0xE0000040, Bin, A2+0x24, B.4) : 0
         return [Offset, Offset-ng(A2+0x14)+ng(A2+0xc), ng(A2+0xc), ng(A2+0x8)]
-}	}	}	}
+} } } }
 
 ng(OffSt = 0, Size = 4)
-{	return NumGet(Bin, Offst, B[Size])
+{ return NumGet(Bin, Offst, B[Size])
 }
 
 np(ByRef Mes, Slen, Offst=0, Type=1, Stop=1, Binary=0, Wk=0)
-{	global
+{ global
   Wk := GetA2(Mes, Slen, Type, Stop, Binary), A2r := [Wk.3+Wk.1-Wk.2, Wk.3,Wk.4]
   (Wk)?(Offst?(NumPut(Wk.2,&L,Offst,B.4),NumPut(Wk.1,&L,Offst+4,B.4)):0)
   :ErrMes(SM "B6)`n`n" SubStr(Mes,1,Slen))
@@ -265,7 +265,7 @@ np(ByRef Mes, Slen, Offst=0, Type=1, Stop=1, Binary=0, Wk=0)
 }
 
 Rnd(cnt=1, Max=9, Min=0, ByRef Add=0, Off="", S=1, Ech="", Ran="", Res="")
-{	Loop % cnt
+{ Loop % cnt
   { Random Ran, Min, Max
     (Off="") ? Res .= Ran : NumPut(Ran, Add, Off+(A_Index-1)*S, B[S])
   } until Ech && NumGet(Add, Off+((A_Index-1)*S)+S, B[S]) = Asc(Ech)
