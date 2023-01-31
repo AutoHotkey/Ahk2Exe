@@ -1,5 +1,5 @@
 ﻿
-;@Ahk2Exe-SetVersion     2023.01.28     ; Edition: 28 January 2023
+;@Ahk2Exe-SetVersion     2023.01.30     ; Edition: 30 January 2023
 ;@Ahk2Exe-SetCopyright   TAC109
 ;@Ahk2Exe-SetProductName BinMod
 ;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
