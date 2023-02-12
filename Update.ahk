@@ -5,7 +5,7 @@ Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
 A2D := A_ScriptDir "\", Priv := ""
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
-	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
+	RunWait "%A_AhkPath%" "%A_ScriptFullPath%"
 		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
 UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
 FileCreateDir %UpdDir%
@@ -29,7 +29,6 @@ for k, v in Reqs
 		else FileCopy  % UpdDir "\" k "\" Reqa.4, %UpdDir%, 1
 		if (Reqa.4 ~= "i).ahk$")                   ; Script needs compiling?
 			RunWait "%A2D%Ahk2Exe.exe" /in "%UpdDir%%wk%" /base "%A2D%Ahk2Exe.exe"
-			/compress 0
 	}
 	VnO := AHKType(RegExReplace(A2D Reqa.4,"i)ahk$","exe"),0).Version
 	Text%k%V := VnO := RegExReplace(VnO,"\(.+$") ; Get old version
@@ -133,6 +132,7 @@ FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
 OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
+
 
 
 
