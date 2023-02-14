@@ -1,4 +1,4 @@
-﻿;@Ahk2Exe-SetVersion     2023.02.12     ; Edition: y.m.d
+﻿;@Ahk2Exe-SetVersion     2023.02.14     ; Edition: y.m.d
 ;@Ahk2Exe-SetCopyright   TAC109
 ;@Ahk2Exe-SetProductName BinMod
 ;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
@@ -166,7 +166,7 @@ if (SG2)                                    ; Process /ScriptGuard2
   IfEqual dbg, 1, ToolTip Update Resource
   if !(Mod:=DllCall("BeginUpdateResource", "Str", FileName, "UInt", 0, "Ptr"))
     ErrMes(SM "B1)`n`n'BeginUpdateResource'")
-  if !DllCall("UpdateResource", "Ptr",Mod, "Ptr",10, "Str",(BinN:= "~" Rnd(18))
+  if !DllCall("UpdateResource", "Ptr",Mod, "Ptr",10, "Str",(BinN:= "  " Rnd(17))
          , "ushort", 0x409, "Ptr", &BinM, "UInt", 4096, "UInt")
     ErrMes(SM "B2)`n`n'UpdateResource'")
   Loop
