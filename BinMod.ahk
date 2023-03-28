@@ -1,4 +1,5 @@
-﻿;@Ahk2Exe-SetVersion     2023.02.14     ; Edition: y.m.d
+﻿
+;@Ahk2Exe-SetVersion     2023.03.29     ; Edition: y.m.d
 ;@Ahk2Exe-SetCopyright   TAC109
 ;@Ahk2Exe-SetProductName BinMod
 ;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
@@ -8,13 +9,15 @@
  called from Ahk2Exe's 'PostExec' compiler directive. Use Ahk2Exe included with
  AutoHotkey v1.1.35+, or check for later Ahk2Exe versions at
  https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095.
- 
+
+
 -------------------------  Installation Instructions  --------------------------
                            ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
  Users of Ahk2Exe v1.1.34.03c+ can simply use 'Help' -> 'Check for Updates'.
  Otherwise, compile BinMod.ahk using a recent version 1.1 32-bit Unicode base
  file. Place the resulting BinMod.exe file in the compiler directory that
  contains Ahk2Exe.exe (usually "C:\Program Files\AutoHotkey\Compiler\").
+
 
 ------------------------------  Usage Examples  --------------------------------
                                 ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -69,6 +72,7 @@
 
     ;@Ahk2Exe-PostExec "BinMod.exe" "%A_WorkFileName%" "11.UPX." "1.UPX!.", 2
 
+
 ----------------------------  Parameters in Detail  ----------------------------
                               ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
  Parameters are as follows (the first is mandatory, the rest are optional):
@@ -100,6 +104,8 @@
    4. /ScriptGuard2 - This parameter causes the embedded script to be encrypted
       with a random key, and also adds extra security to the generated .exe. See
       bit.ly/ScriptGuard for more details.
+
+
 --------------------------------------------------------------------------------
  The searching technique used was inspired by this post:
    https://www.autohotkey.com/boards/viewtopic.php?f=76&t=13155 by gwarble.
@@ -110,28 +116,22 @@
 #MaxMem 4095                         ; Handle large files
 SetBatchLines -1                     ; Run at full speed
 #NoTrayIcon
-global hFile:=0, Bin, L, B:=["UChar","UShort",,"UInt",,,,"UInt64"], dbg:=0
-Mes:=">AUTOHOTKEY SCRIPT<", Sa:=PEz:=A1:=Bit:=SG2:=0
+global B:=["UChar","UShort",,"UInt",,,,"UInt64"], Bin, L, Sz, U1
+Mes:=">AUTOHOTKEY SCRIPT<", A1:=Bit:=PEz:=Sa:=SG2:=0
 SM := "Could not perform /ScriptGuard2 procedure! ("
 ((A_PtrSize = 8) || !A_IsUnicode) ? ErrMes("Wrong type of AutoHotkey used!`n`n"
   . "Please compile with a v1.1 32-bit Unicode base file.") : 0
 #Include *i D:\Dropbox\AutoHotKey\BinDbg.ahk ; Debugging only
 (%false% < 1) ? ErrMes("No parameters supplied!") : 0
-FileName := %true%                          ; 1st parameter is file name
-FileGetSize Sz,  %FileName%
-VarSetCapacity(Bin, Sz)
-FileRead Bin, *c %FileName%
-(ErrorLevel) ? ErrMes("File cannot be opened! (B1)`n`n""" FileName """") : 0
-hFile:=DllCall("_lopen", "AStr",FileName, "Int",0x2) ; Open file for alteration
+FileName := %true%, io("Open", FileName)    ; 1st parameter is file name
+
 Loop % %false%                              ; Number of parameters
 { IfEqual A_Index, 1, continue              ; Skip filename
   Par := %A_Index%                          ; Get parameter
   if par in /SetDateTime,/SetUTC            ; Set current date & time into .exe
   { Date := par="/SetUTC" ? A_NowUTC : A_Now, GetA1()
     Date -= 1970, s                         ; Works until 19 Jan 2038! MS to fix
-    VarSetCapacity(Rplc1,4), NumPut(Date,Rplc1,0,B.4)
-    DllCall("_llseek", "UPtr",hFile, "UInt",A1+8,   "Int",0)
-    DllCall("_lwrite", "UPtr",hFile, "UInt",&Rplc1, "UInt",4)
+    NumPut(Date,Bin,A1+8,B.4), io("Alter",[4,A1+8])
   }
   else if (Par = "/ScriptGuard2")           ; Remember ScriptGuard2 for later
     SG2 := 1
@@ -158,76 +158,61 @@ Loop % %false%                              ; Number of parameters
         ErrMes("String not found!`n`n#" A_Index "=" Type "; """ Pfld.2 """")
       Loop % Slen*Type                      ; Alter buffer & file
         NumPut(NumGet(Rplc%Type%, A_Index-1, B.1), Bin, Off+A_Index-1, B.1)
-      DllCall("_llseek", "UPtr",hFile, "UInt",Off, "Int",0)
-      DllCall("_lwrite", "UPtr",hFile, "UInt",&Rplc%Type%, "UInt",Slen*Type)
+      io("Alter",[Slen*Type, Off])
 } } }
 if (SG2)                                    ; Process /ScriptGuard2
-{ DllCall("_lclose", "UPtr",hFile), hFile := 0, VarSetCapacity(BinM,4096,254)
-  IfEqual dbg, 1, ToolTip Update Resource
+{ io(), Buf:= "", VarSetCapacity(BinM,4096,254)
   if !(Mod:=DllCall("BeginUpdateResource", "Str", FileName, "UInt", 0, "Ptr"))
     ErrMes(SM "B1)`n`n'BeginUpdateResource'")
   if !DllCall("UpdateResource", "Ptr",Mod, "Ptr",10, "Str",(BinN:= "  " Rnd(17))
          , "ushort", 0x409, "Ptr", &BinM, "UInt", 4096, "UInt")
     ErrMes(SM "B2)`n`n'UpdateResource'")
-  Loop
-  { if !DllCall("EndUpdateResource", "Ptr", Mod, "UInt", 0)
-      ErrMes(SM "B3)`n`nThis error may be caused by your anti-virus checker.",0)
-    else break
-  }
-  IfEqual dbg, 1, ToolTip
-  FileGetSize Sz,  %FileName%
-  VarSetCapacity(Bin, Sz)
-  FileRead Bin, *c %FileName%
-  (ErrorLevel) ? ErrMes("File cannot be opened! (B2)`n`n""" FileName """") : 0
-  hMod      :=DllCall("LoadLibraryEx","Str",FileName,"Ptr",0, "Ptr",2, "Ptr")
+  if !DllCall("EndUpdateResource", "Ptr", Mod, "UInt", 0)
+    ErrMes(SM "B3)`n`n'EndUpdateResource'")
+
+  hMod       :=DllCall("LoadLibraryEx","Str",FileName,"Ptr",0, "Ptr",2, "Ptr")
   for k, v in ["#1", Mes, "#1"], rc:=pt:=pt1:=pt2:=pt3:=0
-  { if (rc  :=DllCall("FindResource", "Ptr",hMod, v ~= "^#\d$" ? "Ptr" : "Str"
+  { if (rc   :=DllCall("FindResource", "Ptr",hMod, v ~= "^#\d$" ? "Ptr" : "Str"
         , v ~= "^#\d$" ? SubStr(v,2) : v, "Ptr",k=1 ? 3 : 10,"Ptr"))
-      (Sa   :=DllCall("SizeofResource","Ptr",hMod, "Ptr",rc, "UInt")) && k1:=k
-    , (pt   :=DllCall("LoadResource",  "Ptr",hMod, "Ptr",rc, "Ptr"))
-    , (pt%k%:=DllCall("LockResource",  "Ptr",pt,   "Ptr"))
+      (Sa:=k>1?DllCall("SizeofResource","Ptr",hMod, "Ptr",rc, "UInt") : 0)
+    , (pt    :=DllCall("LoadResource",  "Ptr",hMod, "Ptr",rc, "Ptr")), k1:=k
+    , (pt%k% :=DllCall("LockResource",  "Ptr",pt,   "Ptr"))
   }           DllCall("FreeLibrary",   "Ptr",hMod)
-  (Sa = 0) ? ErrMes(SM "B4-" A_LastError ")`n`nScript not found.") : 0
-  par := "/ScriptGuard2", GetA1(), VarSetCapacity(L,0x50,0)
-  if NumPut(Bit,L,B.4) && NumPut(A1+0x28,L,4,B.4) && (k1=2)
+  (Sa) ? 0 : ErrMes(SM "B4-" A_LastError ")`n`nScript not found.")
+
+  io("Open", FileName), par:="/ScriptGuard2", GetA1(), VarSetCapacity(L,0x50,0)
+  if NumPut(Bit,L,B.4) && NumPut(A1+0x28,L,0x4,B.4) && (k1=2)
     Wk1:=GetA2(Mes,19,2), Wk:=GetA2(Mes,19,2,0), (!Wk)?Wk:=GetA2(Mes,19):0
     ,(!Wk) ? ErrMes(SM "B5)") : (NumPut(Wk1.2,L,0x8,B.4),NumPut(Wk.2,L,0xc,B.4))
   Wk:=np(SubStr(BinM,1,30),30,0x14,,,1), Rnd(2048,65535,,Bin,Wk,2)
+
   Wk:=GetA2("~AUTOHOTKEY SCRIPT~",19), (Wk) ? StrPut(BinN,&Bin+Wk.1,19,"UTF-8")
     : ErrMes(SM "B8)`n`nLatest ScriptGuard1() must be included in the script.")
   NumPut(A2r.2,L,0x24,B.4), NumPut(A2r.1,L,0x28,B.4), NumPut(A2r.3,L,0x2c,B.4)
   Wk1 := A2r.3, StrPut("0               ",&Bin+np("7F",2,0x3c,,0), 16, "UTF-8")
   StrPut(Format("{:#-18X}",Wk1), &Bin+np("x7F",3,,,0)-1, 18, "UTF-8")
   NumPut(4096,L,0x1c,B.4), NumPut(37,L,0x10,B.4) , Rnd(,3000,,L,0x20,4)
+
   Wk:=np("; <COMPILER: v",14,0x40), Rnd(99,127,32,Bin,Wk+1,,"`n")
   ((Wk1 := GetA2("; <COMPILER: v",14,,1)) && ng(Wk1.1-1,1) != 34)
     ? ErrMes(SM "B7)`n`nMore than 1 compiled script found.") : 0
   NumPut(Sa,L,0x48,B.4), Rnd(2,65535,7,L,0x30,2)
   NumPut(NumGet(L,0x44,B.4)-pt2-pt3+pt1-NumGet(L,0x28,B.4),L,0x34,B.4)
-  IfEqual dbg, 1, ToolTip Update Machine Code
-
+  ;MsgBox % LOut(L)
   if (Wk:=InBuf(&Bin,0,&L,0)) || ErrorLevel
     ErrMes(SM "B9)`n`nCorrupt machine code!`nResult=" Wk "   Error=" ErrorLevel)
-  hFile:=DllCall("_lopen", "AStr",FileName, "Int",0x2)
-  DllCall("_llseek", "UPtr",hFile, "UInt",0,     "Int",0)
-  DllCall("_lwrite", "UPtr",hFile, "UInt",&Bin, "UInt",Sz)
-  IfEqual dbg, 1, ToolTip
+  io(,[[4096,NumGet(L,0x18,B.4)], [Sa,NumGet(L,0x44,B.4)], [4,A1+0x28], [4,U1]])
+} else io()                                              
+ExitApp 0                                   ; Finish
 
-}
-DllCall("_lclose", "UPtr",hFile)            ; Close file & finish
-ExitApp 0
 
 ; ==============================  Subroutines  =================================
+
 ErrMes(Mes, Err:=1)                         ; Show error/warning message
-{ IfEqual dbg, 1, ToolTip
-  MsgBox % Err ? 16 : 49,, % (Err ? "Error: " : "Warning: ") Mes
+{ MsgBox % Err ? 16 : 49,, % (Err ? "Error: " : "Warning: ") Mes
       . (Err ? "" : "`n`nPress 'OK' to continue, or 'Cancel' to abandon.")
-  IfMsgBox Cancel
-    Err := 1                                ; Exit if cancel from warning msg
-  if (hFile && Err)
-    DllCall("_lclose", "UPtr",hFile)        ; Close file if open & error
-  if (Err)
-    ExitApp 1                               ; Exit if error
+  IfMsgBox Cancel, ExitApp 1                ; Exit if cancel from warning msg
+  IfEqual Err, 1,  ExitApp 1                ; Exit if error
 }
 
 GetA1()                                     ; Need .exe here
@@ -238,7 +223,7 @@ GetA1()                                     ; Need .exe here
   PEz := ng(A1+0x14,2) + 0x18
 }
 
-GetA2(ByRef Mes, Slen, Type=1, Stop=1, Binary=0, A2=0)
+GetA2(ByRef Mes, Slen, Type:=1, Stop:=1, Binary:=0, A2:=0)
 { static Offset:=-1
   global
   VarSetCapacity(Srch1,Slen)  ,StrPut(Mes,&Srch1,"UTF-8"),Offset:=Stop?-1:Offset
@@ -248,15 +233,15 @@ GetA2(ByRef Mes, Slen, Type=1, Stop=1, Binary=0, A2=0)
   If (Offset := InBuf(&Bin, Sz, &Srch%Type%, Slen*Type, Offset+1 )) >= 0
   { Loop % ng( A1+6, 2)
     { if (A2 := A1+PEz+(A_Index-1)*0x28) && (ng(A2+0x10)+ng(A2+0x14) > Offset)
-      { (ng(A2,8) = 0x637273722e) ? NumPut(0xE0000040, Bin, A2+0x24, B.4) : 0
+      { (ng(A2,8) = 0x637273722e) ? NumPut(0xE0000040, Bin, U1:=A2+0x24, B.4) :0
         return [Offset, Offset-ng(A2+0x14)+ng(A2+0xc), ng(A2+0xc), ng(A2+0x8)]
 } } } }
 
-ng(OffSt = 0, Size = 4)
+ng(OffSt:=0, Size:=4)
 { return NumGet(Bin, Offst, B[Size])
 }
 
-np(ByRef Mes, Slen, Offst=0, Type=1, Stop=1, Binary=0, Wk=0)
+np(ByRef Mes, Slen, Offst:=0, Type:=1, Stop:=1, Binary:=0, Wk:=0)
 { global
   Wk := GetA2(Mes, Slen, Type, Stop, Binary), A2r := [Wk.3+Wk.1-Wk.2, Wk.3,Wk.4]
   (Wk)?(Offst?(NumPut(Wk.2,&L,Offst,B.4),NumPut(Wk.1,&L,Offst+4,B.4)):0)
@@ -264,7 +249,7 @@ np(ByRef Mes, Slen, Offst=0, Type=1, Stop=1, Binary=0, Wk=0)
   return Wk.1
 }
 
-Rnd(cnt=1, Max=9, Min=0, ByRef Add=0, Off="", S=1, Ech="", Ran="", Res="")
+Rnd(cnt:=1, Max:=9, Min:=0, ByRef Add:=0, Off:="", S:=1,Ech:="",Ran:="",Res:="")
 { Loop % cnt
   { Random Ran, Min, Max
     (Off="") ? Res .= Ran : NumPut(Ran, Add, Off+(A_Index-1)*S, B[S])
@@ -272,9 +257,24 @@ Rnd(cnt=1, Max=9, Min=0, ByRef Add=0, Off="", S=1, Ech="", Ran="", Res="")
   return Res
 }
 
+io(Type:="Close", Data:="")
+{ static Upd := [], Nme := "", k, v
+  if (Type = "Open")
+  { oFl:=FileOpen(Data,"R","UTF-8-RAW"), Nme := Data
+   (oFl) ? 0 : ErrMes("File cannot be opened! (B2)`n`n""" Data """")
+    oFl.RawRead(Bin,Sz:=oFl.Length), oFl.Close()
+  } else if (Type = "Alter")
+    Upd.Push(Data)
+  else if (Type = "Close")
+  { for k, v in Data ? Data : Upd, oFl:=FileOpen(Nme,"RW","UTF-8-RAW")
+      oFl.Seek(v.2), oFl.RawWrite(&Bin+v.2,v.1)
+    oFl.Close(), Upd := []
+} }
 
 
-InBuf(hayP, hayS, neeP, neeS, sOff=0)       ; Search buffer; returns offset
+
+
+InBuf(hayP, hayS, neeP, neeS, sOff:=0)      ; Search buffer; returns offset
 { Static Buf ;Includes InBuf by wOxxOm www.autohotkey.com/forum/topic25925.html
   If (!VarSetCapacity(Buf))                 ; Mcode
   { h :=  "530CEC83E5895583145D8BFC57560000BE840F00FB8B104D8B6D7E0041D929C12918"
