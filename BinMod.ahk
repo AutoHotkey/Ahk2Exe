@@ -1,5 +1,5 @@
 ﻿
-;@Ahk2Exe-SetVersion     2023.04.02     ; Edition: (y.m.d)
+;@Ahk2Exe-SetVersion     2023.05.31     ; Edition: (y.m.d)
 ;@Ahk2Exe-SetCopyright   TAC109
 ;@Ahk2Exe-SetProductName BinMod
 ;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
@@ -63,9 +63,10 @@
     ;@Ahk2Exe-Cont  /SetUTC          ; Set current UTC date and time
 
 4. To encrypt the embedded script in the .exe with a random key and also provide
-    enhanced ScriptGuard security, add the next line:
+    enhanced ScriptGuard security, add one of the the following lines:
 
     ;@Ahk2Exe-Cont  /ScriptGuard2    ; See bit.ly/ScriptGuard for more details
+    ;@Ahk2Exe-Cont  /ScriptGuard2pss ; ('Permit /script switch')
 
 5. To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe add the
     following line to your script: (The 'example 0' lines are not needed here.)
@@ -101,14 +102,13 @@
    3. /SetDateTime or /SetUTC - This parameter sets the compile time to the
       current date and time (local or UTC) in the generated .exe.
       
-   4. /ScriptGuard2 - This parameter causes the embedded script to be encrypted
-      with a random key, and also adds extra security to the generated .exe. See
-      bit.ly/ScriptGuard for more details.
+   4. /ScriptGuard2 or /ScriptGuard2pss - This parameter causes the embedded
+      script to be encrypted with a random key, and also adds extra security to
+      the generated .exe. The /ScriptGuard2pss version also permits the /script
+      switch to be used when running the compiled program, but prevents the
+      embedded script from being accessed when this switch is used.
+      See 'https://bit.ly/ScriptGuard' for more details.
 
-
---------------------------------------------------------------------------------
- The searching technique used was inspired by this post:
-   https://www.autohotkey.com/boards/viewtopic.php?f=76&t=13155 by gwarble.
 */
 ; ================================  Program  ===================================
 #NoEnv                               ; For performance & future compatibility
@@ -133,8 +133,8 @@ Loop % %false%                              ; Number of parameters
     Date -= 1970, s                         ; Works until 19 Jan 2038! MS to fix
     NumPut(Date,Bin,A1+8,B.4), io("Alter",[4,A1+8])
   }
-  else if (Par = "/ScriptGuard2")           ; Remember ScriptGuard2 for later
-    SG2 := 1
+  else if Par in /ScriptGuard2,/ScriptGuard2pss ; Remember ScriptGuard2
+    SG2 := [Par, Par = "/ScriptGuard2" ? 1 : 2]
   else                                      ; Process text replacements
   { while [1,1][Sep:=SubStr(Par,A_Index,1)] ; Get separator after '1's and '2's
       continue
@@ -180,8 +180,8 @@ if (SG2)                                    ; Process /ScriptGuard2
   }            DllCall("FreeLibrary",   "Ptr",hMod)
   (Sa) ? 0 : ErrMes(SM "B4-" A_LastError ")`n`nScript not found.")
 
-  io("Open", FileName), par:="/ScriptGuard2", GetA1(), VarSetCapacity(L,0x50,0)
-  if NumPut(Bit,L,B.4) && NumPut(A1+0x28,L,0x4,B.4) && (k1=2)
+  io("Open", FileName), par:=SG2.1, GetA1(), VarSetCapacity(L,0x50,0)
+  if NumPut(Bit,L,B.1) && NumPut(A1+0x28,L,0x4,B.4) && (k1=2)
     Wk1:=GetA2(Mes,19,2), Wk:=GetA2(Mes,19,2,0), (!Wk)?Wk:=GetA2(Mes,19):0
     ,(!Wk) ? ErrMes(SM "B5)") : (NumPut(Wk1.2,L,0x8,B.4),NumPut(Wk.2,L,0xc,B.4))
   Wk:=np(SubStr(BinM,1,30),30,0x14,,,1), Rnd(2048,65535,,Bin,Wk,2)
@@ -196,7 +196,7 @@ if (SG2)                                    ; Process /ScriptGuard2
   Wk:=np("; <COMPILER: v",14,0x40), Rnd(99,127,32,Bin,Wk+1,,"`n")
   ((Wk1 := GetA2("; <COMPILER: v",14,,1)) && ng(Wk1.1-1,1) != 34)
     ? ErrMes(SM "B7)`n`nMore than 1 compiled script found.") : 0
-  NumPut(Sa,L,0x48,B.4), Rnd(2,65535,7,L,0x30,2)
+  NumPut(Sa,L,0x48,B.4), Rnd(2,65535,7,L,0x30,2), NumPut(SG2.2,L,0x1,B.1)
   NumPut(NumGet(L,0x44,B.4)-pt2-pt3+pt1-NumGet(L,0x28,B.4),L,0x34,B.4)
   ;MsgBox % LOut(L)
   if (Wk:=InBuf(&Bin,0,&L,0)) || ErrorLevel
@@ -274,6 +274,9 @@ io(Type:="Close", Data:="")
 
 
 
+; The searching technique used was inspired by this post by gwarble:
+;  https://www.autohotkey.com/boards/viewtopic.php?f=76&t=13155#p67713
+
 InBuf(hayP, hayS, neeP, neeS, sOff:=0)      ; Search buffer; returns offset
 { Static Buf ;Includes InBuf by wOxxOm www.autohotkey.com/forum/topic25925.html
   If (!VarSetCapacity(Buf))                 ; Mcode
@@ -285,26 +288,26 @@ InBuf(hayP, hayS, neeP, neeS, sOff:=0)      ; Search buffer; returns offset
 . "758B0375A7F30474C98574C985F84D8BDEDF89D375A6F3045A8B0C558BA4EB087D03447A8B30"
 . "FE02E9C1484A8B2905E3C1D889C31F03D831078BC3484A8BEF7549AB3F30067403E1838BDB31"
 . "FA7549474A8B0875032872D8894902E9C13401ADC32905E3C1385A89F37549C345C70774013A"
-. "8362830000013610187A8BD689FC200304428B207A032BF989188B08450889144A03184A0300"
+. "8062830000013710187A8BD689FC200304428B207A032BF989188B08450889144A03184A0300"
 . "000050008100000050B9087D00000024E8A4F38B10750327C683E9B0A4F351034E55EB83C329"
-. "58AA89145A2B205A2BFFFEF5E9C0311F04EB90C3565EFF525153000001360011E8036A575642"
-. "8B63EA83000029D38914420320525A03EB1A89C300FE8308728BC3104A8B32031A744F473A03"
-. "0C7A8BFF6E380A74A6F3000000E1E9F674728BDB31240CFFC1344A8B3203246A81344A8902E9"
-. "89490000004034ADC32905E3C1D81075344A3BC3015A3B0B7500FB83000000A9850F085A3BDE"
-. "75490CEB0000009B850F380030A164240CFF738B10588B000001F38002588A44DFFFDFBB305A"
+. "58AA89145A2B205A2BFFFEF5E9C0311F04EB90C3565EFF525153000001370DE8036A55575689"
+. "64EA83000000146A2B206A2BD5728BC3525A03EB011A7400FE83080C7A8B104A8BEE74A6F34F"
+. "47EF01E9F674FF6E380A240CFF000000E4EE0124728BDB318902E9C1344A8B0040346A81344A"
+. "E3C1D8894900003BC301ADC3290500FB831075344A850F085A3B0B75490CEB000000AC850F38"
+. "5A3BDE7501428A0000009E0030A164240428738B10588B000001F38002588A44DFFFDFBB305A"
 . "0000F88366AD66FF752FF88366247400533DD821ADF2D821AD147500430A75004900523D5400"
-. "503DD821AD8B240CFF5274003A03407A8B305A8902E9C1484A8B8BC32905E3C1D849ABC301D8"
-. "3107E183484A8BEF7549473F300674033A033C7A8BFA7508B91A03245A8B8804C3C10000003A"
-. "3C30040F24D87549AA0704027C5B595A5E5F58ED90C3017400F883530000015004EBE8036A57"
-. "565251EA83480000001514420320428B6348C32948D38948C3525A03EB1A897400FE8308728B"
-. "104A8B32034820483A03480C7A8BA6F3CFFF48C7FFF474FF6E380A740CFF000000F1E9482472"
-. "8BDB3124E9C1344A8B3203346A81344A890289C9FF00000040ADC32905E3C1D81075344A3BC3"
-. "015A3B0B7500FB83000000B7850F083BDD75C9FF0DEB0000A8850F385A486765240CFF008B48"
-. "00000060A18A78738B4820585A0001F380025866FFDFFFDFBB30247400F88366ADADF2752FF8"
-. "8366004300533DD821523DD821AD147521AD0A7500490074005400503DD8305A8B240CFF5B8B"
-. "3A0348407A8BD88902E9C1484A078BC32905E3C1C9FFABC301D831E183484A8BEE75FF483F30"
-. "0974037A8BF775C9FFC7245A8B3A03483C000010B91A0348D88804C3C148007C3A3C30040F24"
-. "75C9FFAA0704025B595A5E5F58EBC3017400F883"
+. "503DD821AD8B240CFF527400EF01407A8B305A8902E9C1484A8B8BC32905E3C1D849ABC301D8"
+. "3107E183484A8BEF7549473F30067403EF013C7A8BFA7508B9EB01245A8B8804C3C10000003A"
+. "3C30040F24D87549AA0704027C595A5E5F5D58EDC3017E00F8835B0000015204EB906A555756"
+. "5251534800000012E8030320428B64EA832948D5894814428BC3525A03EBC5207400FE830872"
+. "8B104A8BEE0148FF48EF01480C7A74A6F3CFFF48C7E9F474FF6E380A240CFF000000F4014824"
+. "728BDB3102E9C1344A8BEE40346A81344A89D889C9FF00000001ADC32905E3C1831075344A3B"
+. "C3085A3B0B7500FBEB000000BA850F5A3BDD75C9FF0D000000AB850F386524042801428A0000"
+. "0060A14867738B4820588B4801F38002588A78DFFFDFBB305A0000F88366AD66FF752FF88366"
+. "247400533DD821ADF2D821AD147500430A75004900523D5400503DD821AD8B240CFF5B740001"
+. "48407A8B305A02E9C1484A8BEFC32905E3C1D889ABC301D831078B484A8BEE75C9FF3F300974"
+. "03E183F775C9FFC7FF488BEF01483C7A8B10B9EB0148245A04C3C1480000003C30040F24D888"
+. "FFAA0704027C3A5E5F5D58EB75C97E00F8835B595AC301"
     VarSetCapacity(Buf, StrLen(h)//2+6)
     Loop % (StrLen(h)+12)//14
       NumPut("0x" SubStr(h,(A_Index-1)*14+1,14), Buf, (A_Index-1)*7, "Int64")
