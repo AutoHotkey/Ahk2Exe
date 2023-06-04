@@ -65,7 +65,7 @@
 4. To encrypt the embedded script in the .exe with a random key and also provide
     enhanced ScriptGuard security, add one of the the following lines:
 
-    ;@Ahk2Exe-Cont  /ScriptGuard2    ; See bit.ly/ScriptGuard for more details
+    ;@Ahk2Exe-Cont  /ScriptGuard2    ; See 'Parameters in Detail', #4 below
     ;@Ahk2Exe-Cont  /ScriptGuard2pss ; ('Permit /script switch')
 
 5. To prevent the use of "UPX -d" to de-compress a UPX-compressed .exe add the
@@ -106,7 +106,7 @@
       script to be encrypted with a random key, and also adds extra security to
       the generated .exe. The /ScriptGuard2pss version also permits the /script
       switch to be used when running the compiled program, but prevents the
-      embedded script from being accessed when this switch is used.
+      embedded script from being decrypted when this switch is used.
       See 'https://bit.ly/ScriptGuard' for more details.
 
 */
@@ -118,7 +118,7 @@ SetBatchLines -1                     ; Run at full speed
 #NoTrayIcon
 global B:=["UChar","UShort",,"UInt",,,,"UInt64"], Bin, L, Sz, U1
 Mes:=">AUTOHOTKEY SCRIPT<", A1:=Bit:=PEz:=Sa:=SG2:=0
-SM := "Could not perform /ScriptGuard2 procedure! ("
+SGc := "/ScriptGuard2", SM := "Could not perform " SGc " procedure! ("
 ((A_PtrSize = 8) || !A_IsUnicode) ? ErrMes("Wrong type of AutoHotkey used!`n`n"
   . "Please compile with a v1.1 32-bit Unicode base file.") : 0
 #Include *i D:\Dropbox\AutoHotKey\BinDbg.ahk ; Debugging only
@@ -133,8 +133,8 @@ Loop % %false%                              ; Number of parameters
     Date -= 1970, s                         ; Works until 19 Jan 2038! MS to fix
     NumPut(Date,Bin,A1+8,B.4), io("Alter",[4,A1+8])
   }
-  else if Par in /ScriptGuard2,/ScriptGuard2pss ; Remember ScriptGuard2
-    SG2 := [Par, Par = "/ScriptGuard2" ? 1 : 2]
+  else if Par in %SGc%,%SGc%pss             ; Remember /ScriptGuard2[pss]
+    SG2 := [Par, Par = SGc ? 1 : 2], SM := StrReplace(SM, SGc, Par)
   else                                      ; Process text replacements
   { while [1,1][Sep:=SubStr(Par,A_Index,1)] ; Get separator after '1's and '2's
       continue
