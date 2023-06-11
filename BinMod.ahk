@@ -121,7 +121,7 @@ Mes:=">AUTOHOTKEY SCRIPT<", A1:=Bit:=PEz:=Sa:=SG2:=0
 SGc := "/ScriptGuard2", SM := "Could not perform " SGc " procedure! ("
 ((A_PtrSize = 8) || !A_IsUnicode) ? ErrMes("Wrong type of AutoHotkey used!`n`n"
   . "Please compile with a v1.1 32-bit Unicode base file.") : 0
-#Include *i D:\Dropbox\AutoHotKey\BinDbg.ahk ; Debugging only
+#Include *i A_LineFile\..\..\BinDbg\BinDbg.ahk ; Debugging only
 (%false% < 1) ? ErrMes("No parameters supplied!") : 0
 FileName := %true%, io("Open", FileName)    ; 1st parameter is file name
 
