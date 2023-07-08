@@ -307,8 +307,8 @@ FindBinsExes(File, Excl="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R",Phase="",Dup=0)
 			{	if !(ExeFiles[Type.Version Type.Summary]) ; Keep only first of a version
 					ExeFiles[Type.Version Type.Summary] := A_LoopFileLongPath
 				wk := StrSplit(Type.Version,[".","-"]), Count++
-				if !(wk.1 = 1 &&  wk.2 = 1 && wk.3 >= 34 || wk.1 = 2 && wk.2 > 0
-				||   wk.1 = 2 && (wk.3 = wk.3+0 || wk.3 >= "a135"))
+				if !(wk.1 = 1 &&  wk.2 = 1 && wk.3 >= 34 ; See GitHub issue #98
+				||   wk.1 = 2 && (wk.2 > 0 || wk.3 = wk.3+0 || wk.3 >= "a135"))
 					continue
 			} Count+=2
 			if (!Dup        ; Skip duplicate Base files by default
