@@ -107,7 +107,8 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 				Util_Error(wk " is still running, and needs "
 				.  "to be unloaded to allow replacement with this new version.", 0x45)
 			else
-			{	SetTimer Buttons, 50
+			{	Buttons1 := Func("Buttons").Bind("&Unload", "&& &Reload")
+				SetTimer % Buttons1, 50
 				MsgBox 51,Ahk2Exe Query,% "Warning: " wk " is still running, and needs "
 				.  "to be unloaded to allow replacement with this new version."
 				. "`n`n Press the appropriate button to continue. ('Reload' unloads "
@@ -230,13 +231,13 @@ class CTempWD
 	{	SetWorkingDir % this.oldWD
 }	}
 
-Buttons()
+Buttons(a, b)
 {	IfWinNotExist Ahk2Exe Query
 		return
 	SetTimer,, Off
 	WinActivate
-	ControlSetText Button1, &Unload
-	ControlSetText Button2, && &Reload
+	ControlSetText Button1, %a%
+	ControlSetText Button2, %b%
 }
 
 RunPostExec(dirState, UseMPRESS := "")

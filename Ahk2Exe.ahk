@@ -73,6 +73,7 @@ Help0 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
 Menu, FileMenu, Add, Refresh Windows &Icons`tAlt+I, RefreshIcons
+Menu, FileMenu, Add
 Menu, FileMenu, Add, %SaveMes%, SaveAsMenu
 if (!AhkFile)
 	Menu, FileMenu, Disable, %SaveMes%
@@ -496,24 +497,36 @@ If (SaveAs = "") or ErrorLevel
 	Return
 SaveAs .= SaveAs ~= "\.ahk$" ? "" : ".ahk"
 if FileExist(SaveAs)
-{	MsgBox 35,, Append to`n"%SaveAs%"?`n`n(Selecting 'No' overwrites file)
+{	Buttons2 := Func("Buttons").Bind("&Overwrite", "&Append")
+	SetTimer % Buttons2, 50
+	MsgBox 35, Ahk2Exe Query, "%SaveAs%" already exists:
 	IfMsgBox Cancel, return
-	IfMsgBox No,     FileDelete %SaveAs%
+	IfMsgBox Yes,    FileDelete %SaveAs% ; Overwrite
 }
-if (SubStr(AHKType(BinFile,0).Version,1,1) = 2) ; If v2 Base file, write v2 code
+if !(v := SubStr(AHKType(BinFile,0).Version,1,1))
+{	Buttons3 := Func("Buttons").Bind("V&1", "V&2")
+	SetTimer % Buttons3, 50
+	MsgBox 35, Ahk2Exe Query, Generate AutoHotkey source as:
+	IfMsgBox Cancel, return
+	IfMsgBox Yes
+		v := 1
+	else v := 2
+}
+if (v = 2)                                  ; If v2 Base file, write v2 code
 	FileAppend % "RunWait """ A_ScriptFullPath """`n . ' /in ' """ AhkFile """"
 	. (ExeFile ? "`n . ' /out ' """ ExeFile """" : "")
 	. (IcoFile ? "`n . ' /icon ' """ IcoFile """": "") (ResourceID 
 	~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n "
 	. ". ' /ResourceID ' """ ResourceID """")
-	. "`n . ' /base ' """ BinFile """`n "
-	. ". ' /compress " UseMpress-1 "'`n`n", %SaveAs%
+	. (BinFile = SBDMes ? "" : "`n . ' /base ' """ BinFile """")
+	. "`n . ' /compress " UseMpress-1 "'`n`n", %SaveAs%
 else FileAppend % "RunWait """ A_ScriptFullPath """`n /in """ AhkFile """"
 	. (ExeFile ? "`n /out """ ExeFile """" : "")
 	. (IcoFile ? "`n /icon """ IcoFile """": "") (ResourceID 
 	~="i)^\(default\)$|^\(reset list\)$" ? "":"`n /ResourceID """ ResourceID """")
-	. "`n /base """ BinFile """`n /compress " UseMpress-1 "`n`n", %SaveAs%
-Util_Status(ErrorLevel?"Save script settings failed!":"Saved script settings")
+	. (BinFile = SBDMes ? "" : "`n /base """ BinFile """")
+	. "`n /compress " UseMpress-1 "`n`n", %SaveAs%
+Util_Status(ErrorLevel?"Failed saving script settings!":"Saved script settings")
 Return
 
 SetCDBin(FileName)
@@ -531,8 +544,8 @@ SetCDBin(FileName)
 				Util_Status("""" SBDMes """ added to 'Base File' list.")
 			}
 			break
-	}	else if SubStr(LTrim(A_LoopReadLine),1,2) = "/*"      ; Start block comment
-			Comment := 1
+		}	else if SubStr(LTrim(A_LoopReadLine),1,2) = "/*"    ; Start block comment
+				Comment := 1
 		if (Comment = 1) && A_LoopReadLine~="^\s*\*/|\*/\s*$" ; End block comment
 			Comment := 0
 	}
