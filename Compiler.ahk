@@ -63,7 +63,7 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 				if SubStr(k, 1, 1) = SubStr(BinType.Version, 1, 1)
 					AhkPath := v
 
-	IfExist % wk := RegExReplace(AhkPath,"i)64.exe$", "32.exe") ; Prefer 32bit AHK
+	IfExist % wk := RegExReplace(AhkPath,"i)64.exe$", "32.exe")
 		AhkPath := A_Is64bitOS ? AhkPath : wk ; 32-bit Windows can make 64-bit exe's
 	
 	IfNotExist, %AhkPath%
@@ -90,9 +90,12 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	Util_Status("Moving .exe to destination")
 
 	Loop
-	{	FileMove, %ExeFileTmp%, %ExeFileG%, 1
-		if !ErrorLevel
+	{	try                    ;v FileMove, but avoids copying permissions from temp
+		{	FileDelete %ExeFileG%
+			FileCopy   %ExeFileTmp%, %ExeFileG%, 1
+			FileDelete %ExeFileTmp%
 			break
+		}
 		Util_HideHourglass()
 		DetectHiddenWindows On
 		if !WinExist("ahk_exe " ExeFileG)
