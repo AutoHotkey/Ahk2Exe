@@ -708,8 +708,8 @@ Help(a, b, c, d := 0, e := 0, f := 0, g := 0)
 		Menu mHelp, Add, Local help,  Help
 		Menu mHelp, Add, Online help, Help
 		Menu mHelp, Show
-	}	else               ;v Try to use latest help version according to version of
-	{	v := SubStr(AHKType(BinFiles[BinFileId],0).Version,1,1) ; Base file selected
+	}	else ;v Use latest help version according to version of Base file selected
+	{	v := SubStr(AHKType(BinFiles[BinFileId],0).Version,1,1), v := v ? v : 2
 		if b=1                                                  ; 'Local help'
 		{	HelpFile := A_ScriptDir "\..\AutoHotkey.chm", HelpTime := 0
 			if FileExist( HelpFile) && v=1
