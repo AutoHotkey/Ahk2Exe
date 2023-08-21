@@ -91,8 +91,7 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 
 	Loop
 	{	try                    ;v FileMove, but avoids copying permissions from temp
-		{	FileDelete %ExeFileG%
-			FileCopy   %ExeFileTmp%, %ExeFileG%, 1
+		{	FileCopy   %ExeFileTmp%, %ExeFileG%, 1
 			FileDelete %ExeFileTmp%
 			break
 		}
