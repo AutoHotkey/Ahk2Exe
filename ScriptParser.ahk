@@ -178,7 +178,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		}
 		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
 		{	FileDelete %ilibfile%*
-			Util_Error("Error: Call to """ AhkPath """ has failed.`nError code is "ErrLev, 0x51)
+			Util_Error("Error: Call to """ AhkPath """ has failed.`n(%comspec%="
+			.  ComSpec ")`nError code is "ErrLev, 0x51)
 		}
 		IfExist, %ilibfile%
 		{	FileGetSize wk, %ilibfile%
