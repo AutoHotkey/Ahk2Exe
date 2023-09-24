@@ -513,19 +513,19 @@ if !(v := SubStr(AHKType(BinFile,0).Version,1,1))
 	else v := 2
 }
 if (v = 2)                                  ; If v2 Base file, write v2 code
-	FileAppend % "RunWait '""" A_ScriptFullPath """'`n . ' /in """ AhkFile """'"
-	. (ExeFile ? "`n . ' /out """ ExeFile """'" : "")
-	. (IcoFile ? "`n . ' /icon """ IcoFile """'": "") (ResourceID 
-	~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n "
+	FileAppend % "RunWait '""" A_ScriptFullPath """'`n  . ' /in """ AhkFile """'"
+	. (ExeFile ? "`n  . ' /out """ ExeFile """'" : "")
+	. (IcoFile ? "`n  . ' /icon """ IcoFile """'": "") (ResourceID 
+	~="i)^\(default\)$|^\(reset list\)$" ? "" : "`n  "
 	. ". ' /ResourceID """ ResourceID """'")
-	. (BinFile = SBDMes ? "" : "`n . ' /base """ BinFile """'")
-	. "`n . ' /compress " UseMpress-1 "'`n`n", %SaveAs%
-else FileAppend % "RunWait """ A_ScriptFullPath """`n /in """ AhkFile """"
-	. (ExeFile ? "`n /out """ ExeFile """" : "")
-	. (IcoFile ? "`n /icon """ IcoFile """": "") (ResourceID 
-	~="i)^\(default\)$|^\(reset list\)$" ? "":"`n /ResourceID """ ResourceID """")
-	. (BinFile = SBDMes ? "" : "`n /base """ BinFile """")
-	. "`n /compress " UseMpress-1 "`n`n", %SaveAs%
+	. (BinFile = SBDMes ? "" : "`n  . ' /base """ BinFile """'")
+	. "`n  . ' /compress " UseMpress-1 "'`n`n", %SaveAs%
+else FileAppend % "RunWait """ A_ScriptFullPath """`n  /in """ AhkFile """"
+	. (ExeFile ? "`n  /out """ ExeFile """" : "")
+	. (IcoFile ? "`n  /icon """ IcoFile """": "") (ResourceID 
+	~="i)^\(default\)$|^\(reset list\)$"?"":"`n  /ResourceID """ ResourceID """")
+	. (BinFile = SBDMes ? "" : "`n  /base """ BinFile """")
+	. "`n  /compress " UseMpress-1 "`n`n", %SaveAs%
 Util_Status(ErrorLevel?"Failed saving script settings!":"Saved script settings")
 Return
 
