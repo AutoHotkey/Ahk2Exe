@@ -625,8 +625,8 @@ ConvertCLI()
 				Loop Files, % o
 					DirBins.Push(A_LoopFileLongPath), DirExe.Push(ExeFile), Cont:=A_Index
 			} else if A_Index = 2
-			{	SplitPath ExeFile    ,, edir,,ename
-				SplitPath A_LoopField,, idir,,iname
+			{	SplitPath ExeFile,, edir,,ename
+				SplitPath o      ,, idir,,iname
 				Loop % Cont
 					DirExe[DirExe.MaxIndex()-A_Index+1] 
 					:= (idir ? idir : edir) "\" (iname ? iname : ename) ".exe"
