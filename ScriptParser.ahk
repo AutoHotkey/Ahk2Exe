@@ -170,7 +170,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
 		{	FileDelete %ilibfile%         ; Try again without CMD (avoid UNC path bug)
 			RunWait, "%AhkPath%" %AhkSw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%A", %FirstScriptDir%, UseErrorLevel Hide
-		}
+		} ;^^ Bug ref https://www.autohotkey.com/boards/viewtopic.php?f=14&t=90457
 		if (ErrorLevel = 2)
 		{	FileRead tmpErrorData,%ilibfile%E
 			FileDelete %ilibfile%*
