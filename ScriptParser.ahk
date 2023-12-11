@@ -167,8 +167,8 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		
 		ilibfile := Util_TempFile(, "ilib~")
 		RunWait,"%comspec%" /c ""%AhkPath%"%AhkSw%/iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%E"", %FirstScriptDir%, UseErrorLevel Hide
-		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
-		{	FileDelete %ilibfile%         ; Try again without CMD (avoid UNC path bug)
+		if ErrorLevel in 1, 2          ;^ Editor may flag, but it's valid syntax
+		{	FileDelete %ilibfile%        ; Avoid UNC path bug & allow MS Store compile
 			RunWait, "%AhkPath%" %AhkSw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%A", %FirstScriptDir%, UseErrorLevel Hide
 		} ;^^ Bug ref https://www.autohotkey.com/boards/viewtopic.php?f=14&t=90457
 		if (ErrorLevel = 2)
