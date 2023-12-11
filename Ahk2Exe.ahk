@@ -68,8 +68,6 @@ AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
 AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
 SaveMes   := "S&ave Script Settings As…`tCtrl+S"
 
-Help0 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
-
 Menu, FileMenu, Add, %AllowMes0%, Shrink
 Menu, FileMenu, Add, R&eset all Fields`tF5, Restart
 Menu, FileMenu, Add, Refresh Windows &Icons`tAlt+I, RefreshIcons
@@ -153,7 +151,7 @@ ExitApp
 compress:
 gui, Submit, NoHide
 if (UseMPRESS !=1
- && !FileExist(wk := A_ScriptDir "\" . {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS]))
+ && !FileExist(A_ScriptDir "\" (wk := {2:"MPRESS.exe",3:"UPX.exe"}[UseMPRESS])))
 Util_Status("Warning: """ wk """ not found. See 'Help' -> 'Check for Updates'.")
 else Util_Status("Ready")
 return

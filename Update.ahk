@@ -1,13 +1,13 @@
-﻿goto UpdateEnd                                ; If fall-into, skip
+﻿goto UpdateEnd                                ; If fall-into, skip to near end
 Update:
 Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"https://www.autohotkey.com/mpress/mpress.219.zip,,,Mpress.exe"
 ,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
-A2D := A_ScriptDir "\", Priv := ""
+A2D := A_ScriptDir "\", Store := A2D~="i)^.:\\Program Files\\WindowsApps\\"
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
 	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
 		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
-UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
+UpdGui:=1, Priv:="", UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
 FileCreateDir %UpdDir%
 Gui Upd:Destroy
 ;Gui Upd:Font, s9, simsun                      ; To test overlapping GUI fields
@@ -16,7 +16,7 @@ Gui Upd:+Owner1
 Gui Upd:Font, bold
 Gui Upd:Add, Text, Center w300, Status of Updates
 Gui Upd:Font, norm
-Gui Upd:Show, w330 h160, % "  Checking ..."
+Gui Upd:Show, w350 h160, % "  Checking ..."
 for k, v in Reqs
 {	Reqa := StrSplit(v,","), Text%k%T := ""
 	Url := Reqa.4="mpress.exe" ? Reqa.1 : GitHubDwnldUrl(Reqa.1,Reqa.2,Reqa.3)
@@ -31,6 +31,7 @@ for k, v in Reqs
 			RunWait "%A2D%Ahk2Exe.exe" /in "%UpdDir%%wk%" /base "%A2D%Ahk2Exe.exe"
 			/compress 0
 	}
+	IfEqual UpdGui, 0, break
 	VnO := AHKType(RegExReplace(A2D Reqa.4,"i)ahk$","exe"),0).Version
 	Text%k%V := VnO := RegExReplace(VnO,"\(.+$") ; Get old version
 	VnN := AHKType(RegExReplace(UpdDir "\" Reqa.4,"i)ahk$","exe"),0).Version
@@ -42,26 +43,30 @@ for k, v in Reqs
 	GuiControl Upd:+g,   Hlp%k%, % Help%k% 
 	Gui Upd:Add, Text,     xp20, % RegExReplace(Reqa.4, "\..+$")
 	Gui Upd:Add, Text,     xp50, % VnO
-	Gui Upd:Add, Checkbox, xp65 vText%k% Check3 gUpdChk, % Text
-	Gui Upd:Add, Text,     xp95, % VnN=VnO ? "" : VnN
-	Gui Upd:Show,, % "  Checking " SubStr(" ...", 2-mod(k,2))
+	Gui Upd:Add, Checkbox, xp75 vText%k% Check3 gUpdChk, % Text
+	Gui Upd:Add, Text,     xp105,% VnN=VnO ? "" : VnN
+	Gui Upd:Show,, % "  Checking " SubStr("    ...", 5-k)
 }
-Gui Upd:Add, Button, % "x120 yp30 w80 h15 vUpd " (Text1||Text2||Text3||Text4
-	 ? "" : "Disabled"), % " Update?"
-Gui Upd:Show,, Ahk2Exe Updater
-FileAppend `n, %A2D%Test.txt
-IfNotExist %A2D%Test.txt
-	SetTimer UpdTimer, 50
-FileDelete %A2D%Test.txt
+if UpdGui
+{	Gui Upd:Add, Button, % "x120 yp30 w80 h15 vUpd " (Text1||Text2||Text3||Text4
+		 ? "" : "Disabled"), % " Update?"
+	Gui Upd:Show,, Ahk2Exe Updater
+	FileAppend `n, %A2D%Test.txt
+	IfNotExist %A2D%Test.txt, SetTimer UpdTimer, 50
+	FileDelete %A2D%Test.txt
+} else Gui Upd:Destroy
 return
 
 UpdTimer:
-IfWinNotExist Ahk2Exe Updater
-	return
+IfWinNotExist Ahk2Exe Updater,, return
 SetTimer,, Off
 Priv := "*RunAs"
 SendMessage 0x160c,, 1, Button9, Ahk2Exe Updater  ; BCM_SETSHIELD := 0x160c
 return
+
+
+
+
 
 UpdChk:
 if !(%A_GuiControl%T)
@@ -81,14 +86,8 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
-UpdDirRem()
-{	global
-	If InStr(FileExist(UpdDir), "D")
-		FileRemoveDir %UpdDir%, 1
-}
-
-GetCsv(A2D, Req, UpdDir, Version)
-{ IfExist %A2D%..\UX\installed-files.csv
+GetCsv(A2D, Req, UpdDir, Version, Store)
+{	If FileExist(A2D "..\UX\installed-files.csv") && !Store
 	{ path := """Compiler\" Req """"
 		if (Version != "Delete")
 		{	FileReadLine wk, %A2D%\..\UX\installed-files.csv, 1
@@ -110,45 +109,40 @@ GetCsv(A2D, Req, UpdDir, Version)
 UpdButtonUpdate?:
 Gui Submit, NoHide
 FileDelete %UpdDir%\Script*.*
-DOS = Set "Tgt=%A2D%" & Set "Src=%UpdDir%" &
-DOS = %DOS% "!Tgt!Ahk2Exe.exe" /Script "!Src!\Script1.ahk" &
+wk=#Requires AutoHotkey v1.1`nToolTip Ahk2Exe Updater``nRunning...`nTgt=%A2D%`n
+wk=%wk%Srx=%UpdDir%`nStore=%Store%`n#NoTrayIcon`nDetectHiddenWindows on`n
+wk=%wk%Src:=SubStr(Srx,1,-1) "x"`nFileMoveDir `%Srx`%`,`%Src`%`,r`n
+wk=%wk%WinKill ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%`,`,10`n
+FileAppend %wk%, %UpdDir%\Script1.ahk
 txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
-	{	DOS = %DOS% Del "!Tgt!%Req%" & Copy /b "!Src!\%Req%" "!Tgt!%Req%" &&
-		DOS = %DOS% Del "!Src!\%Req%" &
-		GetCsv(A2D, Req, UpdDir, Text%k%N)
+	{	wk=FileDelete `%Tgt`%%Req%`nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+	,1`nif A_LastError=0`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
+	= %A_LastError%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+		GetCsv(A2D, Req, UpdDir, Text%k%N, Store)
 	} else if (Text%k% = -1)
-	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
-		DOS = %DOS% Del "!Tgt!%Req%" && Del "!Src!\%Req%" &
-	} else DOS = %DOS% Del "!Src!\%Req%" &
-}
+	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete", Store)
+		wk=FileDelete `%Tgt`%%Req%`nif A_LastError=0`nFileDelete `%Src`%\%Req%
+	} else wk=FileDelete `%Src`%\%Req%
+	FileAppend %wk%`n, %UpdDir%\Script1.ahk
+} 
 if txt
 	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
-DOS = %DOS% "!Src!\A\Ahk2Exe.exe" /Script "!Src!\Script2.ahk" & 
-DOS = %DOS% rmdir /s /q "!Src!"
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
-OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
 
 
-
 FileAppend,
 (
-#NoTrayIcon`nDetectHiddenWindows on
-WinKill      ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%,,10
-), %UpdDir%\Script1.ahk
-
-FileAppend,
-(
-#NoTrayIcon`nPar = %Par%`nwk := []
-Loop Files, %UpdDir%\*.exe
+Par = %Par%`nwk := []
+Loop Files, `%Src`%\*.exe
 	txt .= "``n``t" A_LoopFileName, fail .= (fail ? "|" : "") A_LoopFileName
-IfExist %UpdDir%\Script3c.csv
-{	Loop Read, %A2D%..\UX\installed-files.csv
+IfExist `%Src`%\Script3c.csv
+{	Loop Read, `%Tgt`%..\UX\installed-files.csv
 	{	if (A_Index = 1)
 		{	hdr := A_LoopReadLine
 			for k, v in StrSplit(Hdr,",")
@@ -156,27 +150,38 @@ IfExist %UpdDir%\Script3c.csv
 					break
 		}	else wk[StrSplit(A_LoopReadLine,",")[k]] := A_LoopReadLine
 	}
-	Loop Read, %UpdDir%\Script3c.csv
+	Loop Read, `%Src`%\Script3c.csv
 		if !(fail && A_LoopReadLine ~= "i)(" StrReplace(fail,".","\.") ")""")
 			if StrSplit(A_LoopReadLine,"|").2 = "Delete"
 				wk.Delete(StrSplit(A_LoopReadLine,"|").1)
 			else wk[StrSplit(A_LoopReadLine,"|").1] := StrSplit(A_LoopReadLine,"|").2
-	FileDelete             %A2D%..\UX\installed-files.csv
-	FileAppend `%hdr`%``n, %A2D%..\UX\installed-files.csv
+	FileDelete             `%Tgt`%..\UX\installed-files.csv
+	FileAppend `%hdr`%``n, `%Tgt`%..\UX\installed-files.csv
 	for k, v in wk
-		FileAppend `%v`%``n, %A2D%..\UX\installed-files.csv
+		FileAppend `%v`%``n, `%Tgt`%..\UX\installed-files.csv
 }
-IfNotExist %A2D%Ahk2Exe.exe
-	Mess := "``n``nAhk2Exe deleted. To reinstall:``n v1 - run the AHK installer
-	,``n v2 - press 'Windows/Start', find & run 'AutoHotkey', select 'Compile'."
-if txt
-	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
+ToolTip
+IfNotExist `%Tgt`%Ahk2Exe.exe
+	Mess:="``n``nAhk2Exe deleted. To reinstall:``n``n v1 - Run the AHK installer."
+. "``n v2 - Press 'Windows/Start', find & run AutoHotkey Dash => Compile.``n"
+. " MS Store version - Settings => Apps => AutoHotkey v2 => Advanced => Reset."
+if txt`n	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
-IfExist %A2D%Ahk2Exe.exe
-	RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
+wk=#NoTrayIcon``nDetectHiddenWindows on``nWinKill ahk_id `%A_ScriptHwnd`%``n
+wk=`%wk`%WinWaitClose ahk_id `%A_ScriptHwnd`%,,10``n
+FileAppend `%wk`%, `%Src`%\Script2.ahk
+If FileExist(wk := Tgt "Ahk2Exe.exe")
+{	ToolTip Ahk2Exe Updater``nRestarting Ahk2Exe...
+	if (Store)`n  Run "`%wk`%" /restart `%Par`%, A_WorkingDir
+	else       RunAsUser(wk,  "/Restart " Par,   A_WorkingDir)
+}
+if !(Store)
+{	txt = "`%Src`%\A\Ahk2Exe.exe" /Script "`%Src`%\Script2.ahk" &  
+	RunWait "%ComSpec%" /c "`%txt`% rmdir /s /q "`%Src`%"",, Hide
+} else FileRemoveDir `%Src`%,1
 
-RunAsUser(target, args:="", workdir:="") {
-	try ShellRun(target, args, workdir)
+RunAsUser(target, args:="", workdir:="")
+{	try ShellRun(target, args, workdir)
 	catch e
 		Run `% args="" ? target : target " " args, `% workdir
 }
@@ -198,12 +203,19 @@ ShellRun(prms*)
 		}
 		ObjRelease(ptlb)
 }	}
-), %UpdDir%\Script2.ahk
+), %UpdDir%\Script1.ahk
 
-if Priv
-	RunWait *RunAs "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
-else RunWait     "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
-MsgBox 48, Ahk2Exe Updater, Update abandoned.
+
+if !(Store)
+{	if Priv
+		RunWait *RunAs "%UpdDir%\A\Ahk2Exe.exe" /Script "%UpdDir%\Script1.ahk"
+		,,Hide UseErrorLevel
+	else	RunWait    "%UpdDir%\A\Ahk2Exe.exe" /Script "%UpdDir%\Script1.ahk"
+		,,Hide UseErrorLevel
+	MsgBox 48, Ahk2Exe Updater, Update abandoned.
+}	else if !(Priv)
+		RunWait "%UpdDir%\Script1.ahk",,Hide UseErrorLevel
+	else MsgBox 48, Ahk2Exe Updater, This MS Store app can't be updated this way.
 return
 
 GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
@@ -220,6 +232,12 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 				return Url
 }	}	}
 
+UpdDirRem()
+{	global
+	If InStr(FileExist(UpdDir), "D")
+		FileRemoveDir %UpdDir%, 1
+}
+
 HelpU(a)
 {	Run "https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095"
 }
@@ -227,10 +245,11 @@ HelpU(a)
 UpdGuiClose:
 UpdGuiEscape:
 Gui Upd:Destroy
-UpdDirRem()
-return
+UpdDirRem(), UpdGui := 0
+Exit
 
 UpdateEnd:
+Help0 := Func("Help").Bind(0,"Ahk2Exe", "Scripts.htm#ahk2exe") ; Help topics
 Help1 := Func("HelpU").Bind(0)            ; All initialised at beginning
 Help2 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
 Help3 := Func("Help").Bind(0,"Compression", "Scripts.htm#mpress")
