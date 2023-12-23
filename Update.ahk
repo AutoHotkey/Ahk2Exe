@@ -5,8 +5,7 @@ Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
 A2D := A_ScriptDir "\", Priv := ""
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
-	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
-		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
+	RunCMD("""" A_AhkPath  """ """ A_ScriptFullPath """ /compress 0 /in """ A_ScriptFullPath """ /base """ A_AhkPath "\..\AutoHotkeyU32.exe""", A_WorkingDir)
 UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
 FileCreateDir %UpdDir%
 Gui Upd:Destroy
@@ -28,8 +27,7 @@ for k, v in Reqs
 				FileCopy % A_LoopFilePath "\" Reqa.4, %UpdDir%, 1
 		else FileCopy  % UpdDir "\" k "\" Reqa.4, %UpdDir%, 1
 		if (Reqa.4 ~= "i).ahk$")                   ; Script needs compiling?
-			RunWait "%A2D%Ahk2Exe.exe" /in "%UpdDir%%wk%" /base "%A2D%Ahk2Exe.exe"
-			/compress 0
+			RunCMD("""" A2D "Ahk2Exe.exe"" /in """ UpdDir wk """ /base """ A2D  "Ahk2Exe.exe"" /compress 0", A_WorkingDir)
 	}
 	VnO := AHKType(RegExReplace(A2D Reqa.4,"i)ahk$","exe"),0).Version
 	Text%k%V := VnO := RegExReplace(VnO,"\(.+$") ; Get old version
@@ -99,7 +97,7 @@ GetCsv(A2D, Req, UpdDir, Version)
 			#NoTrayIcon`n#Include "%A2D%..\UX\inc\hashfile.ahk"
 			FileAppend hashfile("%UpdDir%\%Req%"), "%UpdDir%\Script3.hsh"
 			), %UpdDir%\Script3.ahk
-			RunWait "%A2D%..\UX\AutoHotkeyUX.exe" "%UpdDir%\Script3.ahk"
+			RunCMD("""" A2D "..\UX\AutoHotkeyUX.exe"" """ UpdDir "\Script3.ahk""")
 			FileRead hash, %UpdDir%\Script3.hsh
 			for k, v in wk
 				txt .= txt ? "," %v% : %v%
@@ -110,41 +108,37 @@ GetCsv(A2D, Req, UpdDir, Version)
 UpdButtonUpdate?:
 Gui Submit, NoHide
 FileDelete %UpdDir%\Script*.*
-DOS = Set "Tgt=%A2D%" & Set "Src=%UpdDir%" &
-DOS = %DOS% "!Tgt!Ahk2Exe.exe" /Script "!Src!\Script1.ahk" &
+Script1 = 
+(
+#NoTrayIcon`nDetectHiddenWindows on
+WinKill      ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%,,10
+)
+
 txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
-	{	DOS = %DOS% Del "!Tgt!%Req%" & Copy /b "!Src!\%Req%" "!Tgt!%Req%" &&
-		DOS = %DOS% Del "!Src!\%Req%" &
+	{	Script1 = %Script1%`nFileDelete %A2D%%Req%`nFileCopy, %UpdDir%\%Req%, %A2D%%Req%`nFileDelete %UpdDir%\%Req%
 		GetCsv(A2D, Req, UpdDir, Text%k%N)
 	} else if (Text%k% = -1)
 	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
-		DOS = %DOS% Del "!Tgt!%Req%" && Del "!Src!\%Req%" &
-	} else DOS = %DOS% Del "!Src!\%Req%" &
+		Script1 = %Script1%`nFileDelete %A2D%%Req%`nFileDelete %UpdDir%\%Req%
+	} else 
+	{	Script1 = %Script1%`nFileDelete %UpdDir%\%Req%
+	}
 }
 if txt
 	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
-DOS = %DOS% "!Src!\A\Ahk2Exe.exe" /Script "!Src!\Script2.ahk" & 
-DOS = %DOS% rmdir /s /q "!Src!"
+
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
 OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
 
-
-
-FileAppend,
+Script1Addon = 
 (
-#NoTrayIcon`nDetectHiddenWindows on
-WinKill      ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%,,10
-), %UpdDir%\Script1.ahk
-
-FileAppend,
-(
-#NoTrayIcon`nPar = %Par%`nwk := []
+`nPar = %Par%`nwk := []
 Loop Files, %UpdDir%\*.exe
 	txt .= "``n``t" A_LoopFileName, fail .= (fail ? "|" : "") A_LoopFileName
 IfExist %UpdDir%\Script3c.csv
@@ -173,7 +167,15 @@ if txt
 	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 IfExist %A2D%Ahk2Exe.exe
-	RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
+{
+	if InStr("%A2D%", "\WindowsApps\")
+		Run, "%A2D%Ahk2Exe.exe" /Restart `%Par`%
+	else
+		RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
+	Script2 = #NoTrayIcon``nDetectHiddenWindows on``nSleep 10``nFileRemoveDir, %UpdDir%, 1
+	FileAppend, `%Script2`%, %UpdDir%\Script2.ahk
+	Run `% """%A2D%Ahk2Exe.exe"" /script ""%UpdDir%\Script2.ahk""", `% A_WorkingDir
+}
 
 RunAsUser(target, args:="", workdir:="") {
 	try ShellRun(target, args, workdir)
@@ -198,11 +200,14 @@ ShellRun(prms*)
 		}
 		ObjRelease(ptlb)
 }	}
-), %UpdDir%\Script2.ahk
+)
+
+Script1 .= Script1Addon
+FileAppend, %Script1%, %UpdDir%\Script1.ahk
 
 if Priv
-	RunWait *RunAs "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
-else RunWait     "%ComSpec%" /v:on /c "%DOS%",, Hide UseErrorLevel
+	RunWait *RunAs "%A2D%Ahk2Exe.exe" /script "%UpdDir%\Script1.ahk"
+else RunWait "%A2D%Ahk2Exe.exe" /script "%UpdDir%\Script1.ahk"
 MsgBox 48, Ahk2Exe Updater, Update abandoned.
 return
 
@@ -219,6 +224,53 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 			if (!Ext || SubStr(url, 1-StrLen(Ext)) = Ext)
 				return Url
 }	}	}
+
+RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) { ; RunCMD v0.97
+    Local         ; RunCMD v0.97 by SKAN on D34E/D67E @ autohotkey.com/boards/viewtopic.php?t=74647
+    Global G_RunCMD ; Based on StdOutToVar.ahk by Sean @ autohotkey.com/board/topic/15455-stdouttovar
+
+      Slow := !! Slow
+    , Fn := IsFunc(Fn) ? Func(Fn) : 0
+    , DllCall("CreatePipe", "PtrP",hPipeR:=0, "PtrP",hPipeW:=0, "Ptr",0, "Int",0)
+    , DllCall("SetHandleInformation", "Ptr",hPipeW, "Int",1, "Int",1)
+    , DllCall("SetNamedPipeHandleState","Ptr",hPipeR, "UIntP",PIPE_NOWAIT:=1, "Ptr",0, "Ptr",0)
+    
+    , P8 := (A_PtrSize=8)
+    , VarSetCapacity(SI, P8 ? 104 : 68, 0)                          ; STARTUPINFO structure
+    , NumPut(P8 ? 104 : 68, SI)                                     ; size of STARTUPINFO
+    , NumPut(STARTF_USESTDHANDLES:=0x100, SI, P8 ? 60 : 44,"UInt")  ; dwFlags
+    , NumPut(hPipeW, SI, P8 ? 88 : 60)                              ; hStdOutput
+    , NumPut(hPipeW, SI, P8 ? 96 : 64)                              ; hStdError
+    , VarSetCapacity(PI, P8 ? 24 : 16)                              ; PROCESS_INFORMATION structure
+    
+      If not DllCall("CreateProcess", "Ptr",0, "Str",CmdLine, "Ptr",0, "Int",0, "Int",True
+                    ,"Int",0x08000000 | DllCall("GetPriorityClass", "Ptr",-1, "UInt"), "Int",0
+                    ,"Ptr",WorkingDir ? &WorkingDir : 0, "Ptr",&SI, "Ptr",&PI)
+         Return Format("{1:}", "", ErrorLevel := -1
+                       ,DllCall("CloseHandle", "Ptr",hPipeW), DllCall("CloseHandle", "Ptr",hPipeR))
+    
+      DllCall("CloseHandle", "Ptr",hPipeW)
+    , G_RunCMD := { "PID": NumGet(PI, P8? 16 : 8, "UInt") }
+    , File := FileOpen(hPipeR, "h", Codepage)
+    
+    , LineNum := 1,  sOutput := ""
+      While  ( G_RunCMD.PID | DllCall("Sleep", "Int",Slow) )
+        and  DllCall("PeekNamedPipe", "Ptr",hPipeR, "Ptr",0, "Int",0, "Ptr",0, "Ptr",0, "Ptr",0)
+             While G_RunCMD.PID and StrLen(Line := File.ReadLine())
+                   sOutput .= Fn ? Fn.Call(Line, LineNum++) : Line
+    
+    G_RunCMD.PID := 0
+    , hProcess := NumGet(PI, 0)
+    , hThread  := NumGet(PI, A_PtrSize)
+    
+    , DllCall("GetExitCodeProcess", "Ptr",hProcess, "PtrP",ExitCode:=0)
+    , DllCall("CloseHandle", "Ptr",hProcess)
+    , DllCall("CloseHandle", "Ptr",hThread)
+    , DllCall("CloseHandle", "Ptr",hPipeR)
+    , ErrorLevel := ExitCode
+    
+    Return sOutput
+}
 
 HelpU(a)
 {	Run "https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095"

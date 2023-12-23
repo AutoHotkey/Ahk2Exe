@@ -166,36 +166,26 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		AhkSw := wk ? " /Script " : " "
 		
 		ilibfile := Util_TempFile(, "ilib~")
-		RunWait,"%comspec%" /c ""%AhkPath%"%AhkSw%/iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%E"", %FirstScriptDir%, UseErrorLevel Hide
-		if (ErrorLevel = 2)             ;^ Editor may flag, but it's valid syntax
-		{	FileDelete %ilibfile%         ; Try again without CMD (avoid UNC path bug)
-			RunWait, "%AhkPath%" %AhkSw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%A", %FirstScriptDir%, UseErrorLevel Hide
-		}
+		tmpErrorData := RunCMD("""" AhkPath """" AhkSw "/iLib * /ErrorStdOut """ AhkScript """", FirstScriptDir)
 		if (ErrorLevel = 2)
-		{	FileRead tmpErrorData,%ilibfile%E
-			FileDelete %ilibfile%*
+		{	
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
-		{	FileDelete %ilibfile%*
-			Util_Error("Error: Call to """ AhkPath """ has failed.`n(%comspec%="
-			.  ComSpec ")`nError code is "ErrLev, 0x51)
+		{	Util_Error("Error: Call to """ AhkPath """ has failed.`nError code is " ErrLev, 0x51)
 		}
-		IfExist, %ilibfile%
-		{	FileGetSize wk, %ilibfile%
-			if wk > 3
-			{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
-				{ Loop 4                    ; v1 - Generate random label prefix
-					{ Random wk, 97, 122
-						ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
-					}                         ; Don't execute Auto_Includes directly
-					ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
-				}
-				PreprocessScript(ScriptText, ilibfile, Directives
-				, PriorLines, FileList, FirstScriptDir, Options)
-		}	}
-		If (ilibfile)
-			FileDelete, %ilibfile%*
+		if StrLen(tmpErrorData) > 3
+		{	FileAppend, %tmpErrorData%, %ilibfile%
+			if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
+			{ Loop 4                    ; v1 - Generate random label prefix
+				{ Random wk, 97, 122
+					ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
+				}                         ; Don't execute Auto_Includes directly
+				ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
+			}
+			PreprocessScript(ScriptText, ilibfile, Directives
+			, PriorLines, FileList, FirstScriptDir, Options)
+		}
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
 
