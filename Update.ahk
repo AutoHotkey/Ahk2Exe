@@ -84,6 +84,12 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
+UpdDirRem()
+{	global
+	If InStr(FileExist(UpdDir), "D")
+		FileRemoveDir %UpdDir%, 1
+}
+
 GetCsv(A2D, Req, UpdDir, Version, Store)
 {	If FileExist(A2D "..\UX\installed-files.csv") && !Store
 	{ path := """Compiler\" Req """"
