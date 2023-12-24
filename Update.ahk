@@ -139,8 +139,8 @@ Script1Addon =
 `nPar = %Par%`nwk := []
 Loop Files, %UpdDir%\*.exe
 	txt .= "``n``t" A_LoopFileName, fail .= (fail ? "|" : "") A_LoopFileName
-IfExist `%Src`%\Script3c.csv
-{	Loop Read, `%Tgt`%..\UX\installed-files.csv
+IfExist `%UpdDir`%\Script3c.csv
+{	Loop Read, `%A2D`%..\UX\installed-files.csv
 	{	if (A_Index = 1)
 		{	hdr := A_LoopReadLine
 			for k, v in StrSplit(Hdr,",")
@@ -148,18 +148,18 @@ IfExist `%Src`%\Script3c.csv
 					break
 		}	else wk[StrSplit(A_LoopReadLine,",")[k]] := A_LoopReadLine
 	}
-	Loop Read, `%Src`%\Script3c.csv
+	Loop Read, `%UpdDir`%\Script3c.csv
 		if !(fail && A_LoopReadLine ~= "i)(" StrReplace(fail,".","\.") ")""")
 			if StrSplit(A_LoopReadLine,"|").2 = "Delete"
 				wk.Delete(StrSplit(A_LoopReadLine,"|").1)
 			else wk[StrSplit(A_LoopReadLine,"|").1] := StrSplit(A_LoopReadLine,"|").2
-	FileDelete             `%Tgt`%..\UX\installed-files.csv
-	FileAppend `%hdr`%``n, `%Tgt`%..\UX\installed-files.csv
+	FileDelete             `%A2D`%..\UX\installed-files.csv
+	FileAppend `%hdr`%``n, `%A2D`%..\UX\installed-files.csv
 	for k, v in wk
-		FileAppend `%v`%``n, `%Tgt`%..\UX\installed-files.csv
+		FileAppend `%v`%``n, `%A2D`%..\UX\installed-files.csv
 }
 ToolTip
-IfNotExist `%Tgt`%Ahk2Exe.exe
+IfNotExist `%A2D`%Ahk2Exe.exe
 	Mess:="``n``nAhk2Exe deleted. To reinstall:``n``n v1 - Run the AHK installer."
 . "``n v2 - Press 'Windows/Start', find & run AutoHotkey Dash => Compile.``n"
 . " MS Store version - Settings => Apps => AutoHotkey v2 => Advanced => Reset."
