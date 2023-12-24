@@ -185,6 +185,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 			}
 			PreprocessScript(ScriptText, ilibfile, Directives
 			, PriorLines, FileList, FirstScriptDir, Options)
+			FileDelete, %ilibfile%*
 		}
 		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
 	}
