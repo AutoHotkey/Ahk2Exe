@@ -6,7 +6,7 @@ Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 A2D := A_ScriptDir "\", Store := A2D~="i)^.:\\Program Files\\WindowsApps\\"
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
 	RunCMD("""" A_AhkPath  """ """ A_ScriptFullPath """ /compress 0 /in """ A_ScriptFullPath """ /base """ A_AhkPath "\..\AutoHotkeyU32.exe""", A_WorkingDir)
-UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
+UpdGui:=1, Priv:="", UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
 FileCreateDir %UpdDir%
 Gui Upd:Destroy
 ;Gui Upd:Font, s9, simsun                      ; To test overlapping GUI fields
@@ -84,14 +84,8 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
-UpdDirRem()
-{	global
-	If InStr(FileExist(UpdDir), "D")
-		FileRemoveDir %UpdDir%, 1
-}
-
-GetCsv(A2D, Req, UpdDir, Version, Store)
-{	If FileExist(A2D "..\UX\installed-files.csv") && !Store
+GetCsv(A2D, Req, UpdDir, Version)
+{ IfExist %A2D%..\UX\installed-files.csv
 	{ path := """Compiler\" Req """"
 		if (Version != "Delete")
 		{	FileReadLine wk, %A2D%\..\UX\installed-files.csv, 1
@@ -134,9 +128,9 @@ for k, v in Reqs
 }
 if txt
 	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
-
 FileCreateDir %UpdDir%\A\
 FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
+OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
 
@@ -173,7 +167,7 @@ if txt`n	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 IfExist %A2D%Ahk2Exe.exe
 {
-	if InStr("%A2D%", "\WindowsApps\")
+	if (Store)
 		Run, "%A2D%Ahk2Exe.exe" /Restart `%Par`%
 	else
 		RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
@@ -229,6 +223,12 @@ GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 			if (!Ext || SubStr(url, 1-StrLen(Ext)) = Ext)
 				return Url
 }	}	}
+
+UpdDirRem()
+{	global
+	If InStr(FileExist(UpdDir), "D")
+		FileRemoveDir %UpdDir%, 1
+}
 
 RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) { ; RunCMD v0.97
     Local         ; RunCMD v0.97 by SKAN on D34E/D67E @ autohotkey.com/boards/viewtopic.php?t=74647
