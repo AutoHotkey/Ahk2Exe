@@ -5,8 +5,10 @@ Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
 A2D := A_ScriptDir "\", Store := A2D~="i)^.:\\Program Files\\WindowsApps\\"
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
-	RunCMD("""" A_AhkPath  """ """ A_ScriptFullPath """ /compress 0 /in """ A_ScriptFullPath """ /base """ A_AhkPath "\..\AutoHotkeyU32.exe""", A_WorkingDir)
+	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
+		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
 UpdGui:=1, Priv:="", UpdDirRem(), UpdDir := Util_TempFile(,"Update", "Update")
+SrcA2E := Store ? A2D "_Ahk2Exe.exe" : UpdDir "\A\Ahk2Exe.exe"
 FileCreateDir %UpdDir%
 Gui Upd:Destroy
 ;Gui Upd:Font, s9, simsun                      ; To test overlapping GUI fields
@@ -27,7 +29,8 @@ for k, v in Reqs
 				FileCopy % A_LoopFilePath "\" Reqa.4, %UpdDir%, 1
 		else FileCopy  % UpdDir "\" k "\" Reqa.4, %UpdDir%, 1
 		if (Reqa.4 ~= "i).ahk$")                   ; Script needs compiling?
-			RunCMD("""" A2D "Ahk2Exe.exe"" /in """ UpdDir wk """ /base """ A2D  "Ahk2Exe.exe"" /compress 0", A_WorkingDir)
+			RunWait "%A2D%Ahk2Exe.exe" /in "%UpdDir%%wk%" /base "%A2D%Ahk2Exe.exe"
+			/compress 0
 	}
 	IfEqual UpdGui, 0, break
 	VnO := AHKType(RegExReplace(A2D Reqa.4,"i)ahk$","exe"),0).Version
@@ -84,8 +87,8 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
-GetCsv(A2D, Req, UpdDir, Version)
-{ IfExist %A2D%..\UX\installed-files.csv
+GetCsv(A2D, Req, UpdDir, Version, Store)
+{	If FileExist(A2D "..\UX\installed-files.csv") && !Store
 	{ path := """Compiler\" Req """"
 		if (Version != "Delete")
 		{	FileReadLine wk, %A2D%\..\UX\installed-files.csv, 1
@@ -96,7 +99,7 @@ GetCsv(A2D, Req, UpdDir, Version)
 			#NoTrayIcon`n#Include "%A2D%..\UX\inc\hashfile.ahk"
 			FileAppend hashfile("%UpdDir%\%Req%"), "%UpdDir%\Script3.hsh"
 			), %UpdDir%\Script3.ahk
-			RunCMD("""" A2D "..\UX\AutoHotkeyUX.exe"" """ UpdDir "\Script3.ahk""")
+			RunWait "%A2D%..\UX\AutoHotkeyUX.exe" "%UpdDir%\Script3.ahk"
 			FileRead hash, %UpdDir%\Script3.hsh
 			for k, v in wk
 				txt .= txt ? "," %v% : %v%
@@ -107,40 +110,40 @@ GetCsv(A2D, Req, UpdDir, Version)
 UpdButtonUpdate?:
 Gui Submit, NoHide
 FileDelete %UpdDir%\Script*.*
-Script1 = 
-(
-#NoTrayIcon`nDetectHiddenWindows on
-WinKill      ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%,,10
-)
-
+wk=#Requires AutoHotkey v1.1`nToolTip Ahk2Exe Updater``nRunning...`nTgt=%A2D%`n
+wk=%wk%Src=%UpdDir%`nStore=%Store%`n#NoTrayIcon`nDetectHiddenWindows on`n
+wk=%wk%WinClose ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%`,`,10`n
+FileAppend %wk%, %UpdDir%\Script1.ahk
 txt := ""
 for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
-	{	Script1 = %Script1%`nFileDelete %A2D%%Req%`nFileCopy, %UpdDir%\%Req%, %A2D%%Req%`nFileDelete %UpdDir%\%Req%
-		GetCsv(A2D, Req, UpdDir, Text%k%N)
+	{	wk=FileDelete `%Tgt`%%Req%`nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+	,1`nif A_LastError=0`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
+	= %A_LastError%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+		GetCsv(A2D, Req, UpdDir, Text%k%N, Store)
 	} else if (Text%k% = -1)
-	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
-		Script1 = %Script1%`nFileDelete %A2D%%Req%`nFileDelete %UpdDir%\%Req%
-	} else 
-	{	Script1 = %Script1%`nFileDelete %UpdDir%\%Req%
-	}
-}
+	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete", Store)
+		wk=FileDelete `%Tgt`%%Req%`nif A_LastError=0`nFileDelete `%Src`%\%Req%
+	} else wk=FileDelete `%Src`%\%Req%
+	FileAppend %wk%`n, %UpdDir%\Script1.ahk
+} 
 if txt
 	Util_Error("Are you sure you want to delete:" txt, 0,,, 0)
 FileCreateDir %UpdDir%\A\
-FileCopy %A2D%Ahk2Exe.exe, %UpdDir%\A\Ahk2Exe.exe
+FileCopy %A2D%Ahk2Exe.exe, %SrcA2E%
 OnExit("UpdDirRem", 0)
 For k, v in A_Args            ; Add quotes to parameters & escape any trailing \
 	wk := StrReplace(v,"""","\"""), Par .= """" wk (SubStr(wk,0)="\"?"\":"") """ "
 
-Script1Addon = 
+
+FileAppend,
 (
-`nPar = %Par%`nwk := []
-Loop Files, %UpdDir%\*.exe
+Par = %Par%`nwk := []
+Loop Files, `%Src`%\*.exe
 	txt .= "``n``t" A_LoopFileName, fail .= (fail ? "|" : "") A_LoopFileName
-IfExist `%UpdDir`%\Script3c.csv
-{	Loop Read, `%A2D`%..\UX\installed-files.csv
+IfExist `%Src`%\Script3c.csv
+{	Loop Read, `%Tgt`%..\UX\installed-files.csv
 	{	if (A_Index = 1)
 		{	hdr := A_LoopReadLine
 			for k, v in StrSplit(Hdr,",")
@@ -148,33 +151,32 @@ IfExist `%UpdDir`%\Script3c.csv
 					break
 		}	else wk[StrSplit(A_LoopReadLine,",")[k]] := A_LoopReadLine
 	}
-	Loop Read, `%UpdDir`%\Script3c.csv
+	Loop Read, `%Src`%\Script3c.csv
 		if !(fail && A_LoopReadLine ~= "i)(" StrReplace(fail,".","\.") ")""")
 			if StrSplit(A_LoopReadLine,"|").2 = "Delete"
 				wk.Delete(StrSplit(A_LoopReadLine,"|").1)
 			else wk[StrSplit(A_LoopReadLine,"|").1] := StrSplit(A_LoopReadLine,"|").2
-	FileDelete             `%A2D`%..\UX\installed-files.csv
-	FileAppend `%hdr`%``n, `%A2D`%..\UX\installed-files.csv
+	FileDelete             `%Tgt`%..\UX\installed-files.csv
+	FileAppend `%hdr`%``n, `%Tgt`%..\UX\installed-files.csv
 	for k, v in wk
-		FileAppend `%v`%``n, `%A2D`%..\UX\installed-files.csv
+		FileAppend `%v`%``n, `%Tgt`%..\UX\installed-files.csv
 }
 ToolTip
-IfNotExist `%A2D`%Ahk2Exe.exe
+IfNotExist `%Tgt`%Ahk2Exe.exe
 	Mess:="``n``nAhk2Exe deleted. To reinstall:``n``n v1 - Run the AHK installer."
 . "``n v2 - Press 'Windows/Start', find & run AutoHotkey Dash => Compile.``n"
 . " MS Store version - Settings => Apps => AutoHotkey v2 => Advanced => Reset."
 if txt`n	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
-IfExist %A2D%Ahk2Exe.exe
-{
-	if (Store)
-		Run, "%A2D%Ahk2Exe.exe" /Restart `%Par`%
-	else
-		RunAsUser("%A2D%Ahk2Exe.exe", "/Restart " Par, A_WorkingDir)
-	Script2 = #NoTrayIcon``nDetectHiddenWindows on``nSleep 10``nFileRemoveDir, %UpdDir%, 1
-	FileAppend, `%Script2`%, %UpdDir%\Script2.ahk
-	Run `% """%A2D%Ahk2Exe.exe"" /script ""%UpdDir%\Script2.ahk""", `% A_WorkingDir
+wk=#NoTrayIcon``nDetectHiddenWindows on``nWinKill ahk_id `%A_ScriptHwnd`%``n
+wk=`%wk`%WinWaitClose ahk_id `%A_ScriptHwnd`%,,10``nFileDelete %SrcA2E%``nFileRemoveDir `%Src`%,1
+FileAppend `%wk`%, `%Src`%\Script2.ahk
+If FileExist(wk := Tgt "Ahk2Exe.exe")
+{	ToolTip Ahk2Exe Updater``nRestarting Ahk2Exe...
+	if (Store)`n  Run "`%wk`%" /restart `%Par`%, A_WorkingDir
+	else       RunAsUser(wk,  "/Restart " Par,   A_WorkingDir)
 }
+Run "`%Tgt`%Ahk2Exe.exe" /Script "`%Src`%\Script2.ahk"
 
 RunAsUser(target, args:="", workdir:="")
 {	try ShellRun(target, args, workdir)
@@ -199,14 +201,14 @@ ShellRun(prms*)
 		}
 		ObjRelease(ptlb)
 }	}
-)
+), %UpdDir%\Script1.ahk
 
-Script1 .= Script1Addon
-FileAppend, %Script1%, %UpdDir%\Script1.ahk
 
 if Priv
-	RunWait *RunAs "%A2D%Ahk2Exe.exe" /script "%UpdDir%\Script1.ahk"
-else RunWait "%A2D%Ahk2Exe.exe" /script "%UpdDir%\Script1.ahk"
+	RunWait *RunAs "%SrcA2E%" /Script "%UpdDir%\Script1.ahk"
+	,,Hide UseErrorLevel
+else	RunWait    "%SrcA2E%" /Script "%UpdDir%\Script1.ahk"
+	,,Hide UseErrorLevel
 MsgBox 48, Ahk2Exe Updater, Update abandoned.
 return
 
@@ -228,6 +230,10 @@ UpdDirRem()
 {	global
 	If InStr(FileExist(UpdDir), "D")
 		FileRemoveDir %UpdDir%, 1
+}
+
+HelpU(a)
+{	Run "https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095"
 }
 
 RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) { ; RunCMD v0.97
@@ -275,10 +281,6 @@ RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) {
     , ErrorLevel := ExitCode
     
     Return sOutput
-}
-
-HelpU(a)
-{	Run "https://www.autohotkey.com/boards/viewtopic.php?f=6&t=65095"
 }
 
 UpdGuiClose:
