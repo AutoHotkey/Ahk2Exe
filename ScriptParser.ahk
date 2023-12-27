@@ -171,8 +171,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		{	Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
 		}
 		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
-		{	Util_Error("Error: Call to """ AhkPath """ has failed.`n(%comspec%="
-			.  ComSpec ")`nError code is "ErrLev, 0x51)
+		{	Util_Error("Error: Call to """ AhkPath """ has failed.`nError code is " ErrLev, 0x51)
 		}
 		if StrLen(tmpErrorData) > 3
 			{	FileAppend, %tmpErrorData%, %ilibfile%
