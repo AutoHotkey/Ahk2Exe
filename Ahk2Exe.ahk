@@ -40,6 +40,7 @@ CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
 global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
 	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode, DirDoneG
 	, ExeFiles := [], BinFiles := [], BinNames, FileNameG, LastIdG := 1
+	, Store := A_ScriptDir "\" ~= "i)^.:\\Program Files\\WindowsApps\\"
 
 ExeDfltMes := "(Default is script file, or any relevant compiler directive)"
 
@@ -296,8 +297,8 @@ FindBinsExes(File, Excl="AutoHotkeySC.bin|Ahk2Exe.exe", Mode="R",Phase="",Dup=0)
 		ToolTip Ahk2Exe:`n%Phase% Working %Phase%
 	Count := 0
 	Loop Files, %File%, %Mode%
-	{	if !(A_LoopFileName~="i)\.bin$|^AutoHotkey.+\.exe$|^Ahk2Exe.exe$")
-		|| A_LoopFileName~="i)^(" Excl ")$|_UIA.exe$"
+	{	if !(A_LoopFileName~="i)\.bin$|^AutoHotkey.+\.exe$|^Ahk2Exe\.exe$")
+		|| A_LoopFileName~="i)^(" Excl ")$|_UIA\.exe$|V[12]\.exe$"
 			continue
 		Type := AHKType(A_LoopFileLongPath)   ; Get Unicode data and stats
 		if (Type.era = "Modern") && (A_LoopFileExt = "bin"

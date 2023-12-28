@@ -3,7 +3,7 @@ Update:
 Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
 ,"https://www.autohotkey.com/mpress/mpress.219.zip,,,Mpress.exe"
 ,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
-A2D := A_ScriptDir "\", Store := A2D~="i)^.:\\Program Files\\WindowsApps\\"
+A2D := A_ScriptDir "\"
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
 	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
 		/in "%A_ScriptFullPath%" /base "%A_AhkPath%\..\AutoHotkeyU32.exe"
@@ -86,7 +86,7 @@ Gui Submit, NoHide
 GuiControl % Text1||Text2||Text3||Text4 ? "Upd:Enable" : "Upd:Disable", upd
 return
 
-GetCsv(A2D, Req, UpdDir, Version, Store)
+GetCsv(A2D, Req, UpdDir, Version)
 {	If FileExist(A2D "..\UX\installed-files.csv") && !Store
 	{ path := """Compiler\" Req """"
 		if (Version != "Delete")
@@ -121,9 +121,9 @@ for k, v in Reqs
 	{	wk=FileDelete `%Tgt`%%Req%`nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
 	,1`nif A_LastError=0`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
 	= %A_LastError%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
-		GetCsv(A2D, Req, UpdDir, Text%k%N, Store)
+		GetCsv(A2D, Req, UpdDir, Text%k%N)
 	} else if (Text%k% = -1)
-	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete", Store)
+	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
 		wk=FileDelete `%Tgt`%%Req%`nif A_LastError=0`nFileDelete `%Src`%\%Req%
 	} else wk=FileDelete `%Src`%\%Req%
 	FileAppend %wk%`n, %UpdDir%\Script1.ahk
@@ -164,7 +164,7 @@ ToolTip
 IfNotExist `%Tgt`%Ahk2Exe.exe
 	Mess:="``n``nAhk2Exe deleted. To reinstall:``n``n v1 - Run the AHK installer."
 . "``n v2 - Press 'Windows/Start', find & run AutoHotkey Dash => Compile.``n"
-. " MS Store version - Settings => Apps => AutoHotkey v2 => Advanced => Reset."
+. " Microsoft Store version - Uninstall and reinstall the package."
 if txt`n	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 wk=#NoTrayIcon``nDetectHiddenWindows on``nWinKill ahk_id `%A_ScriptHwnd`%``n
