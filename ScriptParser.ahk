@@ -163,40 +163,47 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		&& ((wk:=DllCall("FindResource","Ptr",Modl,"Str","#1","Ptr",10,"Ptr")) || 1)
 		&& DllCall("FreeLibrary", "ptr", Modl)) ;^ ResourceID = 1?
 			Util_Error("Error: Cannot determine AutoHotkey vintage.", 0x54, AhkPath)
-		AhkSw := wk ? " /Script " : " "
-		
-		ilibfile := Util_TempFile(, "ilib~")
-		RunWait,"%comspec%" /c ""%AhkPath%"%AhkSw%/iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%E"", %FirstScriptDir%, UseErrorLevel Hide
-		if ErrorLevel in 1, 2          ;^ Editor may flag, but it's valid syntax
-		{	FileDelete %ilibfile%        ; Avoid UNC path bug & allow MS Store compile
-			RunWait, "%AhkPath%" %AhkSw% /iLib "%ilibfile%" /ErrorStdOut "%AhkScript%" 2>"%ilibfile%A", %FirstScriptDir%, UseErrorLevel Hide
-		} ;^^ Bug ref https://www.autohotkey.com/boards/viewtopic.php?f=14&t=90457
-		if (ErrorLevel = 2)
-		{	FileRead tmpErrorData,%ilibfile%E
-			FileDelete %ilibfile%*
+		AhkSw := wk ? " /Script " : " ", ilib := Util_TempFile(, "ilib~")
+
+		CmdLn = "%AhkPath%" %AhkSw% /iLib "%ilib%" /ErrorStdOut "%AhkScript%"
+		if Store
+		{	tmpErrorData := RunCMD(CmdLn, FirstScriptDir)
+			ErrLev1 := ErrLev := ErrorLevel
+		} else
+		{	RunWait "%ComSpec%" /c "%CmdLn% 2>"%ilib%E"", %FirstScriptDir%
+			, UseErrorLevel Hide            ;^ Editor may flag, but it's valid syntax
+			ErrLev2 := ErrLev := ErrorLevel
+			FileRead tmpErrorData,%ilib%E
+			if ErrLev in 1,2                ; Avoid UNC path bug
+			{	RunWait %CmdLn% 2>"%ilib%A", %FirstScriptDir%, UseErrorLevel Hide
+				ErrLev3 := ErrLev := ErrorLevel
+		}	} ;^^ Bug ref https://www.autohotkey.com/boards/viewtopic.php?f=14&t=90457
+		if (ErrLev = 2)
+		{	FileDelete %ilib%*
 			Util_Error("Error: The script contains syntax errors.", 0x11,tmpErrorData)
+		} else if (ErrLev)                ; Unexpected error has occurred
+		{	FileDelete %ilib%*
+			Util_Error("Error: Call for """ AhkPath """ has failed.`n(%comspec%="
+			.  ComSpec ")`nError code is " ErrLev "`nErrLev1 = " ErrLev1
+			. "`nErrLev2 = " ErrLev2 "`nErrLev3 = " ErrLev3, 0x51)
 		}
-		if (ErrLev := ErrorLevel)       ; Unexpected error has occurred
-		{	FileDelete %ilibfile%*
-			Util_Error("Error: Call to """ AhkPath """ has failed.`n(%comspec%="
-			.  ComSpec ")`nError code is "ErrLev, 0x51)
-		}
-		IfExist, %ilibfile%
-		{	FileGetSize wk, %ilibfile%
+
+		IfExist, %ilib%
+		{	FileGetSize wk, %ilib%
 			if wk > 3
 			{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
-				{ Loop 4                    ; v1 - Generate random label prefix
+				{ Loop 4                      ; v1 - Generate random label prefix
 					{ Random wk, 97, 122
-						ScriptText .= Chr(wk)   ; Prevent possible '#Warn Unreachable'
-					}                         ; Don't execute Auto_Includes directly
+						ScriptText .= Chr(wk)     ; Prevent possible '#Warn Unreachable'
+					}                           ; Don't execute Auto_Includes directly
 					ScriptText .= "_This_and_next_line_added_by_Ahk2Exe:`nExit`n"
 				}
-				PreprocessScript(ScriptText, ilibfile, Directives
+				PreprocessScript(ScriptText, ilib, Directives
 				, PriorLines, FileList, FirstScriptDir, Options)
 		}	}
-		If (ilibfile)
-			FileDelete, %ilibfile%*
-		StringTrimRight, ScriptText, ScriptText, 1 ; remove trailing newline
+		If (ilib)
+			FileDelete, %ilib%*
+		StringTrimRight, ScriptText, ScriptText, 1   ; Remove trailing newline
 	}
 
 	DerefIncludeVars.A_LineFile := oldLineFile
@@ -258,6 +265,48 @@ Util_TempFile(d := "", f := "", xep := "")
 		tempName := d "\~Ahk2Exe~" xe "~" f Counter ".tmp"
 	} until !FileExist(tempName)
 	return tempName
+}
+
+RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) 
+{ Local         ; RunCMD v0.97 by SKAN on D34E/D67E 
+                ;            @ autohotkey.com/boards/viewtopic.php?t=74647
+                ; Based on StdOutToVar.ahk by Sean 
+                ;            @ autohotkey.com/board/topic/15455-stdouttovar
+                ; Modified by TAC109 to not use A_Args (disrupts Ahk2Exe)
+
+	Slow := !! Slow, Fn := IsFunc(Fn) ? Func(Fn) : 0, P8 := (A_PtrSize=8)
+	, DllCall("CreatePipe", "PtrP",hPipeR:=0, "PtrP",hPipeW:=0, "Ptr",0, "Int",0)
+	, DllCall("SetHandleInformation", "Ptr",hPipeW, "Int",1, "Int",1)
+	, DllCall("SetNamedPipeHandleState","Ptr",hPipeR, "UIntP",PIPE_NOWAIT:=1
+		, "Ptr",0, "Ptr",0)
+
+	, VarSetCapacity(SI, P8 ? 104 : 68, 0)        ; STARTUPINFO structure
+	, NumPut(P8 ? 104 : 68, SI)                   ; size of STARTUPINFO
+	, NumPut(STARTF_USESTDHANDLES:=0x100, SI, P8 ? 60 : 44,"UInt") ; dwFlags
+	, NumPut(hPipeW, SI, P8 ? 88 : 60)            ; hStdOutput
+	, NumPut(hPipeW, SI, P8 ? 96 : 64)            ; hStdError
+	, VarSetCapacity(PI, P8 ? 24 : 16)            ; PROCESS_INFORMATION structure
+	
+	If !DllCall("CreateProcess", "Ptr",0, "Str",CmdLine, "Ptr",0,"Int",0,"Int",1
+	, "Int",0x08000000 | DllCall("GetPriorityClass", "Ptr",-1, "UInt"), "Int",0
+	, "Ptr", WorkingDir ? &WorkingDir : 0, "Ptr",&SI, "Ptr",&PI)
+		Return Format("{1:}", "", ErrorLevel := -1
+		, DllCall("CloseHandle", "Ptr",hPipeW), DllCall("CloseHandle","Ptr",hPipeR))
+
+	DllCall("CloseHandle", "Ptr",hPipeW)
+	, RnCMD := { "PID": NumGet(PI, P8? 16 : 8, "UInt") }
+	, File := FileOpen(hPipeR, "h", Codepage), LineNum := 1,  sOutput := ""
+	While  ( RnCMD.PID | DllCall("Sleep", "Int",Slow) )
+	and  DllCall("PeekNamedPipe", "Ptr",hPipeR, "Ptr",0, "Int",0, "Ptr",0
+	, "Ptr",0, "Ptr",0)
+		While RnCMD.PID and StrLen(Line := File.ReadLine())
+			sOutput .= Fn ? Fn.Call(Line, LineNum++) : Line
+
+	RnCMD.PID := 0, hProcess := NumGet(PI, 0), hThread  := NumGet(PI, A_PtrSize)
+	, DllCall("GetExitCodeProcess", "Ptr",hProcess, "PtrP",ExitCode:=0)
+	, DllCall("CloseHandle", "Ptr",hProcess), DllCall("CloseHandle","Ptr",hThread)
+	, DllCall("CloseHandle", "Ptr",hPipeR), ErrorLevel := ExitCode
+	Return sOutput
 }
 
 class DerefIncludeVars

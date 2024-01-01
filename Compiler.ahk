@@ -19,9 +19,6 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 		CustomIcon := (Idir ? Idir : Ahk_Dir) "\" (Iname ? Iname : Ahk_Name ) ".ico"
 		CustomIcon := Util_GetFullPath(CustomIcon)
 	}
-	; Get temp file name. Remove any invalid "path/" from exe name (/ should be \)
-	ExeFileTmp := Util_TempFile(, "exe~", RegExReplace(xe,"^.*/"))
-	
 	if BinFile =
 	{	BinFile = %A_ScriptDir%\AutoHotkeySC.bin
 		IfNotExist %BinFile%
@@ -35,10 +32,12 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 		Util_Error("Error: The selected Base file does not exist. (C1)"
 		, 0x34, """" BinFile """")
 	
-	try FileCopy, %BinFile%, %ExeFileTmp%, 1
-	catch
-		Util_Error("Error: Unable to copy Base file to destination."
-		, 0x41, """" ExeFileTmp """")
+	; Get temp file name. Remove any invalid "path/" from exe name (/ should be \)
+	ExeFileTmp := Util_TempFile(, "exe~", RegExReplace(xe,"^.*/"))
+	FileCopy, %BinFile%, %ExeFileTmp%, 1
+	if (A_LastError)
+		Util_Error("Error: Unable to copy Base file to destination. (C1)"
+		, 0x41, """" ExeFileTmp """", "Error = " A_LastError)
 
 	DerefIncludeVars.Delete("U_", "V_")         ; Clear Directives entries
 	DerefIncludeVars.Delete("A_WorkFileName")

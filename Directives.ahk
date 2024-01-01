@@ -86,10 +86,9 @@ Directive_Obey(state, name, txt, extra:=0)
 			FileAppend % "`nFileOpen(""" wk A_Index
 			. """,""W"",""UTF-8"").Write(" name A_Index ")", %wk%, UTF-8
 		if SilentMode
-		{ RunWait,"%comspec%" /c ""%AhkPath%" %AhkSw% /ErrorStdOut "%wk%" 2>"%wk%E"",, UseErrorLevel Hide ; Editor may flag, but it's valid syntax
+		{ ErrorData := RunCMD("""" AhkPath """ " AhkSw " /ErrorStdOut """ wk """")
 			if ErrorLevel
-			{	FileRead ErrorData, %wk%E
-				FileDelete %wk%*
+			{	FileDelete %wk%*
 				Util_Error("Error: 'Obey' directive cannot be executed.",0x68,ErrorData)
 		}	} else RunWait "%AhkPath%" %AhkSw% "%wk%",,Hide
 		Loop % extra + 1
