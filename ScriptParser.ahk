@@ -267,6 +267,7 @@ Util_TempFile(d := "", f := "", xep := "")
 	return tempName
 }
 
+
 RunCMD(CmdLine, WorkingDir:="", Codepage:="CP0", Fn:="RunCMD_Output", Slow:=1) 
 { Local         ; RunCMD v0.97 by SKAN on D34E/D67E 
                 ;            @ autohotkey.com/boards/viewtopic.php?t=74647

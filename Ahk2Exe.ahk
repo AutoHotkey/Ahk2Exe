@@ -42,7 +42,6 @@ global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
 	, ExeFiles := [], BinFiles := [], BinNames, FileNameG, LastIdG := 1
 	, Store := A_ScriptDir "\" ~= "i)^.:\\Program Files\\WindowsApps\\"
 
-ExeDfltMes := "(Default is script file, or any relevant compiler directive)"
 
 ; Set default codepage from any installed AHK
 ScriptFileCP := A_FileEncoding
@@ -65,6 +64,7 @@ if (BinFiles.1 = SBDMes && !StopCDBin)
 	BinFileId := 1, LastIdG := FindBinFile(LastBinFile) - 1
 else BinFileId := FindBinFile(LastBinFile)
 
+ExeDfltMes := "(Default is script file, or any relevant compiler directive)"
 AllowMes0 := "A&llow Gui Shrinkage`tAlt+L"
 AllowMes1 := "Disa&llow Gui Shrinkage`tAlt+L"
 SaveMes   := "S&ave Script Settings As…`tCtrl+S"
@@ -80,7 +80,9 @@ Menu, FileMenu, Add, &Convert`tAlt+C, Convert
 Menu, FileMenu, Add
 Menu, FileMenu, Add, E&xit`tAlt+F4, GuiClose
 Menu, HelpMenu, Add, &Help`tF1, % Help0
-Menu, HelpMenu, Add, Check for Updates...`tAlt+K, Update
+RunWait "%ComSpec%" /c echo 1,,UseErrorLevel Hide 
+if !(ErrorLevel && Store && ComSpec) ;No update if Store S mode & ComSpec exists
+	Menu, HelpMenu, Add, Check for Updates...`tAlt+K, Update
 Menu, HelpMenu, Add
 Menu, HelpMenu, Add, &About, About
 Menu, MenuBar,  Add, &File, :FileMenu
@@ -762,7 +764,7 @@ Util_Status(s)       ;v Keep early status for GUI
 Util_Error(txt, exitcode, extra := "", extra1 := "", HourGlass := 1)
 {	global CLIMode, ExeFileTmp, SilentMode, AhkFile
 	if extra
-		txt .= "`n`nSpecifically:`n" extra
+		txt .= "`n`nNamely:`n" extra
 	if extra1
 		txt .= "`n`n" extra1
 	Util_HideHourglass()
