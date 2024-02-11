@@ -3,7 +3,7 @@
 ;
 PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 , FileList := "", FirstScriptDir := "", Options := "", iOption := 0)
-{	global DirDoneG, PriorLine
+{	global DirDoneG, PriorLine, MjrVn
 	SplitPath, AhkScript, ScriptName, ScriptDir
 	if !IsObject(FileList)
 	{
@@ -18,7 +18,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 	oldLineFile := DerefIncludeVars.A_LineFile
 	DerefIncludeVars.A_LineFile := AhkScript
 	
-	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+	if (MjrVn != 1)                       ; Handle v2+ default folder
 	{	OldWorkingDirv2 := A_WorkingDir
 		SetWorkingDir %ScriptDir%
 	}
@@ -54,7 +54,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				else if StrStartsWith(tline, "/*")
 				{	if StrStartsWith(tline, "/*@Ahk2Exe-Keep")
 						cmtBlock := 2
-					else if !(SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 &&tline~="\*/$")
+					else if !(MjrVn != 1 && tline ~= "\*/$")
 							cmtBlock := 1
 					continue
 				} else if (cmtBlock = 2 && StrStartsWith(tline, "*/"))
@@ -144,8 +144,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 				Util_Error("Error: #Delimiter is not supported.", 0x22)
 			else
 				ScriptText .= (contSection ? A_LoopReadLine : tline) "`n"
-		} else if (tline~="^\*/" 
-		|| SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 && tline~="\*/$")
+		} else if (tline~="^\*/" || MjrVn != 1 && tline~="\*/$")
 			cmtBlock := 0                                    ; End block comment
 	}                                                    ; End file-read loop
 	Loop, % !!IsFirstScript ; Like "if IsFirstScript" but can "break" from block
@@ -191,7 +190,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 		IfExist, %ilib%
 		{	FileGetSize wk, %ilib%
 			if wk > 3
-			{	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=1
+			{	if (MjrVn != 1)
 				{ Loop 4                      ; v1 - Generate random label prefix
 					{ Random wk, 97, 122
 						ScriptText .= Chr(wk)     ; Prevent possible '#Warn Unreachable'
@@ -210,7 +209,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 	if OldWorkingDir
 		SetWorkingDir, %OldWorkingDir%
 	
-	if SubStr(DerefIncludeVars.A_AhkVersion,1,1)=2 ; Handle v2 default folder
+	if (MjrVn != 1)                     ; Handle v2+ default folder
 		SetWorkingDir %OldWorkingDirv2%
 }
 ; --------------------------- End PreprocessScript -----------------------------

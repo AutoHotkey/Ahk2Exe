@@ -7,7 +7,7 @@
 
 AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 {
-	global ExeFileTmp, ExeFileG, SilentMode
+	global ExeFileTmp, ExeFileG, SilentMode, MjrVn
 
 	tempWD := new CTempWD(AhkWorkingDir)   ; Original Ahk2Exe starting directory
 	SplitPath AhkFile,, Ahk_Dir,, Ahk_Name
@@ -48,13 +48,13 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 		Util_Error("Ahk2Exe must be compiled with a Unicode 32-bit .exe Base file."
 		, 0x2)
 
+	MjrVn := SubStr(BinType.Version,1,1)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
 	DerefIncludeVars.A_PtrSize    := BinType.PtrSize
 	DerefIncludeVars.A_IsUnicode  := BinType.IsUnicode
 	DerefIncludeVars.A_BasePath   := BinFile
 
 	global AhkPath := UseAhkPath         ; = any /ahk parameter
-	
 	; V2 alphas and betas expected to match as breaking changes between versions
 	if (AhkPath = "") ; Later v2 versions will have base as .exe, so should match
 		if !(AhkPath := ExeFiles[BinType.Version BinType.Summary]) ; .exe vs base?
@@ -120,7 +120,7 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 					Reload := 1
 	}	}	}
 	if Reload
-		run "%ExeFileG%", %ExeFileG%\..
+		Run "%ExeFileG%", %ExeFileG%\..
 	Util_HideHourglass()
 	Util_Status("")
 	return ExeFileG
@@ -129,10 +129,10 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 
 BundleAhkScript(ExeFile, ResourceID, AhkFile, UseMPRESS, IcoFile
 	, fileCP, BinFile, VerInfo)
-{
+{	global MjrVn
 	if fileCP is space
-		if SubStr(DerefIncludeVars.A_AhkVersion,1,1) = 2
-			fileCP := "UTF-8"           ; Default for v2 is UTF-8
+		if (MjrVn != 1)
+			fileCP := "UTF-8"            ; Default for v2+ is UTF-8
 		else fileCP := A_FileEncoding
 	
 	try FileEncoding, %fileCP%
