@@ -47,6 +47,8 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	if AhkFile~="i)\\Ahk2Exe.ahk$" &&(BinType.Summary!="U32" ||BinFile~="i).bin$")
 		Util_Error("Ahk2Exe must be compiled with a Unicode 32-bit .exe Base file."
 		, 0x2)
+	if AhkFile~="i)\\Ahk2Exe.ahk$" && UseMPRESS ; Don't compress Ahk2Exe
+		Util_Error("Ahk2Exe must not be compressed when compiled.", 0x2)
 
 	MjrVn := SubStr(BinType.Version,1,1)
 	DerefIncludeVars.A_AhkVersion := BinType.Version
