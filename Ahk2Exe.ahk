@@ -8,7 +8,7 @@
 ;
 ; Must be compiled with itself (same version)
 ;
-; @Ahk2Exe-Base           AutoHotkeyU32.exe      ; Commented out; advisory only
+; @Ahk2Exe-Base           ..\AutoHotkeyU32.exe   ; Commented out; advisory only
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
@@ -21,7 +21,6 @@ SetBatchLines -1
 #NoEnv
 #NoTrayIcon
 #SingleInstance Off
-
 #Include %A_ScriptDir%
 #Include Compiler.ahk
 #Include Update.ahk
@@ -34,14 +33,11 @@ SetBatchLines -1
 Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion SubVer
 
 OnExit("Util_HideHourglass"), OnExit("UpdDirRem")
-
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
-
 global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
 	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode, DirDoneG
 	, ExeFiles := [], BinFiles := [], BinNames, FileNameG, LastIdG := 1
 	, Store := A_ScriptDir "\" ~= "i)^.:\\Program Files\\WindowsApps\\"
-
 
 ; Set default codepage from any installed AHK
 ScriptFileCP := A_FileEncoding
@@ -388,7 +384,7 @@ CmdArg_Icon(p2) {
 CmdArg_Base(p2) {
 	global StopCDBin:=1, BinFile:=p2, LastBinFile:=Util_GetFullPath(p2), p1, BadP
 	if !FileExist(p2)
-		BadP.Push(["Error: Base file does not exist.",0x34,"""" p2 """"])
+		BadP.Push(["Error: " p1 " file does not exist.",0x34,"""" p2 """"])
 	else AddBin(p2, 1)
 }
 CmdArg_Bin(p2) {
@@ -412,8 +408,7 @@ CmdArg_Compress(p2) {
 CmdArg_Ahk(p2) {
 	global
 	if !FileExist(p2)
-		Util_Error("Error: Specified resource does not exist.", 0x36
-		, "Command line parameter /ahk`n""" p2 """")
+		BadP.Push(["Error: /ahk parameter - file not found.",0x36,"""" p2 """"])
 	UseAhkPath := Util_GetFullPath(p2)
 }
 CmdArg_CP(p2) { ; for example: '/cp 1252' or '/cp UTF-8'
