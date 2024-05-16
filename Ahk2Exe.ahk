@@ -324,12 +324,13 @@ AddBin(File, Force := 0)
 	{	if !(Force && File ~= "AutoHotkey\.exe$")
 			Util_Error("Warning: Base file appears to be invalid.",0 ,"""" File """"
 			, "Press 'OK' to accept anyway, or 'Cancel' to ignore.", 0)
-		Type := AHKType(File), BinFiles.Push(File), BinNames .= "|v"
-		. Type.Version " " Type.Summary " " RegExReplace(File, "^.+\\")
+		Type := AHKType(File), BinFiles.Push(File), BinNames .= (BinNames ? "|" :"")
+		. "v" Type.Version " " Type.Summary " " RegExReplace(File, "^.+\\")
 	}
 	GuiControl,,       BinFileId, |%BinNames% 
 	GuiControl Choose, BinFileId, % BinFiles.MaxIndex()
 	Util_Status("""" File """ added to 'Base file' list.")
+	gosub BinChanged
 }		
 
 ParseCmdLine:
