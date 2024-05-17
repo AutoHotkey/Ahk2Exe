@@ -1,8 +1,7 @@
 ﻿goto UpdateEnd                                ; If fall-into, skip to near end
 Update:
-Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe"
-,"https://www.autohotkey.com/mpress/mpress.219.zip,,,Mpress.exe"
-,"UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
+Reqs:=[(wk:="AutoHotkey/Ahk2Exe") ",,,Ahk2Exe.exe", "TAC109/Mpress,,,Mpress.exe"
+, "UPX/UPX," (A_Is64bitOS?"64.zip":"32.zip") ",,Upx.exe", wk ",,2,BinMod.ahk"]
 A2D := A_ScriptDir "\"
 if !A_IsCompiled                               ; Compile Ahk2Exe to test updates
 	RunWait "%A_AhkPath%" "%A_ScriptFullPath%" /compress 0
@@ -19,8 +18,7 @@ Gui Upd:Font, norm
 Gui Upd:Show, w350 h160, % "  Checking ..."
 for k, v in Reqs
 {	Reqa := StrSplit(v,","), Text%k%T := ""
-	Url := Reqa.4="mpress.exe" ? Reqa.1 : GitHubDwnldUrl(Reqa.1,Reqa.2,Reqa.3)
-	if url
+	if (url := GitHubDwnldUrl(Reqa.1, Reqa.2, Reqa.3))
 	{	URLDownloadToFile %Url%, %UpdDir%\File.zip
 		FileCopyDir %UpdDir%\File.zip, %UpdDir%\%k%
 		IfNotExist % UpdDir "\" k (wk := "\" Reqa.4)
@@ -63,6 +61,8 @@ SetTimer,, Off
 Priv := "*RunAs"
 SendMessage 0x160c,, 1, Button9, Ahk2Exe Updater  ; BCM_SETSHIELD := 0x160c
 return
+
+
 
 
 
