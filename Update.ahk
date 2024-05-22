@@ -220,12 +220,12 @@ return
 
 GitHubDwnldUrl(Repo, Ext := ".zip", Typ := 1)
 {	Ext := Typ=2 ? "" : Ext ? Ext : ".zip", Typ := Typ ? Typ : 1
-	Req := ComObjCreate("Msxml2.XMLHTTP")
+	Req := ComObjCreate("Msxml2.XMLHTTP") ;^ Set defaults
 	Req.open("GET", "https://api.github.com/repos/" Repo "/releases/latest", 0)
 	try Req.send()
-	if (Req.status = 200)
+	if (Req.status = 200)     ;v Typ=1=binary zip, Typ=2=source
 	{	Res := Req.responseText, Type1 := "browser_download", Type2 := "zipball"
-		while RegExMatch(Res,"i)""" Type%Typ% "_url"":""")
+		while RegExMatch(Res,"iU)""" Type%Typ% "_url"":""")
 		{	Res := RegExReplace(Res,"iU)^.+""" Type%Typ% "_url"":""")
 			Url := RegExReplace(Res,""".+$")
 			if (!Ext || SubStr(url, 1-StrLen(Ext)) = Ext)
