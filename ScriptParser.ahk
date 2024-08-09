@@ -8,7 +8,7 @@ PreprocessScript(ByRef ScriptText, AhkScript, Directives, PriorLines
 	if !IsObject(FileList)
 	{
 		FileList := [AhkScript]
-		ScriptText := "; <COMPILER: v" A_AhkVersion ">`n"
+		ScriptText := "; <COMPILER: v" VerG ">`n"
 		FirstScriptDir := ScriptDir
 		IsFirstScript := true
 		Options := { comm: ";", esc: "``" }

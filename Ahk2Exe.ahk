@@ -30,7 +30,6 @@ SetBatchLines -1
 #Include *i SubVer.ahk ; 'SubVer.ahk' must NOT be on GitHub. (Keep these -> "")
 ;@Ahk2Exe-Obey U_V, = "%A_PriorLine~U)^(.+")(.*)".*$~$2%" ? "SetVersion" : "Nop"
 ;@Ahk2Exe-%U_V%        %A_AhkVersion%%A_PriorLine~U)^(.+")(.*)".*$~$2%
-Ver := A_IsCompiled ? AHKType(A_ScriptFullPath,0).Version : A_AhkVersion SubVer
 
 OnExit("Util_HideHourglass"), OnExit("UpdDirRem")
 CompressCode := {-1:2, 0:-1, 1:-1, 2:-1} ; Valid compress codes (-1 => 2)
@@ -38,6 +37,7 @@ global UseAhkPath := "", AhkWorkingDir := A_WorkingDir, StopCDExe, StopCDIco
 	, StopCDBin, SBDMes := "(Use script's 'Base' directives)", CLIMode, DirDoneG
 	, ExeFiles := [], BinFiles := [], BinNames, FileNameG, LastIdG := 1
 	, Store := A_ScriptDir "\" ~= "i)^.:\\Program Files\\WindowsApps\\"
+	, VerG := A_IsCompiled?AHKType(A_ScriptFullPath,0).Version:A_AhkVersion SubVer
 
 ; Set default codepage from any installed AHK
 ScriptFileCP := A_FileEncoding
@@ -135,7 +135,7 @@ Gui, Add, Pic, x20 y4 w240 h77 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show, %LastWidth%, Ahk2Exe for AutoHotkey v%Ver% -- Script to EXE Converter
+Gui, Show, %LastWidth%,Ahk2Exe for AutoHotkey v%VerG% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
