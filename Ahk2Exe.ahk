@@ -8,7 +8,7 @@
 ;
 ; Must be compiled with itself (same version)
 ;
-; @Ahk2Exe-Base           ..\AutoHotkeyU32.exe   ; Commented out; advisory only
+;@Ahk2Exe-Base            %A_AhkPath%\..\AutoHotkeyU32.exe
 ;@Ahk2Exe-SetName         Ahk2Exe
 ;@Ahk2Exe-SetDescription  AutoHotkey Script Compiler
 ;@Ahk2Exe-SetCopyright    Copyright (c) since 2004
