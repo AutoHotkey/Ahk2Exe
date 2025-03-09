@@ -1,5 +1,5 @@
 ﻿
-;@Ahk2Exe-SetVersion     2023.06.05     ; Edition: (y.m.d)
+;@Ahk2Exe-SetVersion     2025.03.09     ; Edition: (y.m.d)
 ;@Ahk2Exe-SetCopyright   TAC109
 ;@Ahk2Exe-SetProductName BinMod
 ;@Ahk2Exe-SetDescription Binary file editor - see Ahk2Exe's PostExec directive
@@ -278,7 +278,7 @@ io(Type:="Close", Data:="")
 ;  https://www.autohotkey.com/boards/viewtopic.php?f=76&t=13155#p67713
 
 InBuf(hayP, hayS, neeP, neeS, sOff:=0)      ; Search buffer; returns offset
-{ Static Buf ;Includes InBuf by wOxxOm www.autohotkey.com/forum/topic25925.html
+{ Static Buf,s ;Includes wOxxOm's InBuf www.autohotkey.com/forum/topic25925.html
   If (!VarSetCapacity(Buf))                 ; Mcode
   { h :=  "530CEC83E5895583145D8BFC57560000BE840F00FB8B104D8B6D7E0041D929C12918"
 . "45C701087D8B607E4BACC0310C758B744B32744B41744C754B10744B203F75AEF293AD934E2C"
@@ -308,9 +308,10 @@ InBuf(hayP, hayS, neeP, neeS, sOff:=0)      ; Search buffer; returns offset
 . "48407A8B305A02E9C1484A8BEFC32905E3C1D889ABC301D831078B484A8BEE75C9FF3F300974"
 . "03E183F775C9FFC7FF488BEF01483C7A8B10B9EB0148245A04C3C1480000003C30040F24D888"
 . "FFAA0704027C3A5E5F5D58EB75C97E00F8835B595AC301"
-    VarSetCapacity(Buf, StrLen(h)//2+6)
+    VarSetCapacity(Buf, s:=StrLen(h)//2+6)
     Loop % (StrLen(h)+12)//14
       NumPut("0x" SubStr(h,(A_Index-1)*14+1,14), Buf, (A_Index-1)*7, "Int64")
+    DllCall("VirtualProtect","Ptr",&Buf, "Ptr",s, "UInt",0x40, "UInt*",s)
   }
   Return DllCall(&Buf, "Ptr",hayP,"Ptr",neeP,"Ptr",hayS,"Ptr",neeS,"Ptr",sOff)
 }
