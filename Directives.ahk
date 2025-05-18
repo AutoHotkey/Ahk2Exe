@@ -289,7 +289,8 @@ Directive_AddResource(state, rsrc, resName := "")
 	}
 	if !DllCall("UpdateResource", "ptr",state.Module, typeType,resType, nameType
 	, resName, "ushort",state.resLang, "ptr",pData, "uint",fSize, "uint")
-		Util_Error("Error adding resource:", 0x46, state.Cmd)
+		Util_Error("Error adding resource:", 0x46
+		, SubStr(state.PriorLine,1,1)=Chr(127)?SubStr(state.PriorLine,2):state.Cmd)
 	VarSetCapacity(fData, 0)
 }
 
