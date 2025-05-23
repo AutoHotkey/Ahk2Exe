@@ -46,6 +46,12 @@ ProcessDirectives(ExeFile, Module, Directives, PriorLines, IcoFile, VerInfo)
 	return state
 }
 ; ---------------------------- Handle Directives -------------------------------
+Directive_Base(state, txt*)
+{                                         ; Do nothing
+}
+Directive_Bin(state, txt*)
+{                                         ; Do nothing
+}
 Directive_ConsoleApp(state)
 {	state.ConsoleApp := true
 }

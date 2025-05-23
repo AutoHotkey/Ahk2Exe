@@ -135,7 +135,7 @@ Gui, Add, Pic, x20 y4 w240 h77 vHeading1, %A_ScriptDir%\logo.png
 /*@Ahk2Exe-Keep
 gosub AddPicture
 */
-Gui, Show, %LastWidth%,Ahk2Exe for AutoHotkey v%VerG% -- Script to EXE Converter
+Gui,Show,%LastWidth%,Ahk2Exe%b% for AutoHotkey v%VerG% -- Script to EXE Converter
 GuiControl, Focus, vBtnConvert
 gosub compress
 gosub BinChanged
