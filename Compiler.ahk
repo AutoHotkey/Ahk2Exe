@@ -91,9 +91,11 @@ AhkCompile(AhkFile, ExeFile, ResourceID, CustomIcon, BinFile, UseMPRESS, fileCP)
 	Util_Status("Moving .exe to destination")
 
 	Loop
-	{	try                    ;v FileMove, but avoids copying permissions from temp
-		{	FileCopy   %ExeFileTmp%, %ExeFileG%, 1
-			FileDelete %ExeFileTmp%
+	{	try
+		{	if A_IsAdmin         ;v FileMove, but avoids copying permissions from temp
+			{	FileCopy      %ExeFileTmp%, %ExeFileG%, 1
+				FileDelete    %ExeFileTmp%
+			} else FileMove %ExeFileTmp%, %ExeFileG%, 1
 			break
 		}
 		Util_HideHourglass()
