@@ -119,12 +119,12 @@ for k, v in Reqs
 {	Req := RegExReplace(StrSplit(v,",").4,"\..+$") ".exe"
 	if (Text%k% = 1)
 	{	wk=FileDelete `%Tgt`%%Req%`nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
-	,1`nif A_LastError=0`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
-	= %A_LastError%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+	,1`nif !(x:=A_LastError)`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
+	= %x%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
 		GetCsv(A2D, Req, UpdDir, Text%k%N)
 	} else if (Text%k% = -1)
 	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
-		wk=FileDelete `%Tgt`%%Req%`nif A_LastError=0`nFileDelete `%Src`%\%Req%
+		wk=FileDelete `%Tgt`%%Req%`nif !(A_LastError)`nFileDelete `%Src`%\%Req%
 	} else wk=FileDelete `%Src`%\%Req%
 	FileAppend %wk%`n, %UpdDir%\Script1.ahk
 } 
