@@ -120,7 +120,7 @@ for k, v in Reqs
 	if (Text%k% = 1)
 	{	wk=FileDelete `%Tgt`%%Req%`nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
 	,1`nif !(x:=A_LastError)`nFileDelete `%Src`%\%Req%`nelse MsgBox A_LastError
-	= %x%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
+	= `%x`%``n``nFileCopy `%Src`%\%Req%`,`%Tgt`%%Req%
 		GetCsv(A2D, Req, UpdDir, Text%k%N)
 	} else if (Text%k% = -1)
 	{	txt .= "`n`t" Req, GetCsv(A2D, Req, UpdDir, "Delete")
