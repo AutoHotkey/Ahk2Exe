@@ -108,8 +108,9 @@ GetCsv(A2D, Req, UpdDir, Version)
 
 UpdButtonUpdate?:
 Gui Submit, NoHide
+GuiControl,Upd:, Button9, Updating...
 FileDelete %UpdDir%\Script*.*
-wk=#Requires AutoHotkey v1.1`nToolTip Ahk2Exe Updater``nRunning...`nTgt=%A2D%`n
+wk=#Requires AutoHotkey v1.1`nTgt=%A2D%`n
 wk=%wk%Srx=%UpdDir%`nStore=%Store%`n#NoTrayIcon`nDetectHiddenWindows on`n
 wk=%wk%Src:=SubStr(Srx,1,-1) "x"`nFileMoveDir `%Srx`%`,`%Src`%`,r`n
 wk=%wk%WinKill ahk_id %A_ScriptHwnd%`nWinWaitClose ahk_id %A_ScriptHwnd%`,`,10`n
@@ -163,16 +164,16 @@ IfExist `%Src`%\Script3c.csv
 ToolTip
 IfNotExist `%Tgt`%Ahk2Exe.exe
 	Mess:="``n``nAhk2Exe deleted. To reinstall:``n``n v1 - Run the AHK installer."
-. "``n v2 - Press 'Windows/Start', find & run AutoHotkey Dash => Compile.``n"
-. " Microsoft Store version - Uninstall and reinstall the package."
+. "``n v2 - Press 'Windows/Start', find & run``n``t AutoHotkey Dash => Compile."
+. "``n Microsoft Store version - Uninstall and reinstall the package."
+else Mess:="``n``nAhk2Exe will be restarted."
 if txt`n	MsgBox 48, Ahk2Exe Updater, Failed to update:`%txt`%``n`%Mess`%
 else MsgBox 64, Ahk2Exe Updater, Update completed successfully. `%Mess`%
 wk=#NoTrayIcon``nDetectHiddenWindows on``nWinKill ahk_id `%A_ScriptHwnd`%``n
 wk=`%wk`%WinWaitClose ahk_id `%A_ScriptHwnd`%,,10``n
 FileAppend `%wk`%, `%Src`%\Script2.ahk
 If FileExist(wk := Tgt "Ahk2Exe.exe")
-{	ToolTip Ahk2Exe Updater``nRestarting Ahk2Exe...
-	if (Store)`n  Run "`%wk`%" /restart `%Par`%, A_WorkingDir
+{	if (Store)`n  Run "`%wk`%" /restart `%Par`%, A_WorkingDir
 	else       RunAsUser(wk,  "/Restart " Par,   A_WorkingDir)
 }
 if !(Store)
